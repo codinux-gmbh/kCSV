@@ -1,403 +1,331 @@
-package blackbox.reader;
+package blackbox.reader
 
-import net.codinux.csv.kcsv.reader.CloseableIterator;
-import net.codinux.csv.kcsv.reader.CommentStrategy;
-import net.codinux.csv.kcsv.reader.CsvReader;
-import net.codinux.csv.kcsv.reader.CsvRow;
-import net.codinux.csv.kcsv.reader.MalformedCsvException;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.MethodSource;
-import org.junit.jupiter.params.provider.ValueSource;
+import net.codinux.csv.kcsv.reader.CommentStrategy
+import net.codinux.csv.kcsv.reader.CsvReader
+import net.codinux.csv.kcsv.reader.CsvReader.CsvReaderBuilder
+import net.codinux.csv.kcsv.reader.CsvRow
+import net.codinux.csv.kcsv.reader.MalformedCsvException
+import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.Arguments
+import org.junit.jupiter.params.provider.MethodSource
+import org.junit.jupiter.params.provider.ValueSource
+import java.io.CharArrayReader
+import java.io.IOException
+import java.io.StringReader
+import java.io.UncheckedIOException
+import java.util.*
+import java.util.concurrent.atomic.AtomicInteger
+import java.util.function.Consumer
+import java.util.function.Supplier
+import java.util.stream.Collectors
+import java.util.stream.Stream
 
-import java.io.CharArrayReader;
-import java.io.IOException;
-import java.io.StringReader;
-import java.io.UncheckedIOException;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
-import java.util.NoSuchElementException;
-import java.util.Spliterator;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.Consumer;
-import java.util.function.Supplier;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
+class CsvReaderTest {
+  private val crb = CsvReader.builder()
+  @ParameterizedTest
+  @ValueSource(chars = ['\r', '\n'])
+  fun configBuilder(c: Char) {
+    val e = Assertions.assertThrows(IllegalArgumentException::class.java) { CsvReader.builder().fieldSeparator(c).build("foo") }
+    Assertions.assertEquals("fieldSeparator must not be a newline char", e.message)
+    val e2 = Assertions.assertThrows(IllegalArgumentException::class.java) { CsvReader.builder().quoteCharacter(c).build("foo") }
+    Assertions.assertEquals("quoteCharacter must not be a newline char", e2.message)
+    val e3 = Assertions.assertThrows(IllegalArgumentException::class.java) { CsvReader.builder().commentCharacter(c).build("foo") }
+    Assertions.assertEquals("commentCharacter must not be a newline char", e3.message)
+  }
 
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+  @ParameterizedTest
+  @MethodSource("provideBuilderForMisconfiguration")
+  fun configReader(builder: CsvReaderBuilder) {
+    val e = Assertions.assertThrows(IllegalArgumentException::class.java) { builder.build("foo") }
+    Assertions.assertTrue(e.message!!.contains("Control characters must differ"))
+  }
 
-@SuppressWarnings({
-    "checkstyle:ClassFanOutComplexity",
-    "PMD.AvoidDuplicateLiterals",
-    "PMD.CloseResource"
-})
-public class CsvReaderTest {
+  @Test
+  fun empty() {
+    val it: Iterator<CsvRow> = crb.build("").iterator()
+    Assertions.assertFalse(it.hasNext())
+    Assertions.assertThrows(NoSuchElementException::class.java) { it.next() }
+  }
 
-    private final CsvReader.CsvReaderBuilder crb = CsvReader.builder();
+  @Test
+  fun immutableResponse() {
+    val fields = crb.build("foo").iterator().next().getFields()
+    Assertions.assertThrows(UnsupportedOperationException::class.java) { (fields as MutableList).add("bar") }
+  }
 
-    @ParameterizedTest
-    @ValueSource(chars = {'\r', '\n'})
-    public void configBuilder(final char c) {
-        final IllegalArgumentException e = assertThrows(IllegalArgumentException.class, () ->
-            CsvReader.builder().fieldSeparator(c).build("foo"));
-        assertEquals("fieldSeparator must not be a newline char", e.getMessage());
+  // toString()
+  @Test
+  fun readerToString() {
+    Assertions.assertEquals(
+      "CsvReader[commentStrategy=NONE, skipEmptyRows=true, "
+        + "errorOnDifferentFieldCount=false]", crb.build("").toString()
+    )
+  }
 
-        final IllegalArgumentException e2 = assertThrows(IllegalArgumentException.class, () ->
-            CsvReader.builder().quoteCharacter(c).build("foo"));
-        assertEquals("quoteCharacter must not be a newline char", e2.getMessage());
+  // skipped rows
+  @Test
+  fun singleRowNoSkipEmpty() {
+    crb.skipEmptyRows(false)
+    Assertions.assertFalse(crb.build("").iterator().hasNext())
+  }
 
-        final IllegalArgumentException e3 = assertThrows(IllegalArgumentException.class, () ->
-            CsvReader.builder().commentCharacter(c).build("foo"));
-        assertEquals("commentCharacter must not be a newline char", e3.getMessage());
-    }
+  @Test
+  fun multipleRowsNoSkipEmpty() {
+    crb.skipEmptyRows(false)
+    val it: Iterator<CsvRow> = crb.build("\n\na").iterator()
+    var row = it.next()
+    Assertions.assertTrue(row.isEmpty())
+    Assertions.assertEquals(1, row.getFieldCount())
+    Assertions.assertEquals(1, row.originalLineNumber)
+    Assertions.assertEquals(listOf(""), row.getFields())
+    row = it.next()
+    Assertions.assertTrue(row.isEmpty())
+    Assertions.assertEquals(1, row.getFieldCount())
+    Assertions.assertEquals(2, row.originalLineNumber)
+    Assertions.assertEquals(listOf(""), row.getFields())
+    row = it.next()
+    Assertions.assertFalse(row.isEmpty())
+    Assertions.assertEquals(1, row.getFieldCount())
+    Assertions.assertEquals(3, row.originalLineNumber)
+    Assertions.assertEquals(listOf("a"), row.getFields())
+    Assertions.assertFalse(it.hasNext())
+  }
 
-    @ParameterizedTest
-    @MethodSource("provideBuilderForMisconfiguration")
-    public void configReader(final CsvReader.CsvReaderBuilder builder) {
-        final IllegalArgumentException e = assertThrows(IllegalArgumentException.class, () ->
-            builder.build("foo"));
-        assertTrue(e.getMessage().contains("Control characters must differ"));
-    }
+  @Test
+  fun skippedRows() {
+    val csv = readAll("\n\nfoo\n\nbar\n\n")
+    Assertions.assertEquals(2, csv.size)
+    val it = csv.iterator()
+    var row = it.next()
+    Assertions.assertEquals(3, row.originalLineNumber)
+    Assertions.assertEquals(listOf("foo"), row.getFields())
+    row = it.next()
+    Assertions.assertEquals(5, row.originalLineNumber)
+    Assertions.assertEquals(listOf("bar"), row.getFields())
+  }
 
-    static Stream<Arguments> provideBuilderForMisconfiguration() {
-        return Stream.of(
-            Arguments.of(CsvReader.builder().quoteCharacter(',')),
-            Arguments.of(CsvReader.builder().commentCharacter(',')),
-            Arguments.of(CsvReader.builder().quoteCharacter('#').commentCharacter('#'))
-        );
-    }
+  // different field count
+  @Test
+  fun differentFieldCountSuccess() {
+    crb.errorOnDifferentFieldCount(true)
+    Assertions.assertDoesNotThrow<List<CsvRow>> { readAll("foo\nbar") }
+    Assertions.assertDoesNotThrow<List<CsvRow>> { readAll("foo\nbar\n") }
+    Assertions.assertDoesNotThrow<List<CsvRow>> { readAll("foo,bar\nfaz,baz") }
+    Assertions.assertDoesNotThrow<List<CsvRow>> { readAll("foo,bar\nfaz,baz\n") }
+    Assertions.assertDoesNotThrow<List<CsvRow>> { readAll("foo,bar\n,baz") }
+    Assertions.assertDoesNotThrow<List<CsvRow>> { readAll(",bar\nfaz,baz") }
+  }
 
-    @Test
-    public void empty() {
-        final Iterator<CsvRow> it = crb.build("").iterator();
-        assertFalse(it.hasNext());
-        assertThrows(NoSuchElementException.class, it::next);
-    }
+  @Test
+  fun differentFieldCountFail() {
+    crb.errorOnDifferentFieldCount(true)
+    val e = Assertions.assertThrows(
+      MalformedCsvException::class.java
+    ) { readAll("foo\nbar,\"baz\nbax\"") }
+    Assertions.assertEquals("Row 2 has 2 fields, but first row had 1 fields", e.message)
+  }
 
-    @Test
-    public void immutableResponse() {
-        final List<String> fields = crb.build("foo").iterator().next().getFields();
-        assertThrows(UnsupportedOperationException.class, () -> fields.add("bar"));
-    }
-
-    // toString()
-
-    @Test
-    public void readerToString() {
-        assertEquals("CsvReader[commentStrategy=NONE, skipEmptyRows=true, "
-            + "errorOnDifferentFieldCount=false]", crb.build("").toString());
-    }
-
-    // skipped rows
-
-    @Test
-    public void singleRowNoSkipEmpty() {
-        crb.skipEmptyRows(false);
-        assertFalse(crb.build("").iterator().hasNext());
-    }
-
-    @Test
-    public void multipleRowsNoSkipEmpty() {
-        crb.skipEmptyRows(false);
-        final Iterator<CsvRow> it = crb.build("\n\na").iterator();
-
-        CsvRow row = it.next();
-        assertTrue(row.isEmpty());
-        assertEquals(1, row.getFieldCount());
-        assertEquals(1, row.originalLineNumber);
-        assertEquals(Collections.singletonList(""), row.getFields());
-
-        row = it.next();
-        assertTrue(row.isEmpty());
-        assertEquals(1, row.getFieldCount());
-        assertEquals(2, row.originalLineNumber);
-        assertEquals(Collections.singletonList(""), row.getFields());
-
-        row = it.next();
-        assertFalse(row.isEmpty());
-        assertEquals(1, row.getFieldCount());
-        assertEquals(3, row.originalLineNumber);
-        assertEquals(Collections.singletonList("a"), row.getFields());
-
-        assertFalse(it.hasNext());
-    }
-
-    @Test
-    public void skippedRows() {
-        final List<CsvRow> csv = readAll("\n\nfoo\n\nbar\n\n");
-        assertEquals(2, csv.size());
-
-        final Iterator<CsvRow> it = csv.iterator();
-
-        CsvRow row = it.next();
-        assertEquals(3, row.originalLineNumber);
-        assertEquals(Collections.singletonList("foo"), row.getFields());
-
-        row = it.next();
-        assertEquals(5, row.originalLineNumber);
-        assertEquals(Collections.singletonList("bar"), row.getFields());
-    }
-
-    // different field count
-
-    @Test
-    public void differentFieldCountSuccess() {
-        crb.errorOnDifferentFieldCount(true);
-
-        assertDoesNotThrow(() -> readAll("foo\nbar"));
-        assertDoesNotThrow(() -> readAll("foo\nbar\n"));
-
-        assertDoesNotThrow(() -> readAll("foo,bar\nfaz,baz"));
-        assertDoesNotThrow(() -> readAll("foo,bar\nfaz,baz\n"));
-
-        assertDoesNotThrow(() -> readAll("foo,bar\n,baz"));
-        assertDoesNotThrow(() -> readAll(",bar\nfaz,baz"));
-    }
-
-    @Test
-    public void differentFieldCountFail() {
-        crb.errorOnDifferentFieldCount(true);
-
-        final MalformedCsvException e = assertThrows(MalformedCsvException.class,
-            () -> readAll("foo\nbar,\"baz\nbax\""));
-
-        assertEquals("Row 2 has 2 fields, but first row had 1 fields", e.getMessage());
-    }
-
+  @get:Test
+  val nonExistingFieldByIndex: Unit
     // field by index
-
-    @Test
-    @SuppressWarnings("CheckReturnValue")
-    public void getNonExistingFieldByIndex() {
-        assertThrows(IndexOutOfBoundsException.class, () ->
-            spotbugs(readSingleRow("foo").getField(1)));
+    get() {
+      Assertions.assertThrows(IndexOutOfBoundsException::class.java) { spotbugs(readSingleRow("foo").getField(1)) }
     }
 
-    @SuppressWarnings("PMD.UnusedFormalParameter")
-    private void spotbugs(final String foo) {
-        // Prevent RV_RETURN_VALUE_IGNORED_NO_SIDE_EFFECT
+  private fun spotbugs(foo: String) {
+    // Prevent RV_RETURN_VALUE_IGNORED_NO_SIDE_EFFECT
+  }
+
+  // line numbering
+  @Test
+  fun lineNumbering() {
+    val it: Iterator<CsvRow> = crb
+      .commentStrategy(CommentStrategy.SKIP)
+      .build(
+        "line 1\n"
+          + "line 2\r"
+          + "line 3\r\n"
+          + "\"line 4\rwith\r\nand\n\"\n"
+          + "#line 8\n"
+          + "line 9"
+      ).iterator()
+    var row = it.next()
+    Assertions.assertEquals(listOf("line 1"), row.getFields())
+    Assertions.assertEquals(1, row.originalLineNumber)
+    row = it.next()
+    Assertions.assertEquals(listOf("line 2"), row.getFields())
+    Assertions.assertEquals(2, row.originalLineNumber)
+    row = it.next()
+    Assertions.assertEquals(listOf("line 3"), row.getFields())
+    Assertions.assertEquals(3, row.originalLineNumber)
+    row = it.next()
+    Assertions.assertEquals(listOf("line 4\rwith\r\nand\n"), row.getFields())
+    Assertions.assertEquals(4, row.originalLineNumber)
+    row = it.next()
+    Assertions.assertEquals(listOf("line 9"), row.getFields())
+    Assertions.assertEquals(9, row.originalLineNumber)
+    Assertions.assertFalse(it.hasNext())
+  }
+
+  // comment
+  @Test
+  fun comment() {
+    val it: Iterator<CsvRow> = crb
+      .commentStrategy(CommentStrategy.READ)
+      .build("#comment \"1\"\na,#b,c").iterator()
+    var row = it.next()
+    Assertions.assertTrue(row.isComment)
+    Assertions.assertEquals(1, row.originalLineNumber)
+    Assertions.assertEquals(listOf("comment \"1\""), row.getFields())
+    row = it.next()
+    Assertions.assertFalse(row.isComment)
+    Assertions.assertEquals(2, row.originalLineNumber)
+    Assertions.assertEquals(mutableListOf("a", "#b", "c"), row.getFields())
+  }
+
+  // to string
+  @Test
+  fun toStringWithoutHeader() {
+    Assertions.assertEquals(
+      "CsvRow[originalLineNumber=1, fields=[fieldA, fieldB], comment=false]",
+      readSingleRow("fieldA,fieldB\n").toString()
+    )
+  }
+
+  // refill buffer while parsing an unquoted field containing a quote character
+  @Test
+  fun refillBufferInDataWithQuote() {
+    val extra = ",a\"b\"c,d,".toCharArray()
+    val buf = CharArray(8192 + extra.size)
+    Arrays.fill(buf, 'X')
+    System.arraycopy(extra, 0, buf, 8190, extra.size)
+    val row = crb.build(CharArrayReader(buf)).iterator().next()
+    Assertions.assertEquals(4, row.getFieldCount())
+    Assertions.assertEquals("a\"b\"c", row.getField(1))
+    Assertions.assertEquals("d", row.getField(2))
+    Assertions.assertEquals("XX", row.getField(3))
+  }
+
+  // buffer exceed
+  @Test
+  fun bufferExceed() {
+    val buf = CharArray(8 * 1024 * 1024)
+    Arrays.fill(buf, 'X')
+    buf[buf.size - 1] = ','
+    crb.build(CharArrayReader(buf)).iterator().next()
+    buf[buf.size - 1] = Char('X'.code.toByte().toUShort())
+    val exception = Assertions.assertThrows(UncheckedIOException::class.java) { crb.build(CharArrayReader(buf)).iterator().next() }
+    Assertions.assertEquals("IOException when reading first record", exception.message)
+    Assertions.assertEquals(
+      "Maximum buffer size 8388608 is not enough to read data of a single field. "
+        + "Typically, this happens if quotation started but did not end within this buffer's "
+        + "maximum boundary.",
+      exception.cause!!.message
+    )
+  }
+
+  @Test
+  fun bufferExceedSubsequentRecord() {
+    val buf = CharArray(8 * 1024 * 1024)
+    Arrays.fill(buf, 'X')
+    val s = "a,b,c\n\""
+    System.arraycopy(s.toCharArray(), 0, buf, 0, s.length)
+    val iterator = crb.build(CharArrayReader(buf)).iterator()
+    iterator.next()
+    val exception = Assertions.assertThrows(UncheckedIOException::class.java) { iterator.next() }
+    Assertions.assertEquals("IOException when reading record that started in line 2", exception.message)
+    Assertions.assertEquals(
+      "Maximum buffer size 8388608 is not enough to read data of a single field. "
+        + "Typically, this happens if quotation started but did not end within this buffer's "
+        + "maximum boundary.",
+      exception.cause!!.message
+    )
+  }
+
+  // API
+  @Test
+  @Throws(IOException::class)
+  fun closeApi() {
+    val consumer = Consumer { csvRow: CsvRow? -> }
+    val supp = Supplier { CloseStatusReader(StringReader("foo,bar")) }
+    var csr = supp.get()
+    crb.build(csr).use { reader -> reader.stream().forEach(consumer) }
+    Assertions.assertTrue(csr.isClosed)
+    csr = supp.get()
+    crb.build(csr).iterator().use { it -> it.forEachRemaining(consumer) }
+    Assertions.assertTrue(csr.isClosed)
+    csr = supp.get()
+    crb.build(csr).stream().use { stream -> stream.forEach(consumer) }
+    Assertions.assertTrue(csr.isClosed)
+  }
+
+  @Test
+  fun closeStringNoException() {
+    Assertions.assertDoesNotThrow { crb.build("foo").close() }
+  }
+
+  @Test
+  fun spliterator() {
+    val spliterator = crb.build("a,b,c\n1,2,3").spliterator()
+    Assertions.assertNull(spliterator.trySplit())
+    Assertions.assertEquals(Long.MAX_VALUE, spliterator.estimateSize())
+    Assertions.assertEquals(
+      Spliterator.ORDERED or Spliterator.DISTINCT or Spliterator.NONNULL
+        or Spliterator.IMMUTABLE, spliterator.characteristics()
+    )
+    val rows = AtomicInteger()
+    val rows2 = AtomicInteger()
+    while (spliterator.tryAdvance { row: CsvRow? -> rows.incrementAndGet() }) {
+      rows2.incrementAndGet()
     }
+    Assertions.assertEquals(2, rows.get())
+    Assertions.assertEquals(2, rows2.get())
+  }
 
-    // line numbering
+  @Test
+  fun parallelDistinct() {
+    Assertions.assertEquals(2, crb.build("foo\nfoo").stream().parallel().distinct().count())
+  }
 
-    @Test
-    public void lineNumbering() {
-        final Iterator<CsvRow> it = crb
-            .commentStrategy(CommentStrategy.SKIP)
-            .build(
-                "line 1\n"
-                    + "line 2\r"
-                    + "line 3\r\n"
-                    + "\"line 4\rwith\r\nand\n\"\n"
-                    + "#line 8\n"
-                    + "line 9"
-            ).iterator();
+  // Coverage
+  @Test
+  fun closeException() {
+    val csvReader = crb.build(UncloseableReader(StringReader("foo")))
+    val e = Assertions.assertThrows(
+      UncheckedIOException::class.java
+    ) { csvReader.stream().close() }
+    Assertions.assertEquals("java.io.IOException: Cannot close", e.message)
+  }
 
-        CsvRow row = it.next();
-        assertEquals(Collections.singletonList("line 1"), row.getFields());
-        assertEquals(1, row.originalLineNumber);
+  @Test
+  fun unreadable() {
+    val e = Assertions.assertThrows(UncheckedIOException::class.java) { crb.build(UnreadableReader()).iterator().next() }
+    Assertions.assertEquals("IOException when reading first record", e.message)
+  }
 
-        row = it.next();
-        assertEquals(Collections.singletonList("line 2"), row.getFields());
-        assertEquals(2, row.originalLineNumber);
+  // test helpers
+  private fun readSingleRow(data: String): CsvRow {
+    val lists = readAll(data)
+    Assertions.assertEquals(1, lists.size)
+    return lists[0]
+  }
 
-        row = it.next();
-        assertEquals(Collections.singletonList("line 3"), row.getFields());
-        assertEquals(3, row.originalLineNumber);
+  private fun readAll(data: String): List<CsvRow> {
+    return crb.build(data)
+      .stream()
+      .collect(Collectors.toList())
+  }
 
-        row = it.next();
-        assertEquals(Collections.singletonList("line 4\rwith\r\nand\n"), row.getFields());
-        assertEquals(4, row.originalLineNumber);
-
-        row = it.next();
-        assertEquals(Collections.singletonList("line 9"), row.getFields());
-        assertEquals(9, row.originalLineNumber);
-
-        assertFalse(it.hasNext());
+  companion object {
+    @JvmStatic
+    fun provideBuilderForMisconfiguration(): Stream<Arguments> {
+      return Stream.of(
+        Arguments.of(CsvReader.builder().quoteCharacter(',')),
+        Arguments.of(CsvReader.builder().commentCharacter(',')),
+        Arguments.of(CsvReader.builder().quoteCharacter('#').commentCharacter('#'))
+      )
     }
-
-    // comment
-
-    @Test
-    public void comment() {
-        final Iterator<CsvRow> it = crb
-            .commentStrategy(CommentStrategy.READ)
-            .build("#comment \"1\"\na,#b,c").iterator();
-
-        CsvRow row = it.next();
-        assertTrue(row.isComment());
-        assertEquals(1, row.originalLineNumber);
-        assertEquals(Collections.singletonList("comment \"1\""), row.getFields());
-
-        row = it.next();
-        assertFalse(row.isComment());
-        assertEquals(2, row.originalLineNumber);
-        assertEquals(Arrays.asList("a", "#b", "c"), row.getFields());
-    }
-
-    // to string
-
-    @Test
-    public void toStringWithoutHeader() {
-        assertEquals("CsvRow[originalLineNumber=1, fields=[fieldA, fieldB], comment=false]",
-            readSingleRow("fieldA,fieldB\n").toString());
-    }
-
-    // refill buffer while parsing an unquoted field containing a quote character
-
-    @Test
-    public void refillBufferInDataWithQuote() {
-        final char[] extra = ",a\"b\"c,d,".toCharArray();
-
-        final char[] buf = new char[8192 + extra.length];
-        Arrays.fill(buf, 'X');
-        System.arraycopy(extra, 0, buf, 8190, extra.length);
-
-        final CsvRow row = crb.build(new CharArrayReader(buf)).iterator().next();
-        assertEquals(4, row.getFieldCount());
-        assertEquals("a\"b\"c", row.getField(1));
-        assertEquals("d", row.getField(2));
-        assertEquals("XX", row.getField(3));
-    }
-
-    // buffer exceed
-
-    @Test
-    public void bufferExceed() {
-        final char[] buf = new char[8 * 1024 * 1024];
-        Arrays.fill(buf, 'X');
-        buf[buf.length - 1] = ',';
-
-        crb.build(new CharArrayReader(buf)).iterator().next();
-
-        buf[buf.length - 1] = (byte) 'X';
-        final UncheckedIOException exception = assertThrows(UncheckedIOException.class, () ->
-            crb.build(new CharArrayReader(buf)).iterator().next());
-        assertEquals("IOException when reading first record", exception.getMessage());
-
-        assertEquals("Maximum buffer size 8388608 is not enough to read data of a single field. "
-                + "Typically, this happens if quotation started but did not end within this buffer's "
-                + "maximum boundary.",
-            exception.getCause().getMessage());
-    }
-
-    @Test
-    public void bufferExceedSubsequentRecord() {
-        final char[] buf = new char[8 * 1024 * 1024];
-        Arrays.fill(buf, 'X');
-        final String s = "a,b,c\n\"";
-        System.arraycopy(s.toCharArray(), 0, buf, 0, s.length());
-
-        final CloseableIterator<CsvRow> iterator = crb.build(new CharArrayReader(buf)).iterator();
-
-        iterator.next();
-
-        final UncheckedIOException exception = assertThrows(UncheckedIOException.class, iterator::next);
-        assertEquals("IOException when reading record that started in line 2", exception.getMessage());
-
-        assertEquals("Maximum buffer size 8388608 is not enough to read data of a single field. "
-                + "Typically, this happens if quotation started but did not end within this buffer's "
-                + "maximum boundary.",
-            exception.getCause().getMessage());
-    }
-
-    // API
-
-    @Test
-    public void closeApi() throws IOException {
-        final Consumer<CsvRow> consumer = csvRow -> { };
-
-        final Supplier<CloseStatusReader> supp =
-            () -> new CloseStatusReader(new StringReader("foo,bar"));
-
-        CloseStatusReader csr = supp.get();
-        try (CsvReader reader = crb.build(csr)) {
-            reader.stream().forEach(consumer);
-        }
-        assertTrue(csr.isClosed());
-
-        csr = supp.get();
-        try (CloseableIterator<CsvRow> it = crb.build(csr).iterator()) {
-            it.forEachRemaining(consumer);
-        }
-        assertTrue(csr.isClosed());
-
-        csr = supp.get();
-        try (Stream<CsvRow> stream = crb.build(csr).stream()) {
-            stream.forEach(consumer);
-        }
-        assertTrue(csr.isClosed());
-    }
-
-    @Test
-    public void closeStringNoException() {
-        assertDoesNotThrow(() -> crb.build("foo").close());
-    }
-
-    @Test
-    public void spliterator() {
-        final Spliterator<CsvRow> spliterator =
-            crb.build("a,b,c\n1,2,3").spliterator();
-
-        assertNull(spliterator.trySplit());
-        assertEquals(Long.MAX_VALUE, spliterator.estimateSize());
-        assertEquals(Spliterator.ORDERED | Spliterator.DISTINCT | Spliterator.NONNULL
-            | Spliterator.IMMUTABLE, spliterator.characteristics());
-
-        final AtomicInteger rows = new AtomicInteger();
-        final AtomicInteger rows2 = new AtomicInteger();
-        while (spliterator.tryAdvance(row -> rows.incrementAndGet())) {
-            rows2.incrementAndGet();
-        }
-
-        assertEquals(2, rows.get());
-        assertEquals(2, rows2.get());
-    }
-
-    @Test
-    public void parallelDistinct() {
-        assertEquals(2, crb.build("foo\nfoo").stream().parallel().distinct().count());
-    }
-
-    // Coverage
-
-    @Test
-    public void closeException() {
-        final CsvReader csvReader = crb.build(new UncloseableReader(new StringReader("foo")));
-        final UncheckedIOException e = assertThrows(UncheckedIOException.class,
-            () -> csvReader.stream().close());
-
-        assertEquals("java.io.IOException: Cannot close", e.getMessage());
-    }
-
-    @Test
-    public void unreadable() {
-        final UncheckedIOException e = assertThrows(UncheckedIOException.class, () ->
-            crb.build(new UnreadableReader()).iterator().next());
-
-        assertEquals("IOException when reading first record", e.getMessage());
-    }
-
-    // test helpers
-
-    private CsvRow readSingleRow(final String data) {
-        final List<CsvRow> lists = readAll(data);
-        assertEquals(1, lists.size());
-        return lists.get(0);
-    }
-
-    private List<CsvRow> readAll(final String data) {
-        return crb.build(data)
-            .stream()
-            .collect(Collectors.toList());
-    }
-
+  }
 }

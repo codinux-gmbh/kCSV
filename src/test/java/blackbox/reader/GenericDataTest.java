@@ -1,47 +1,49 @@
-package blackbox.reader;
+package blackbox.reader
 
-import net.codinux.csv.kcsv.reader.CommentStrategy;
-import net.codinux.csv.kcsv.reader.CsvReader;
-import net.codinux.csv.kcsv.reader.CsvRow;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.MethodSource;
+import blackbox.reader.DataProvider.TestData
+import net.codinux.csv.kcsv.reader.CommentStrategy
+import net.codinux.csv.kcsv.reader.CsvReader
+import net.codinux.csv.kcsv.reader.CsvRow
+import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.MethodSource
+import java.io.IOException
+import java.util.stream.Collectors
 
-import java.io.IOException;
-import java.util.List;
-import java.util.stream.Collectors;
+class GenericDataTest {
+  @ParameterizedTest
+  @MethodSource("dataProvider")
+  fun dataTest(data: TestData) {
+    val expected = CharacterConv.print(data.expected)
+    val commentStrategy = if (data.isReadComments) CommentStrategy.READ else if (data.isSkipComments) CommentStrategy.SKIP else CommentStrategy.NONE
+    val actual = CharacterConv.print(
+      readAll(
+        CharacterConv.parse(data.input), data.isSkipEmptyLines,
+        commentStrategy
+      )
+    )
+    Assertions.assertEquals(expected, actual) { String.format("Error in line: '%s'", data) }
+  }
 
-import static blackbox.reader.CharacterConv.parse;
-import static blackbox.reader.CharacterConv.print;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-
-public class GenericDataTest {
-
-    @ParameterizedTest
-    @MethodSource("dataProvider")
-    public void dataTest(final DataProvider.TestData data) {
-        final String expected = print(data.getExpected());
-        final CommentStrategy commentStrategy = data.isReadComments()
-            ? CommentStrategy.READ
-            : data.isSkipComments() ? CommentStrategy.SKIP : CommentStrategy.NONE;
-        final String actual = print(readAll(parse(data.getInput()), data.isSkipEmptyLines(),
-            commentStrategy));
-        assertEquals(expected, actual, () -> String.format("Error in line: '%s'", data));
+  companion object {
+    @JvmStatic
+    @Throws(IOException::class)
+    fun dataProvider(): List<TestData?>? {
+      return DataProvider.loadTestData("/test.txt")
     }
 
-    static List<DataProvider.TestData> dataProvider() throws IOException {
-        return DataProvider.loadTestData("/test.txt");
+    fun readAll(
+      data: String?, skipEmptyLines: Boolean,
+      commentStrategy: CommentStrategy?
+    ): List<List<String?>> {
+      return CsvReader.builder()
+        .skipEmptyRows(skipEmptyLines)
+        .commentCharacter(';')
+        .commentStrategy(commentStrategy!!)
+        .build(data!!)
+        .stream()
+        .map<List<String?>> { obj: CsvRow -> obj.getFields() }
+        .collect(Collectors.toList())
     }
-
-    public static List<List<String>> readAll(final String data, final boolean skipEmptyLines,
-                                             final CommentStrategy commentStrategy) {
-        return CsvReader.builder()
-            .skipEmptyRows(skipEmptyLines)
-            .commentCharacter(';')
-            .commentStrategy(commentStrategy)
-            .build(data)
-            .stream()
-            .map(CsvRow::getFields)
-            .collect(Collectors.toList());
-    }
-
+  }
 }

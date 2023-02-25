@@ -1,252 +1,226 @@
-package blackbox.reader;
+package blackbox.reader
 
-import net.codinux.csv.kcsv.reader.CloseableIterator;
-import net.codinux.csv.kcsv.reader.NamedCsvReader;
-import net.codinux.csv.kcsv.reader.NamedCsvRow;
-import org.junit.jupiter.api.Test;
+import blackbox.Util
+import net.codinux.csv.kcsv.reader.NamedCsvReader
+import net.codinux.csv.kcsv.reader.NamedCsvRow
+import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.Test
+import java.io.IOException
+import java.io.StringReader
+import java.io.UncheckedIOException
+import java.util.concurrent.atomic.AtomicInteger
+import java.util.function.Consumer
+import java.util.function.Supplier
+import java.util.stream.Collectors
 
-import java.io.IOException;
-import java.io.StringReader;
-import java.io.UncheckedIOException;
-import java.util.Iterator;
-import java.util.List;
-import java.util.NoSuchElementException;
-import java.util.Spliterator;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.Consumer;
-import java.util.function.Supplier;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
+class NamedCsvReaderTest {
+  private val crb = NamedCsvReader.builder()
+  @Test
+  fun empty() {
+    val parse = parse("")
+    Assertions.assertArrayEquals(arrayOfNulls<String>(0), parse.getHeader()!!.toTypedArray())
+    val it: Iterator<NamedCsvRow> = parse.iterator()
+    Assertions.assertFalse(it.hasNext())
+    Assertions.assertThrows(NoSuchElementException::class.java) { it.next() }
+  }
 
-import static blackbox.Util.asArray;
-import static org.junit.jupiter.api.Assertions.assertArrayEquals;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+  // toString()
+  @Test
+  fun readerToString() {
+    Assertions.assertEquals(
+      "NamedCsvReader[header=null, csvReader=CsvReader["
+        + "commentStrategy=NONE, skipEmptyRows=true, errorOnDifferentFieldCount=true]]",
+      crb.build("h1\nd1").toString()
+    )
+  }
 
-@SuppressWarnings({"PMD.AvoidDuplicateLiterals", "PMD.CloseResource"})
-public class NamedCsvReaderTest {
+  @Test
+  fun duplicateHeader() {
+    val e = Assertions.assertThrows(IllegalStateException::class.java) { parse("a,b,a").getHeader() }
+    Assertions.assertEquals("Duplicate header field 'a' found", e.message)
+  }
 
-    private final NamedCsvReader.NamedCsvReaderBuilder crb = NamedCsvReader.builder();
+  @Test
+  fun onlyHeader() {
+    val csv = parse("foo,bar\n")
+    Assertions.assertArrayEquals(Util.asArray("foo", "bar"), csv.getHeader()!!.toTypedArray())
+    Assertions.assertFalse(csv.iterator().hasNext())
+    Assertions.assertThrows(NoSuchElementException::class.java) { csv.iterator().next() }
+  }
 
-    @Test
-    public void empty() {
-        final NamedCsvReader parse = parse("");
-        assertArrayEquals(new String[0], parse.getHeader().toArray());
-        final Iterator<NamedCsvRow> it = parse.iterator();
-        assertFalse(it.hasNext());
-        assertThrows(NoSuchElementException.class, it::next);
+  @Test
+  fun onlyHeaderIterator() {
+    val csv = parse("foo,bar\n")
+    Assertions.assertArrayEquals(Util.asArray("foo", "bar"), csv.getHeader()!!.toTypedArray())
+    Assertions.assertFalse(csv.iterator().hasNext())
+  }
+
+  @get:Test
+  val fieldByName: Unit
+    get() {
+      Assertions.assertEquals("bar", parse("foo\nbar").iterator().next().getField("foo"))
     }
 
-    // toString()
+  @get:Test
+  val header: Unit
+    get() {
+      Assertions.assertArrayEquals(Util.asArray("foo"), parse("foo\nbar").getHeader()!!.toTypedArray())
+      val reader = parse("foo,bar\n1,2")
+      Assertions.assertArrayEquals(Util.asArray("foo", "bar"), reader.getHeader()!!.toTypedArray())
 
-    @Test
-    public void readerToString() {
-        assertEquals("NamedCsvReader[header=null, csvReader=CsvReader["
-                + "commentStrategy=NONE, skipEmptyRows=true, errorOnDifferentFieldCount=true]]",
-            crb.build("h1\nd1").toString());
+      // second call
+      Assertions.assertArrayEquals(Util.asArray("foo", "bar"), reader.getHeader()!!.toTypedArray())
     }
 
-    @Test
-    public void duplicateHeader() {
-        final IllegalStateException e =
-            assertThrows(IllegalStateException.class, () -> parse("a,b,a").getHeader());
-        assertEquals("Duplicate header field 'a' found", e.getMessage());
+  @get:Test
+  val headerEmptyRows: Unit
+    get() {
+      val csv = parse("foo,bar")
+      Assertions.assertArrayEquals(Util.asArray("foo", "bar"), csv.getHeader()!!.toTypedArray())
+      val it: Iterator<NamedCsvRow> = csv.iterator()
+      Assertions.assertFalse(it.hasNext())
+      Assertions.assertThrows(NoSuchElementException::class.java) { it.next() }
     }
 
-    @Test
-    public void onlyHeader() {
-        final NamedCsvReader csv = parse("foo,bar\n");
-        assertArrayEquals(asArray("foo", "bar"), csv.getHeader().toArray());
-        assertFalse(csv.iterator().hasNext());
-        assertThrows(NoSuchElementException.class, () -> csv.iterator().next());
+  @get:Test
+  val headerAfterSkippedRow: Unit
+    get() {
+      val csv = parse("\nfoo,bar")
+      Assertions.assertArrayEquals(Util.asArray("foo", "bar"), csv.getHeader()!!.toTypedArray())
+      val it: Iterator<NamedCsvRow> = csv.iterator()
+      Assertions.assertFalse(it.hasNext())
     }
 
-    @Test
-    public void onlyHeaderIterator() {
-        final NamedCsvReader csv = parse("foo,bar\n");
-        assertArrayEquals(asArray("foo", "bar"), csv.getHeader().toArray());
-        assertFalse(csv.iterator().hasNext());
+  @get:Test
+  val headerWithoutNextRowCall: Unit
+    get() {
+      Assertions.assertArrayEquals(Util.asArray("foo"), parse("foo\n").getHeader()!!.toTypedArray())
     }
 
-    @Test
-    public void getFieldByName() {
-        assertEquals("bar", parse("foo\nbar").iterator().next().getField("foo"));
+  @Test
+  fun findNonExistingFieldByName() {
+    val e = Assertions.assertThrows(NoSuchElementException::class.java) { parse("foo\nfaz").iterator().next().getField("bar") }
+    Assertions.assertEquals(
+      "No element with name 'bar' found. Valid names are: [foo]",
+      e.message
+    )
+  }
+
+  @Test
+  fun toStringWithHeader() {
+    val csvRow: Iterator<NamedCsvRow> = parse("headerA,headerB,headerC\nfieldA,fieldB,fieldC\n").iterator()
+    Assertions.assertEquals(
+      "NamedCsvRow[originalLineNumber=2, "
+        + "fieldMap={headerA=fieldA, headerB=fieldB, headerC=fieldC}]",
+      csvRow.next().toString()
+    )
+  }
+
+  @Test
+  fun fieldMap() {
+    val it: Iterator<NamedCsvRow> = parse(
+      """
+  headerA,headerB,headerC
+  fieldA,fieldB,fieldC
+  
+  """.trimIndent()
+    )
+      .iterator()
+    Assertions.assertEquals(
+      "{headerA=fieldA, headerB=fieldB, headerC=fieldC}",
+      it.next().fields.toString()
+    )
+  }
+
+  // line numbering
+  @Test
+  fun lineNumbering() {
+    val it: Iterator<NamedCsvRow> = crb
+      .build(
+        """
+            h1,h2
+            a,line 2
+            b,line 3
+            c,line 4
+            d,"line 5
+            with
+            and
+            "
+            e,line 9
+            """.trimIndent()
+      ).iterator()
+    var row = it.next()
+    Assertions.assertEquals("a", row.getField("h1"))
+    Assertions.assertEquals(2, row.originalLineNumber)
+    row = it.next()
+    Assertions.assertEquals("b", row.getField("h1"))
+    Assertions.assertEquals(3, row.originalLineNumber)
+    row = it.next()
+    Assertions.assertEquals("c", row.getField("h1"))
+    Assertions.assertEquals(4, row.originalLineNumber)
+    row = it.next()
+    Assertions.assertEquals("d", row.getField("h1"))
+    Assertions.assertEquals(5, row.originalLineNumber)
+    row = it.next()
+    Assertions.assertEquals("e", row.getField("h1"))
+    Assertions.assertEquals(9, row.originalLineNumber)
+    Assertions.assertFalse(it.hasNext())
+  }
+
+  // API
+  @Test
+  @Throws(IOException::class)
+  fun closeApi() {
+    val consumer = Consumer { csvRow: NamedCsvRow? -> }
+    val supp = Supplier { CloseStatusReader(StringReader("h1,h2\nfoo,bar")) }
+    var csr = supp.get()
+    crb.build(csr).use { reader -> reader.stream().forEach(consumer) }
+    Assertions.assertTrue(csr.isClosed)
+    csr = supp.get()
+    crb.build(csr).iterator().use { it -> it.forEachRemaining(consumer) }
+    Assertions.assertTrue(csr.isClosed)
+    csr = supp.get()
+    crb.build(csr).stream().use { stream -> stream.forEach(consumer) }
+    Assertions.assertTrue(csr.isClosed)
+  }
+
+  @Test
+  fun noComments() {
+    val data = readAll("# comment 1\nfieldA")
+    Assertions.assertEquals("fieldA", data.iterator().next().getField("# comment 1"))
+  }
+
+  @Test
+  fun spliterator() {
+    val spliterator = crb.build("a,b,c\n1,2,3\n4,5,6").spliterator()
+    Assertions.assertNull(spliterator.trySplit())
+    Assertions.assertEquals(Long.MAX_VALUE, spliterator.estimateSize())
+    val rows = AtomicInteger()
+    val rows2 = AtomicInteger()
+    while (spliterator.tryAdvance { row: NamedCsvRow? -> rows.incrementAndGet() }) {
+      rows2.incrementAndGet()
     }
+    Assertions.assertEquals(2, rows.get())
+    Assertions.assertEquals(2, rows2.get())
+  }
 
-    @Test
-    public void getHeader() {
-        assertArrayEquals(asArray("foo"), parse("foo\nbar").getHeader().toArray());
+  // Coverage
+  @Test
+  fun closeException() {
+    val csvReader = crb
+      .build(UncloseableReader(StringReader("foo")))
+    val e = Assertions.assertThrows(
+      UncheckedIOException::class.java
+    ) { csvReader.stream().close() }
+    Assertions.assertEquals("java.io.IOException: Cannot close", e.message)
+  }
 
-        final NamedCsvReader reader = parse("foo,bar\n1,2");
-        assertArrayEquals(asArray("foo", "bar"), reader.getHeader().toArray());
+  // test helpers
+  private fun parse(data: String): NamedCsvReader {
+    return crb.build(data)
+  }
 
-        // second call
-        assertArrayEquals(asArray("foo", "bar"), reader.getHeader().toArray());
-    }
-
-    @Test
-    public void getHeaderEmptyRows() {
-        final NamedCsvReader csv = parse("foo,bar");
-        assertArrayEquals(asArray("foo", "bar"), csv.getHeader().toArray());
-        final Iterator<NamedCsvRow> it = csv.iterator();
-        assertFalse(it.hasNext());
-        assertThrows(NoSuchElementException.class, it::next);
-    }
-
-    @Test
-    public void getHeaderAfterSkippedRow() {
-        final NamedCsvReader csv = parse("\nfoo,bar");
-        assertArrayEquals(asArray("foo", "bar"), csv.getHeader().toArray());
-        final Iterator<NamedCsvRow> it = csv.iterator();
-        assertFalse(it.hasNext());
-    }
-
-    @Test
-    public void getHeaderWithoutNextRowCall() {
-        assertArrayEquals(asArray("foo"), parse("foo\n").getHeader().toArray());
-    }
-
-    @Test
-    public void findNonExistingFieldByName() {
-        final NoSuchElementException e = assertThrows(NoSuchElementException.class, () ->
-            parse("foo\nfaz").iterator().next().getField("bar"));
-        assertEquals("No element with name 'bar' found. Valid names are: [foo]",
-            e.getMessage());
-    }
-
-    @Test
-    public void toStringWithHeader() {
-        final Iterator<NamedCsvRow> csvRow =
-            parse("headerA,headerB,headerC\nfieldA,fieldB,fieldC\n").iterator();
-
-        assertEquals("NamedCsvRow[originalLineNumber=2, "
-                + "fieldMap={headerA=fieldA, headerB=fieldB, headerC=fieldC}]",
-            csvRow.next().toString());
-    }
-
-    @Test
-    public void fieldMap() {
-        final Iterator<NamedCsvRow> it = parse("headerA,headerB,headerC\n"
-            + "fieldA,fieldB,fieldC\n")
-            .iterator();
-
-        assertEquals("{headerA=fieldA, headerB=fieldB, headerC=fieldC}",
-            it.next().getFields().toString());
-    }
-
-    // line numbering
-
-    @Test
-    public void lineNumbering() {
-        final Iterator<NamedCsvRow> it = crb
-            .build(
-                "h1,h2\n"
-                    + "a,line 2\n"
-                    + "b,line 3\r"
-                    + "c,line 4\r\n"
-                    + "d,\"line 5\rwith\r\nand\n\"\n"
-                    + "e,line 9"
-            ).iterator();
-
-        NamedCsvRow row = it.next();
-        assertEquals("a", row.getField("h1"));
-        assertEquals(2, row.originalLineNumber);
-
-        row = it.next();
-        assertEquals("b", row.getField("h1"));
-        assertEquals(3, row.originalLineNumber);
-
-        row = it.next();
-        assertEquals("c", row.getField("h1"));
-        assertEquals(4, row.originalLineNumber);
-
-        row = it.next();
-        assertEquals("d", row.getField("h1"));
-        assertEquals(5, row.originalLineNumber);
-
-        row = it.next();
-        assertEquals("e", row.getField("h1"));
-        assertEquals(9, row.originalLineNumber);
-
-        assertFalse(it.hasNext());
-    }
-
-    // API
-
-    @Test
-    public void closeApi() throws IOException {
-        final Consumer<NamedCsvRow> consumer = csvRow -> { };
-
-        final Supplier<CloseStatusReader> supp =
-            () -> new CloseStatusReader(new StringReader("h1,h2\nfoo,bar"));
-
-        CloseStatusReader csr = supp.get();
-
-        try (NamedCsvReader reader = crb.build(csr)) {
-            reader.stream().forEach(consumer);
-        }
-        assertTrue(csr.isClosed());
-
-        csr = supp.get();
-        try (CloseableIterator<NamedCsvRow> it = crb.build(csr).iterator()) {
-            it.forEachRemaining(consumer);
-        }
-        assertTrue(csr.isClosed());
-
-        csr = supp.get();
-        try (Stream<NamedCsvRow> stream = crb.build(csr).stream()) {
-            stream.forEach(consumer);
-        }
-        assertTrue(csr.isClosed());
-    }
-
-    @Test
-    public void noComments() {
-        final List<NamedCsvRow> data = readAll("# comment 1\nfieldA");
-        assertEquals("fieldA", data.iterator().next().getField("# comment 1"));
-    }
-
-    @Test
-    public void spliterator() {
-        final Spliterator<NamedCsvRow> spliterator =
-            crb.build("a,b,c\n1,2,3\n4,5,6").spliterator();
-
-        assertNull(spliterator.trySplit());
-        assertEquals(Long.MAX_VALUE, spliterator.estimateSize());
-
-        final AtomicInteger rows = new AtomicInteger();
-        final AtomicInteger rows2 = new AtomicInteger();
-        while (spliterator.tryAdvance(row -> rows.incrementAndGet())) {
-            rows2.incrementAndGet();
-        }
-
-        assertEquals(2, rows.get());
-        assertEquals(2, rows2.get());
-    }
-
-    // Coverage
-
-    @Test
-    public void closeException() {
-        final NamedCsvReader csvReader = crb
-            .build(new UncloseableReader(new StringReader("foo")));
-        final UncheckedIOException e = assertThrows(UncheckedIOException.class,
-            () -> csvReader.stream().close());
-
-        assertEquals("java.io.IOException: Cannot close", e.getMessage());
-    }
-
-    // test helpers
-
-    private NamedCsvReader parse(final String data) {
-        return crb.build(data);
-    }
-
-    private List<NamedCsvRow> readAll(final String data) {
-        return parse(data).stream().collect(Collectors.toList());
-    }
-
+  private fun readAll(data: String): List<NamedCsvRow> {
+    return parse(data).stream().collect(Collectors.toList())
+  }
 }

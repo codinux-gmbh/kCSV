@@ -1,12 +1,7 @@
-package blackbox;
+package blackbox
 
-public final class Util {
-
-    private Util() {
-    }
-
-    public static String[] asArray(final String... items) {
-        return items;
-    }
-
+object Util {
+  fun asArray(vararg items: String): Array<out String> {
+    return items
+  }
 }

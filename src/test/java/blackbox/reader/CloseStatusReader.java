@@ -1,30 +1,20 @@
-package blackbox.reader;
+package blackbox.reader
 
-import java.io.IOException;
-import java.io.Reader;
+import java.io.IOException
+import java.io.Reader
 
-class CloseStatusReader extends Reader {
+internal class CloseStatusReader(private val reader: Reader) : Reader() {
+  var isClosed = false
+    private set
 
-    private final Reader reader;
-    private boolean closed;
+  @Throws(IOException::class)
+  override fun read(cbuf: CharArray, off: Int, len: Int): Int {
+    return reader.read()
+  }
 
-    CloseStatusReader(final Reader reader) {
-        this.reader = reader;
-    }
-
-    @Override
-    public int read(final char[] cbuf, final int off, final int len) throws IOException {
-        return reader.read();
-    }
-
-    @Override
-    public void close() throws IOException {
-        reader.close();
-        closed = true;
-    }
-
-    public boolean isClosed() {
-        return closed;
-    }
-
+  @Throws(IOException::class)
+  override fun close() {
+    reader.close()
+    isClosed = true
+  }
 }

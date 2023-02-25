@@ -1,97 +1,86 @@
-package example;
+package example
 
-import net.codinux.csv.kcsv.reader.CommentStrategy;
-import net.codinux.csv.kcsv.reader.CsvReader;
-import net.codinux.csv.kcsv.reader.CsvRow;
-import net.codinux.csv.kcsv.reader.NamedCsvReader;
-import net.codinux.csv.kcsv.reader.NamedCsvRow;
+import net.codinux.csv.kcsv.reader.*
+import java.io.IOException
+import java.nio.file.Files
+import java.util.function.Consumer
+import java.util.stream.Collectors
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.Optional;
-import java.util.stream.Collectors;
+object CsvReaderExample {
+  @Throws(IOException::class)
+  @JvmStatic
+  fun main(args: Array<String>) {
+    simple()
+    forEachLambda()
+    stream()
+    iterator()
+    header()
+    advancedConfiguration()
+    file()
+  }
 
-@SuppressWarnings("PMD.SystemPrintln")
-public class CsvReaderExample {
-
-    public static void main(final String[] args) throws IOException {
-        simple();
-        forEachLambda();
-        stream();
-        iterator();
-        header();
-        advancedConfiguration();
-        file();
+  private fun simple() {
+    print("For-Each loop: ")
+    for (csvRow in CsvReader.builder().build("foo,bar")) {
+      println(csvRow.getFields())
     }
+  }
 
-    private static void simple() {
-        System.out.print("For-Each loop: ");
-        for (final CsvRow csvRow : CsvReader.builder().build("foo,bar")) {
-            System.out.println(csvRow.getFields());
-        }
+  private fun forEachLambda() {
+    print("Loop using forEach lambda: ")
+    CsvReader.builder().build("foo,bar")
+      .forEach(Consumer { x: CsvRow? -> println(x) })
+  }
+
+  private fun stream() {
+    System.out.printf(
+      "CSV contains %d rows%n",
+      CsvReader.builder().build("foo,bar").stream().count()
+    )
+  }
+
+  private operator fun iterator() {
+    print("Iterator loop: ")
+    val iterator: Iterator<CsvRow> = CsvReader.builder()
+      .build("foo,bar\nfoo2,bar2").iterator()
+    while (iterator.hasNext()) {
+      val csvRow = iterator.next()
+      print(csvRow.getFields())
+      if (iterator.hasNext()) {
+        print(" || ")
+      } else {
+        println()
+      }
     }
+  }
 
-    private static void forEachLambda() {
-        System.out.print("Loop using forEach lambda: ");
-        CsvReader.builder().build("foo,bar")
-            .forEach(System.out::println);
-    }
+  private fun header() {
+    val first = NamedCsvReader.builder()
+      .build("header1,header2\nvalue1,value2")
+      .stream().findFirst()
+    first.ifPresent { row: NamedCsvRow -> println("Header/Name based: " + row.getField("header2")) }
+  }
 
-    private static void stream() {
-        System.out.printf("CSV contains %d rows%n",
-            CsvReader.builder().build("foo,bar").stream().count());
-    }
+  private fun advancedConfiguration() {
+    val data = "#commented row\n'quoted ; column';second column\nnew row"
+    val parsedData = CsvReader.builder()
+      .fieldSeparator(';')
+      .quoteCharacter('\'')
+      .commentStrategy(CommentStrategy.SKIP)
+      .commentCharacter('#')
+      .skipEmptyRows(true)
+      .errorOnDifferentFieldCount(false)
+      .build(data)
+      .stream()
+      .map { csvRow: CsvRow -> csvRow.getFields().toString() }
+      .collect(Collectors.joining(" || "))
+    println("Parsed via advanced config: $parsedData")
+  }
 
-    private static void iterator() {
-        System.out.print("Iterator loop: ");
-        for (final Iterator<CsvRow> iterator = CsvReader.builder()
-            .build("foo,bar\nfoo2,bar2").iterator(); iterator.hasNext();) {
-
-            final CsvRow csvRow = iterator.next();
-            System.out.print(csvRow.getFields());
-            if (iterator.hasNext()) {
-                System.out.print(" || ");
-            } else {
-                System.out.println();
-            }
-        }
-    }
-
-    private static void header() {
-        final Optional<NamedCsvRow> first = NamedCsvReader.builder()
-            .build("header1,header2\nvalue1,value2")
-            .stream().findFirst();
-
-        first.ifPresent(row -> System.out.println("Header/Name based: " + row.getField("header2")));
-    }
-
-    private static void advancedConfiguration() {
-        final String data = "#commented row\n'quoted ; column';second column\nnew row";
-        final String parsedData = CsvReader.builder()
-            .fieldSeparator(';')
-            .quoteCharacter('\'')
-            .commentStrategy(CommentStrategy.SKIP)
-            .commentCharacter('#')
-            .skipEmptyRows(true)
-            .errorOnDifferentFieldCount(false)
-            .build(data)
-            .stream()
-            .map(csvRow -> csvRow.getFields().toString())
-            .collect(Collectors.joining(" || "));
-
-        System.out.println("Parsed via advanced config: " + parsedData);
-    }
-
-    private static void file() throws IOException {
-        final Path path = Files.createTempFile("fastcsv", ".csv");
-        Files.write(path, Collections.singletonList("foo,bar\n"));
-
-        try (CsvReader csvReader = CsvReader.builder().build(path)) {
-            csvReader.forEach(System.out::println);
-        }
-    }
-
+  @Throws(IOException::class)
+  private fun file() {
+    val path = Files.createTempFile("fastcsv", ".csv")
+    Files.write(path, listOf("foo,bar\n"))
+    CsvReader.builder().build(path).use { csvReader -> csvReader.forEach(Consumer { x: CsvRow? -> println(x) }) }
+  }
 }

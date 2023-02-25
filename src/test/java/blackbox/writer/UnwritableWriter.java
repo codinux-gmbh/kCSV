@@ -1,23 +1,21 @@
-package blackbox.writer;
+package blackbox.writer
 
-import java.io.IOException;
-import java.io.Writer;
+import java.io.IOException
+import java.io.Writer
 
-class UnwritableWriter extends Writer {
+internal class UnwritableWriter : Writer() {
+  @Throws(IOException::class)
+  override fun write(cbuf: CharArray, off: Int, len: Int) {
+    throw IOException("Cannot write")
+  }
 
-    @Override
-    public void write(final char[] cbuf, final int off, final int len) throws IOException {
-        throw new IOException("Cannot write");
-    }
+  @Throws(IOException::class)
+  override fun flush() {
+    throw IOException("Cannot flush")
+  }
 
-    @Override
-    public void flush() throws IOException {
-        throw new IOException("Cannot flush");
-    }
-
-    @Override
-    public void close() throws IOException {
-        throw new IOException("Cannot close");
-    }
-
+  @Throws(IOException::class)
+  override fun close() {
+    throw IOException("Cannot close")
+  }
 }

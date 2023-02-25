@@ -1,18 +1,16 @@
-package blackbox.reader;
+package blackbox.reader
 
-import java.io.IOException;
-import java.io.Reader;
+import java.io.IOException
+import java.io.Reader
 
-class UnreadableReader extends Reader {
+internal class UnreadableReader : Reader() {
+  @Throws(IOException::class)
+  override fun read(cbuf: CharArray, off: Int, len: Int): Int {
+    throw IOException("Cannot read")
+  }
 
-    @Override
-    public int read(final char[] cbuf, final int off, final int len) throws IOException {
-        throw new IOException("Cannot read");
-    }
-
-    @Override
-    public void close() throws IOException {
-        throw new IOException("Cannot close");
-    }
-
+  @Throws(IOException::class)
+  override fun close() {
+    throw IOException("Cannot close")
+  }
 }

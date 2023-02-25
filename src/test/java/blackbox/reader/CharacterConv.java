@@ -1,58 +1,50 @@
-package blackbox.reader;
+package blackbox.reader
 
-import java.util.Iterator;
-import java.util.List;
-
-final class CharacterConv {
-
-    private static final String[] STANDARD = {" ", "\r", "\n"};
-    private static final String[] CONV = {"␣", "␍", "␊"};
-    private static final char FIELD_SEPARATOR = '↷';
-    private static final char LINE_SEPARATOR = '⏎';
-    private static final String EMPTY_STRING = "◯";
-    private static final String EMPTY_LIST = "∅";
-
-    private CharacterConv() {
+internal object CharacterConv {
+  private val STANDARD = arrayOf(" ", "\r", "\n")
+  private val CONV = arrayOf("␣", "␍", "␊")
+  private const val FIELD_SEPARATOR = '↷'
+  private const val LINE_SEPARATOR = '⏎'
+  private const val EMPTY_STRING = "◯"
+  private const val EMPTY_LIST = "∅"
+  fun print(data: List<List<String?>>): String {
+    if (data.isEmpty()) {
+      return EMPTY_LIST
     }
-
-    public static String print(final List<List<String>> data) {
-        if (data.isEmpty()) {
-            return EMPTY_LIST;
+    val sb = StringBuilder()
+    val iter = data.iterator()
+    while (iter.hasNext()) {
+      val datum = iter.next()
+      val iterator = datum.iterator()
+      while (iterator.hasNext()) {
+        sb.append(print(iterator.next()))
+        if (iterator.hasNext()) {
+          sb.append(FIELD_SEPARATOR)
         }
-
-        final StringBuilder sb = new StringBuilder();
-        for (Iterator<List<String>> iter = data.iterator(); iter.hasNext();) {
-            final List<String> datum = iter.next();
-            final Iterator<String> iterator = datum.iterator();
-            while (iterator.hasNext()) {
-                sb.append(print(iterator.next()));
-                if (iterator.hasNext()) {
-                    sb.append(FIELD_SEPARATOR);
-                }
-            }
-            if (iter.hasNext()) {
-                sb.append(LINE_SEPARATOR);
-            }
-        }
-        return sb.toString();
+      }
+      if (iter.hasNext()) {
+        sb.append(LINE_SEPARATOR)
+      }
     }
+    return sb.toString()
+  }
 
-    public static String print(final String str) {
-        return str.isEmpty() ? EMPTY_STRING : replaceEach(str, STANDARD, CONV);
+  fun print(str: String?): String {
+    return if (str!!.isEmpty()) EMPTY_STRING else replaceEach(str, STANDARD, CONV)!!
+  }
+
+  private fun replaceEach(
+    text: String?, searchList: Array<String>,
+    replacementList: Array<String>
+  ): String? {
+    var ret = text
+    for (i in searchList.indices) {
+      ret = ret!!.replace(searchList[i], replacementList[i])
     }
+    return ret
+  }
 
-    @SuppressWarnings("PMD.UseVarargs")
-    private static String replaceEach(final String text, final String[] searchList,
-                                      final String[] replacementList) {
-        String ret = text;
-        for (int i = 0; i < searchList.length; i++) {
-            ret = ret.replace(searchList[i], replacementList[i]);
-        }
-        return ret;
-    }
-
-    public static String parse(final String str) {
-        return replaceEach(str, CONV, STANDARD);
-    }
-
+  fun parse(str: String?): String? {
+    return replaceEach(str, CONV, STANDARD)
+  }
 }

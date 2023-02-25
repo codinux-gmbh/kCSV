@@ -1,30 +1,25 @@
-package blackbox.writer;
+package blackbox.writer
 
-import net.codinux.csv.kcsv.writer.LineDelimiter;
-import org.junit.jupiter.api.Test;
+import net.codinux.csv.kcsv.writer.LineDelimiter
+import net.codinux.csv.kcsv.writer.LineDelimiter.Companion.of
+import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.Test
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+class LineDelimiterTest {
+  @Test
+  fun test() {
+    Assertions.assertEquals("\n", LineDelimiter.LF.toString())
+    Assertions.assertEquals("\r", LineDelimiter.CR.toString())
+    Assertions.assertEquals("\r\n", LineDelimiter.CRLF.toString())
+    Assertions.assertEquals(System.lineSeparator(), LineDelimiter.PLATFORM.toString())
+  }
 
-public class LineDelimiterTest {
-
-    @Test
-    public void test() {
-        assertEquals("\n", LineDelimiter.LF.toString());
-        assertEquals("\r", LineDelimiter.CR.toString());
-        assertEquals("\r\n", LineDelimiter.CRLF.toString());
-        assertEquals(System.lineSeparator(), LineDelimiter.PLATFORM.toString());
-    }
-
-    @Test
-    public void testOf() {
-        assertEquals(LineDelimiter.CRLF, LineDelimiter.of("\r\n"));
-        assertEquals(LineDelimiter.LF, LineDelimiter.of("\n"));
-        assertEquals(LineDelimiter.CR, LineDelimiter.of("\r"));
-
-        final IllegalArgumentException e =
-            assertThrows(IllegalArgumentException.class, () -> LineDelimiter.of(";"));
-        assertEquals("Unknown line delimiter: ;", e.getMessage());
-    }
-
+  @Test
+  fun testOf() {
+    Assertions.assertEquals(LineDelimiter.CRLF, of("\r\n"))
+    Assertions.assertEquals(LineDelimiter.LF, of("\n"))
+    Assertions.assertEquals(LineDelimiter.CR, of("\r"))
+    val e = Assertions.assertThrows(IllegalArgumentException::class.java) { of(";") }
+    Assertions.assertEquals("Unknown line delimiter: ;", e.message)
+  }
 }

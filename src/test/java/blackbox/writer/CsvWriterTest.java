@@ -1,282 +1,258 @@
-package blackbox.writer;
+package blackbox.writer
 
-import net.codinux.csv.kcsv.writer.CsvWriter;
-import net.codinux.csv.kcsv.writer.LineDelimiter;
-import net.codinux.csv.kcsv.writer.QuoteStrategy;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
+import net.codinux.csv.kcsv.writer.CsvWriter
+import net.codinux.csv.kcsv.writer.LineDelimiter
+import net.codinux.csv.kcsv.writer.QuoteStrategy
+import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.io.TempDir
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.ValueSource
+import java.io.IOException
+import java.io.StringWriter
+import java.io.UncheckedIOException
+import java.nio.charset.StandardCharsets
+import java.nio.file.Files
+import java.nio.file.Path
+import java.util.function.Consumer
+import java.util.stream.Stream
 
-import java.io.IOException;
-import java.io.StringWriter;
-import java.io.UncheckedIOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.function.Consumer;
-import java.util.stream.Stream;
+class CsvWriterTest {
+  private val crw = CsvWriter.builder()
+    .lineDelimiter(LineDelimiter.LF)
 
-import static java.nio.charset.StandardCharsets.UTF_8;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+  @ParameterizedTest
+  @ValueSource(chars = ['\r', '\n'])
+  fun configBuilder(c: Char) {
+    val e = Assertions.assertThrows(IllegalArgumentException::class.java) { CsvWriter.builder().fieldSeparator(c).build(StringWriter()) }
+    Assertions.assertEquals("fieldSeparator must not be a newline char", e.message)
+    val e2 = Assertions.assertThrows(IllegalArgumentException::class.java) { CsvWriter.builder().quoteCharacter(c).build(StringWriter()) }
+    Assertions.assertEquals("quoteCharacter must not be a newline char", e2.message)
+    val e3 = Assertions.assertThrows(IllegalArgumentException::class.java) { CsvWriter.builder().commentCharacter(c).build(StringWriter()) }
+    Assertions.assertEquals("commentCharacter must not be a newline char", e3.message)
+  }
 
-@SuppressWarnings({"PMD.AvoidDuplicateLiterals", "PMD.CloseResource"})
-public class CsvWriterTest {
+  @Test
+  fun configWriter() {
+    val e = Assertions.assertThrows(IllegalArgumentException::class.java) { crw.fieldSeparator(',').quoteCharacter(',').build(StringWriter()) }
+    Assertions.assertTrue(e.message!!.contains("Control characters must differ"))
+    val e2 = Assertions.assertThrows(IllegalArgumentException::class.java) { crw.fieldSeparator(',').commentCharacter(',').build(StringWriter()) }
+    Assertions.assertTrue(e2.message!!.contains("Control characters must differ"))
+    val e3 = Assertions.assertThrows(IllegalArgumentException::class.java) { crw.quoteCharacter(',').commentCharacter(',').build(StringWriter()) }
+    Assertions.assertTrue(e3.message!!.contains("Control characters must differ"))
+  }
 
-    private final CsvWriter.CsvWriterBuilder crw = CsvWriter.builder()
-        .lineDelimiter(LineDelimiter.LF);
+  @Test
+  fun nullQuote() {
+    Assertions.assertEquals("foo,,bar\n", write("foo", null, "bar"))
+    Assertions.assertEquals("foo,,bar\n", write("foo", "", "bar"))
+    Assertions.assertEquals("foo,\",\",bar\n", write("foo", ",", "bar"))
+  }
 
-    @ParameterizedTest
-    @ValueSource(chars = {'\r', '\n'})
-    public void configBuilder(final char c) {
-        final IllegalArgumentException e = assertThrows(IllegalArgumentException.class, () ->
-            CsvWriter.builder().fieldSeparator(c).build(new StringWriter()));
-        assertEquals("fieldSeparator must not be a newline char", e.getMessage());
+  @Test
+  fun emptyQuote() {
+    crw.quoteStrategy(QuoteStrategy.EMPTY)
+    Assertions.assertEquals("foo,,bar\n", write("foo", null, "bar"))
+    Assertions.assertEquals("foo,\"\",bar\n", write("foo", "", "bar"))
+    Assertions.assertEquals("foo,\",\",bar\n", write("foo", ",", "bar"))
+  }
 
-        final IllegalArgumentException e2 = assertThrows(IllegalArgumentException.class, () ->
-            CsvWriter.builder().quoteCharacter(c).build(new StringWriter()));
-        assertEquals("quoteCharacter must not be a newline char", e2.getMessage());
+  @Test
+  fun oneLineSingleValue() {
+    Assertions.assertEquals("foo\n", write("foo"))
+  }
 
-        final IllegalArgumentException e3 = assertThrows(IllegalArgumentException.class, () ->
-            CsvWriter.builder().commentCharacter(c).build(new StringWriter()));
-        assertEquals("commentCharacter must not be a newline char", e3.getMessage());
-    }
+  @Test
+  fun oneLineTwoValues() {
+    Assertions.assertEquals("foo,bar\n", write("foo", "bar"))
+  }
 
-    @Test
-    public void configWriter() {
-        final IllegalArgumentException e = assertThrows(IllegalArgumentException.class, () ->
-            crw.fieldSeparator(',').quoteCharacter(',').build(new StringWriter()));
-        assertTrue(e.getMessage().contains("Control characters must differ"));
+  @Test
+  fun oneLineTwoValuesAsList() {
+    val cols: MutableList<String?> = ArrayList()
+    cols.add("foo")
+    cols.add("bar")
+    Assertions.assertEquals("foo,bar\nfoo,bar\n",
+      write { w: CsvWriter -> w.writeRow(cols).writeRow(cols) })
+  }
 
-        final IllegalArgumentException e2 = assertThrows(IllegalArgumentException.class, () ->
-            crw.fieldSeparator(',').commentCharacter(',').build(new StringWriter()));
-        assertTrue(e2.getMessage().contains("Control characters must differ"));
+  @Test
+  fun twoLinesTwoValues() {
+    Assertions.assertEquals("foo,bar\n", write("foo", "bar"))
+  }
 
-        final IllegalArgumentException e3 = assertThrows(IllegalArgumentException.class, () ->
-            crw.quoteCharacter(',').commentCharacter(',').build(new StringWriter()));
-        assertTrue(e3.getMessage().contains("Control characters must differ"));
-    }
+  @Test
+  fun delimitText() {
+    Assertions.assertEquals(
+      "a,\"b,c\",\"d\ne\",\"f\"\"g\",,\n",
+      write("a", "b,c", "d\ne", "f\"g", "", null)
+    )
+  }
 
-    @Test
-    public void nullQuote() {
-        assertEquals("foo,,bar\n", write("foo", null, "bar"));
-        assertEquals("foo,,bar\n", write("foo", "", "bar"));
-        assertEquals("foo,\",\",bar\n", write("foo", ",", "bar"));
-    }
+  @Test
+  fun alwaysQuoteText() {
+    crw.quoteStrategy(QuoteStrategy.ALWAYS)
+    Assertions.assertEquals(
+      "\"a\",\"b,c\",\"d\ne\",\"f\"\"g\",\"\",\"\"\n",
+      write("a", "b,c", "d\ne", "f\"g", "", null)
+    )
+  }
 
-    @Test
-    public void emptyQuote() {
-        crw.quoteStrategy(QuoteStrategy.EMPTY);
-        assertEquals("foo,,bar\n", write("foo", null, "bar"));
-        assertEquals("foo,\"\",bar\n", write("foo", "", "bar"));
-        assertEquals("foo,\",\",bar\n", write("foo", ",", "bar"));
-    }
+  @Test
+  fun fieldSeparator() {
+    crw.fieldSeparator(';')
+    Assertions.assertEquals("foo;bar\n", write("foo", "bar"))
+  }
 
-    @Test
-    public void oneLineSingleValue() {
-        assertEquals("foo\n", write("foo"));
-    }
+  @Test
+  fun quoteCharacter() {
+    crw.quoteCharacter('\'')
+    Assertions.assertEquals("'foo,bar'\n", write("foo,bar"))
+  }
 
-    @Test
-    public void oneLineTwoValues() {
-        assertEquals("foo,bar\n", write("foo", "bar"));
-    }
+  @Test
+  fun escapeQuotes() {
+    Assertions.assertEquals("foo,\"\"\"bar\"\"\"\n", write("foo", "\"bar\""))
+  }
 
-    @Test
-    public void oneLineTwoValuesAsList() {
-        final List<String> cols = new ArrayList<>();
-        cols.add("foo");
-        cols.add("bar");
+  @Test
+  fun commentCharacter() {
+    Assertions.assertEquals("\"#foo\",#bar\n", write("#foo", "#bar"))
+    Assertions.assertEquals(" #foo,#bar\n", write(" #foo", "#bar"))
+  }
 
-        assertEquals("foo,bar\nfoo,bar\n",
-            write(w -> w.writeRow(cols).writeRow(cols)));
-    }
+  @Test
+  fun commentCharacterDifferentChar() {
+    Assertions.assertEquals(";foo,bar\n", write(";foo", "bar"))
+    crw.commentCharacter(';')
+    Assertions.assertEquals("\";foo\",bar\n", write(";foo", "bar"))
+  }
 
-    @Test
-    public void twoLinesTwoValues() {
-        assertEquals("foo,bar\n", write("foo", "bar"));
-    }
+  @Test
+  fun writeComment() {
+    Assertions.assertEquals("#this is a comment\n", write { w: CsvWriter -> w.writeComment("this is a comment") })
+  }
 
-    @Test
-    public void delimitText() {
-        assertEquals("a,\"b,c\",\"d\ne\",\"f\"\"g\",,\n",
-            write("a", "b,c", "d\ne", "f\"g", "", null));
-    }
+  @Test
+  fun writeCommentWithNewlines() {
+    Assertions.assertEquals("#\n#line 2\n#line 3\n#line 4\n#\n",
+      write { w: CsvWriter -> w.writeComment("\rline 2\nline 3\r\nline 4\n") })
+  }
 
-    @Test
-    public void alwaysQuoteText() {
-        crw.quoteStrategy(QuoteStrategy.ALWAYS);
-        assertEquals("\"a\",\"b,c\",\"d\ne\",\"f\"\"g\",\"\",\"\"\n",
-            write("a", "b,c", "d\ne", "f\"g", "", null));
-    }
+  @Test
+  fun writeEmptyComment() {
+    Assertions.assertEquals("#\n#\n", write { w: CsvWriter -> w.writeComment("").writeComment(null) })
+  }
 
-    @Test
-    public void fieldSeparator() {
-        crw.fieldSeparator(';');
-        assertEquals("foo;bar\n", write("foo", "bar"));
-    }
+  @Test
+  fun writeCommentDifferentChar() {
+    crw.commentCharacter(';')
+    Assertions.assertEquals(";this is a comment\n", write { w: CsvWriter -> w.writeComment("this is a comment") })
+  }
 
-    @Test
-    public void quoteCharacter() {
-        crw.quoteCharacter('\'');
-        assertEquals("'foo,bar'\n", write("foo,bar"));
-    }
+  @Test
+  fun appending() {
+    Assertions.assertEquals("foo,bar\nfoo2,bar2\n",
+      write { w: CsvWriter -> w.writeRow("foo", "bar").writeRow("foo2", "bar2") })
+  }
 
-    @Test
-    public void escapeQuotes() {
-        assertEquals("foo,\"\"\"bar\"\"\"\n", write("foo", "\"bar\""));
-    }
+  @Test
+  @Throws(IOException::class)
+  fun path(@TempDir tempDir: Path) {
+    val file = tempDir.resolve("fastcsv.csv")
+    CsvWriter.builder().build(file).use { csv -> csv.writeRow("value1", "value2") }
+    Assertions.assertEquals(
+      "value1,value2\r\n",
+      String(Files.readAllBytes(file), StandardCharsets.UTF_8)
+    )
+  }
 
-    @Test
-    public void commentCharacter() {
-        assertEquals("\"#foo\",#bar\n", write("#foo", "#bar"));
-        assertEquals(" #foo,#bar\n", write(" #foo", "#bar"));
-    }
+  @Test
+  fun chained() {
+    val writer = CsvWriter.builder()
+      .fieldSeparator(',')
+      .quoteCharacter('"')
+      .quoteStrategy(QuoteStrategy.REQUIRED)
+      .lineDelimiter(LineDelimiter.CRLF)
+      .build(StringWriter())
+    Assertions.assertNotNull(writer)
+  }
 
-    @Test
-    public void commentCharacterDifferentChar() {
-        assertEquals(";foo,bar\n", write(";foo", "bar"));
+  @Test
+  fun streaming() {
+    val stream = Stream.of(listOf("header1", "header2"), listOf("value1", "value2"))
+    val sw = StringWriter()
+    val csvWriter = CsvWriter.builder().build(sw)
+    stream.forEach { values: List<String> -> csvWriter.writeRow(values) }
+    Assertions.assertEquals("header1,header2\r\nvalue1,value2\r\n", sw.toString())
+  }
 
-        crw.commentCharacter(';');
-        assertEquals("\";foo\",bar\n", write(";foo", "bar"));
-    }
+  @Test
+  fun mixedWriterUsage() {
+    val stringWriter = StringWriter()
+    val csvWriter = CsvWriter.builder().build(stringWriter)
+    csvWriter.writeRow("foo", "bar")
+    stringWriter.write("# my comment\r\n")
+    csvWriter.writeRow("1", "2")
+    Assertions.assertEquals("foo,bar\r\n# my comment\r\n1,2\r\n", stringWriter.toString())
+  }
 
-    @Test
-    public void writeComment() {
-        assertEquals("#this is a comment\n", write(w -> w.writeComment("this is a comment")));
-    }
+  @Test
+  fun unwritableArray() {
+    val e = Assertions.assertThrows(UncheckedIOException::class.java) { crw.build(UnwritableWriter()).writeRow("foo") }
+    Assertions.assertEquals("java.io.IOException: Cannot write", e.message)
+  }
 
-    @Test
-    public void writeCommentWithNewlines() {
-        assertEquals("#\n#line 2\n#line 3\n#line 4\n#\n",
-            write(w -> w.writeComment("\rline 2\nline 3\r\nline 4\n")));
-    }
+  @Test
+  fun unwritableIterable() {
+    val e = Assertions.assertThrows(UncheckedIOException::class.java) { crw.build(UnwritableWriter()).writeRow(listOf("foo")) }
+    Assertions.assertEquals("java.io.IOException: Cannot write", e.message)
+    val e2 = Assertions.assertThrows(UncheckedIOException::class.java) { crw.build(UnwritableWriter()).writeComment("foo") }
+    Assertions.assertEquals("java.io.IOException: Cannot write", e2.message)
+  }
 
-    @Test
-    public void writeEmptyComment() {
-        assertEquals("#\n#\n", write(w -> w.writeComment("").writeComment(null)));
-    }
+  // buffer
+  @Test
+  fun invalidBuffer() {
+    Assertions.assertThrows(IllegalArgumentException::class.java) { crw.bufferSize(-1) }
+  }
 
-    @Test
-    public void writeCommentDifferentChar() {
-        crw.commentCharacter(';');
-        assertEquals(";this is a comment\n", write(w -> w.writeComment("this is a comment")));
-    }
+  @Test
+  fun disableBuffer() {
+    val stringWriter = StringWriter()
+    crw.bufferSize(0).build(stringWriter).writeRow("foo", "bar")
+    Assertions.assertEquals("foo,bar\n", stringWriter.toString())
+  }
 
-    @Test
-    public void appending() {
-        assertEquals("foo,bar\nfoo2,bar2\n",
-            write(w -> w.writeRow("foo", "bar").writeRow("foo2", "bar2")));
-    }
+  // toString()
+  @Test
+  fun builderToString() {
+    Assertions.assertEquals(
+      """
+  CsvWriterBuilder[fieldSeparator=,, quoteCharacter=", commentCharacter=#, quoteStrategy=REQUIRED, lineDelimiter=
+  , bufferSize=8192]
+  """.trimIndent(), crw.toString()
+    )
+  }
 
-    @Test
-    public void path(@TempDir final Path tempDir) throws IOException {
-        final Path file = tempDir.resolve("fastcsv.csv");
-        try (CsvWriter csv = CsvWriter.builder().build(file)) {
-            csv.writeRow("value1", "value2");
-        }
+  @Test
+  fun writerToString() {
+    Assertions.assertEquals(
+      """
+  CsvWriter[fieldSeparator=,, quoteCharacter=", commentCharacter=#, quoteStrategy=REQUIRED, lineDelimiter='
+  ']
+  """.trimIndent(), crw.build(StringWriter()).toString()
+    )
+  }
 
-        assertEquals("value1,value2\r\n",
-            new String(Files.readAllBytes(file), UTF_8));
-    }
+  private fun write(vararg cols: String?): String {
+    return write { w: CsvWriter -> w.writeRow(*cols) }
+  }
 
-    @Test
-    public void chained() {
-        final CsvWriter writer = CsvWriter.builder()
-            .fieldSeparator(',')
-            .quoteCharacter('"')
-            .quoteStrategy(QuoteStrategy.REQUIRED)
-            .lineDelimiter(LineDelimiter.CRLF)
-            .build(new StringWriter());
-
-        assertNotNull(writer);
-    }
-
-    @Test
-    public void streaming() {
-        final Stream<String[]> stream = Stream.of(
-            new String[]{"header1", "header2"},
-            new String[]{"value1", "value2"}
-        );
-        final StringWriter sw = new StringWriter();
-        final CsvWriter csvWriter = CsvWriter.builder().build(sw);
-        stream.forEach(csvWriter::writeRow);
-        assertEquals("header1,header2\r\nvalue1,value2\r\n", sw.toString());
-    }
-
-    @Test
-    public void mixedWriterUsage() {
-        final StringWriter stringWriter = new StringWriter();
-        final CsvWriter csvWriter = CsvWriter.builder().build(stringWriter);
-        csvWriter.writeRow("foo", "bar");
-        stringWriter.write("# my comment\r\n");
-        csvWriter.writeRow("1", "2");
-        assertEquals("foo,bar\r\n# my comment\r\n1,2\r\n", stringWriter.toString());
-    }
-
-    @Test
-    public void unwritableArray() {
-        final UncheckedIOException e = assertThrows(UncheckedIOException.class, () ->
-            crw.build(new UnwritableWriter()).writeRow("foo"));
-
-        assertEquals("java.io.IOException: Cannot write", e.getMessage());
-    }
-
-    @Test
-    public void unwritableIterable() {
-        final UncheckedIOException e = assertThrows(UncheckedIOException.class, () ->
-            crw.build(new UnwritableWriter()).writeRow(Collections.singletonList("foo")));
-
-        assertEquals("java.io.IOException: Cannot write", e.getMessage());
-
-        final UncheckedIOException e2 = assertThrows(UncheckedIOException.class, () ->
-            crw.build(new UnwritableWriter()).writeComment("foo"));
-
-        assertEquals("java.io.IOException: Cannot write", e2.getMessage());
-    }
-
-    // buffer
-
-    @Test
-    public void invalidBuffer() {
-        assertThrows(IllegalArgumentException.class, () -> crw.bufferSize(-1));
-    }
-
-    @Test
-    public void disableBuffer() {
-        final StringWriter stringWriter = new StringWriter();
-        crw.bufferSize(0).build(stringWriter).writeRow("foo", "bar");
-        assertEquals("foo,bar\n", stringWriter.toString());
-    }
-
-    // toString()
-
-    @Test
-    public void builderToString() {
-        assertEquals("CsvWriterBuilder[fieldSeparator=,, quoteCharacter=\", "
-            + "commentCharacter=#, quoteStrategy=REQUIRED, lineDelimiter=\n, bufferSize=8192]", crw.toString());
-    }
-
-    @Test
-    public void writerToString() {
-        assertEquals("CsvWriter[fieldSeparator=,, quoteCharacter=\", commentCharacter=#, "
-            + "quoteStrategy=REQUIRED, lineDelimiter='\n']", crw.build(new StringWriter()).toString());
-    }
-
-    private String write(final String... cols) {
-        return write(w -> w.writeRow(cols));
-    }
-
-    private String write(final Consumer<CsvWriter> c) {
-        final StringWriter sw = new StringWriter();
-        final CsvWriter to = crw.build(sw);
-        c.accept(to);
-        return sw.toString();
-    }
-
+  private fun write(c: Consumer<CsvWriter>): String {
+    val sw = StringWriter()
+    val to = crw.build(sw)
+    c.accept(to)
+    return sw.toString()
+  }
 }
