@@ -1,4 +1,4 @@
-package de.siegmar.fastcsv.writer
+package net.codinux.csv.kcsv.writer
 
 /**
  * Enumeration for different line delimiters (LF, CR, CRLF, platform default).

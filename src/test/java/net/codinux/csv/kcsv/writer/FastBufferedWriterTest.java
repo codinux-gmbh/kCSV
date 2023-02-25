@@ -1,12 +1,13 @@
-package de.siegmar.fastcsv.writer;
+package net.codinux.csv.kcsv.writer;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import net.codinux.csv.kcsv.writer.CsvWriter;
+import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.io.StringWriter;
 
-import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class FastBufferedWriterTest {
 

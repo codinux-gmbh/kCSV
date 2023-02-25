@@ -1,10 +1,12 @@
 package blackbox.writer;
 
-import static java.nio.charset.StandardCharsets.UTF_8;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import net.codinux.csv.kcsv.writer.CsvWriter;
+import net.codinux.csv.kcsv.writer.LineDelimiter;
+import net.codinux.csv.kcsv.writer.QuoteStrategy;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import java.io.IOException;
 import java.io.StringWriter;
@@ -17,14 +19,11 @@ import java.util.List;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
-
-import de.siegmar.fastcsv.writer.CsvWriter;
-import de.siegmar.fastcsv.writer.LineDelimiter;
-import de.siegmar.fastcsv.writer.QuoteStrategy;
+import static java.nio.charset.StandardCharsets.UTF_8;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @SuppressWarnings({"PMD.AvoidDuplicateLiterals", "PMD.CloseResource"})
 public class CsvWriterTest {

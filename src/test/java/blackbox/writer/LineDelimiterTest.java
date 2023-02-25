@@ -1,11 +1,10 @@
 package blackbox.writer;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-
+import net.codinux.csv.kcsv.writer.LineDelimiter;
 import org.junit.jupiter.api.Test;
 
-import de.siegmar.fastcsv.writer.LineDelimiter;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class LineDelimiterTest {
 

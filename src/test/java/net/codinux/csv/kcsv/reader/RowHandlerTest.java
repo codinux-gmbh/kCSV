@@ -1,7 +1,5 @@
-package de.siegmar.fastcsv.reader;
+package net.codinux.csv.kcsv.reader;
 
-import net.codinux.csv.kcsv.reader.CsvRow;
-import net.codinux.csv.kcsv.reader.RowHandler;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;

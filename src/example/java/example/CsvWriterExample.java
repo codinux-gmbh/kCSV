@@ -1,8 +1,8 @@
 package example;
 
-import de.siegmar.fastcsv.writer.CsvWriter;
-import de.siegmar.fastcsv.writer.LineDelimiter;
-import de.siegmar.fastcsv.writer.QuoteStrategy;
+import net.codinux.csv.kcsv.writer.CsvWriter;
+import net.codinux.csv.kcsv.writer.LineDelimiter;
+import net.codinux.csv.kcsv.writer.QuoteStrategy;
 import net.codinux.csv.kcsv.reader.NamedCsvReader;
 import net.codinux.csv.kcsv.reader.NamedCsvRow;
 

@@ -1,4 +1,4 @@
-package de.siegmar.fastcsv.writer
+package net.codinux.csv.kcsv.writer
 
 /**
  * The strategies that can be used to quote values when writing CSV data.

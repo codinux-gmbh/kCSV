@@ -1,4 +1,4 @@
-package de.siegmar.fastcsv.writer
+package net.codinux.csv.kcsv.writer
 
 import java.io.*
 import java.nio.charset.Charset

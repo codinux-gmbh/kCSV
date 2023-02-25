@@ -1,7 +1,7 @@
 package de.siegmar.fastcsv;
 
-import java.io.IOException;
-
+import net.codinux.csv.kcsv.writer.CsvWriter;
+import net.codinux.csv.kcsv.writer.LineDelimiter;
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.Scope;
 import org.openjdk.jmh.annotations.Setup;
@@ -9,8 +9,7 @@ import org.openjdk.jmh.annotations.State;
 import org.openjdk.jmh.annotations.TearDown;
 import org.openjdk.jmh.infra.Blackhole;
 
-import de.siegmar.fastcsv.writer.CsvWriter;
-import de.siegmar.fastcsv.writer.LineDelimiter;
+import java.io.IOException;
 
 public class FastCsvWriteBenchmark {
 

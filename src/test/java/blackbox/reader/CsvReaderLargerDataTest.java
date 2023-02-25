@@ -1,6 +1,6 @@
 package blackbox.reader;
 
-import de.siegmar.fastcsv.writer.CsvWriter;
+import net.codinux.csv.kcsv.writer.CsvWriter;
 import net.codinux.csv.kcsv.reader.CsvReader;
 import net.codinux.csv.kcsv.reader.CsvRow;
 import org.junit.jupiter.api.Test;
