@@ -1,5 +1,8 @@
 package net.codinux.csv.kcsv.reader
 
+import java.math.BigDecimal
+import java.time.Instant
+import java.time.LocalDateTime
 import java.util.*
 
 /**
@@ -65,6 +68,61 @@ class CsvRow internal constructor(
   fun isEmpty(): Boolean {
     return fields == EMPTY
   }
+
+  fun getString(fieldIndex: Int): String =
+    this.getField(fieldIndex)
+
+  fun getNullableString(fieldIndex: Int): String? =
+    this.getField(fieldIndex)
+      .ifEmpty { null }
+
+  fun getBoolean(fieldIndex: Int): Boolean =
+    this.getString(fieldIndex).toBoolean()
+
+  fun getNullableBoolean(fieldIndex: Int): Boolean? =
+    this.getNullableString(fieldIndex)?.toBoolean()
+
+  fun getInt(fieldIndex: Int): Int =
+    this.getString(fieldIndex).toInt()
+
+  fun getNullableInt(fieldIndex: Int): Int? =
+    this.getNullableString(fieldIndex)?.toIntOrNull()
+
+  fun getLong(fieldIndex: Int): Long =
+    this.getString(fieldIndex).toLong()
+
+  fun getNullableLong(fieldIndex: Int): Long? =
+    this.getNullableString(fieldIndex)?.toLongOrNull()
+
+  fun getFloat(fieldIndex: Int): Float =
+    this.getString(fieldIndex).toFloat()
+
+  fun getNullableFloat(fieldIndex: Int): Float? =
+    this.getNullableString(fieldIndex)?.toFloatOrNull()
+
+  fun getDouble(fieldIndex: Int): Double =
+    this.getString(fieldIndex).toDouble()
+
+  fun getNullableDouble(fieldIndex: Int): Double? =
+    this.getNullableString(fieldIndex)?.toDoubleOrNull()
+
+  fun getBigDecimal(fieldIndex: Int): BigDecimal =
+    this.getString(fieldIndex).toBigDecimal()
+
+  fun getNullableBigDecimal(fieldIndex: Int): BigDecimal? =
+    this.getNullableString(fieldIndex)?.toBigDecimalOrNull()
+
+  fun getInstant(fieldIndex: Int): Instant =
+    Instant.parse(this.getString(fieldIndex))
+
+  fun getNullableInstant(fieldIndex: Int): Instant? =
+    this.getNullableString(fieldIndex)?.let { Instant.parse(it) }
+
+  fun getLocalDateTime(fieldIndex: Int): LocalDateTime =
+    LocalDateTime.parse(this.getString(fieldIndex))
+
+  fun getNullableLocalDateTime(fieldIndex: Int): LocalDateTime? =
+    this.getNullableString(fieldIndex)?.let { LocalDateTime.parse(it) }
 
   override fun toString(): String {
     return StringJoiner(", ", CsvRow::class.java.simpleName + "[", "]")
