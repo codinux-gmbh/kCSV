@@ -1,46 +1,34 @@
-package de.siegmar.fastcsv.reader;
+package de.siegmar.fastcsv.reader
 
-import java.util.Iterator;
-import java.util.Spliterator;
-import java.util.function.Consumer;
+import java.util.*
+import java.util.function.Consumer
 
-final class CsvRowSpliterator<T> implements Spliterator<T> {
-
-    private static final int FIXED_CHARACTERISTICS = ORDERED | DISTINCT | NONNULL | IMMUTABLE;
-    private final Iterator<T> iterator;
-
-    CsvRowSpliterator(final Iterator<T> iterator) {
-        this.iterator = iterator;
+internal class CsvRowSpliterator<T>(private val iterator: Iterator<T>) : Spliterator<T> {
+  override fun tryAdvance(action: Consumer<in T>): Boolean {
+    if (!iterator.hasNext()) {
+      return false
     }
+    action.accept(iterator.next())
+    return true
+  }
 
-    @Override
-    public boolean tryAdvance(final Consumer<? super T> action) {
-        if (!iterator.hasNext()) {
-            return false;
-        }
+  override fun forEachRemaining(action: Consumer<in T>) {
+    iterator.forEachRemaining(action)
+  }
 
-        action.accept(iterator.next());
-        return true;
-    }
+  override fun trySplit(): Spliterator<T>? {
+    return null
+  }
 
-    @Override
-    public void forEachRemaining(final Consumer<? super T> action) {
-        iterator.forEachRemaining(action);
-    }
+  override fun estimateSize(): Long {
+    return Long.MAX_VALUE
+  }
 
-    @Override
-    public Spliterator<T> trySplit() {
-        return null;
-    }
+  override fun characteristics(): Int {
+    return FIXED_CHARACTERISTICS
+  }
 
-    @Override
-    public long estimateSize() {
-        return Long.MAX_VALUE;
-    }
-
-    @Override
-    public int characteristics() {
-        return FIXED_CHARACTERISTICS;
-    }
-
+  companion object {
+    private const val FIXED_CHARACTERISTICS = Spliterator.ORDERED or Spliterator.DISTINCT or Spliterator.NONNULL or Spliterator.IMMUTABLE
+  }
 }

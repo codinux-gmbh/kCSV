@@ -154,23 +154,23 @@ public class NamedCsvReaderTest {
 
         NamedCsvRow row = it.next();
         assertEquals("a", row.getField("h1"));
-        assertEquals(2, row.getOriginalLineNumber());
+        assertEquals(2, row.originalLineNumber);
 
         row = it.next();
         assertEquals("b", row.getField("h1"));
-        assertEquals(3, row.getOriginalLineNumber());
+        assertEquals(3, row.originalLineNumber);
 
         row = it.next();
         assertEquals("c", row.getField("h1"));
-        assertEquals(4, row.getOriginalLineNumber());
+        assertEquals(4, row.originalLineNumber);
 
         row = it.next();
         assertEquals("d", row.getField("h1"));
-        assertEquals(5, row.getOriginalLineNumber());
+        assertEquals(5, row.originalLineNumber);
 
         row = it.next();
         assertEquals("e", row.getField("h1"));
-        assertEquals(9, row.getOriginalLineNumber());
+        assertEquals(9, row.originalLineNumber);
 
         assertFalse(it.hasNext());
     }

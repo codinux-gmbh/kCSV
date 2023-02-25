@@ -1,62 +1,54 @@
-package de.siegmar.fastcsv.reader;
+package de.siegmar.fastcsv.reader
 
-final class RowHandler {
+internal class RowHandler(private var len: Int) {
+  private var row: Array<String?>
+  private var idx = 0
+  private var lines = 1
+  var isCommentMode = false
+    private set
+  private var originalLineNumber: Long = 1
 
-    private int len;
-    private String[] row;
-    private int idx;
-    private int lines = 1;
-    private boolean commentMode;
-    private long originalLineNumber = 1;
+  init {
+    row = arrayOfNulls(len)
+  }
 
-    RowHandler(final int len) {
-        this.len = len;
-        row = new String[len];
+  fun add(value: String?) {
+    if (idx == len) {
+      extendCapacity()
     }
+    row[idx++] = value
+  }
 
-    void add(final String value) {
-        if (idx == len) {
-            extendCapacity();
-        }
-        row[idx++] = value;
+  private fun extendCapacity() {
+    len *= 2
+    val newRow = arrayOfNulls<String>(len)
+    System.arraycopy(row, 0, newRow, 0, idx)
+    row = newRow
+  }
+
+  fun buildAndReset(): CsvRow? {
+    val csvRow = if (idx > 0) build() else null
+    idx = 0
+    originalLineNumber += lines.toLong()
+    lines = 1
+    isCommentMode = false
+    return csvRow
+  }
+
+  private fun build(): CsvRow {
+    if (idx > 1 || !row[0]!!.isEmpty()) {
+      val ret = arrayOfNulls<String>(idx)
+      System.arraycopy(row, 0, ret, 0, idx)
+      return CsvRow(originalLineNumber, ret, isCommentMode)
     }
+    return CsvRow(originalLineNumber, isCommentMode)
+  }
 
-    private void extendCapacity() {
-        len *= 2;
-        final String[] newRow = new String[len];
-        System.arraycopy(row, 0, newRow, 0, idx);
-        row = newRow;
-    }
+  fun enableCommentMode() {
+    isCommentMode = true
+  }
 
-    CsvRow buildAndReset() {
-        final CsvRow csvRow = idx > 0 ? build() : null;
-        idx = 0;
-        originalLineNumber += lines;
-        lines = 1;
-        commentMode = false;
-        return csvRow;
-    }
-
-    private CsvRow build() {
-        if (idx > 1 || !row[0].isEmpty()) {
-            final String[] ret = new String[idx];
-            System.arraycopy(row, 0, ret, 0, idx);
-            return new CsvRow(originalLineNumber, ret, commentMode);
-        }
-
-        return new CsvRow(originalLineNumber, commentMode);
-    }
-
-    public void enableCommentMode() {
-        commentMode = true;
-    }
-
-    public boolean isCommentMode() {
-        return commentMode;
-    }
-
-    public void incLines() {
-        lines++;
-    }
-
+  fun incLines() {
+    lines++
+  }
 }

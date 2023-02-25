@@ -1,101 +1,80 @@
-package de.siegmar.fastcsv.reader;
+package de.siegmar.fastcsv.reader
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.StringJoiner;
+import java.util.*
 
 /**
  * Index based CSV-row.
  */
-@SuppressWarnings("PMD.ArrayIsStoredDirectly")
-public final class CsvRow {
-
-    private static final String[] EMPTY = {""};
-
-    private final long originalLineNumber;
-    private final String[] fields;
-    private final boolean comment;
-
-    CsvRow(final long originalLineNumber, final boolean comment) {
-        this(originalLineNumber, EMPTY, comment);
-    }
-
-    CsvRow(final long originalLineNumber, final String[] fields,
-           final boolean comment) {
-        this.originalLineNumber = originalLineNumber;
-        this.fields = fields;
-        this.comment = comment;
-    }
-
+class CsvRow internal constructor(
     /**
-     * Returns the original line number (starting with 1). On multi-line rows this is the starting
-     * line number.
-     * Empty lines could be skipped via {@link CsvReader.CsvReaderBuilder#skipEmptyRows(boolean)}.
-     *
-     * @return the original line number
-     */
-    public long getOriginalLineNumber() {
-        return originalLineNumber;
-    }
-
+   * Returns the original line number (starting with 1). On multi-line rows this is the starting
+   * line number.
+   * Empty lines could be skipped via [CsvReader.CsvReaderBuilder.skipEmptyRows].
+   *
+   * @return the original line number
+   */
+    @JvmField val originalLineNumber: Long,
+    private val fields: Array<String?>,
     /**
-     * Gets a field value by its index (starting with 0).
-     *
-     * @param index index of the field to return
-     * @return field value, never {@code null}
-     * @throws IndexOutOfBoundsException if index is out of range
-     */
-    public String getField(final int index) {
-        return fields[index];
-    }
+   * Provides the information if the row is a commented row.
+   *
+   * @return `true` if the row is a commented row
+   * @see CsvReader.CsvReaderBuilder.commentStrategy
+   */
+  val isComment: Boolean
+) {
 
-    /**
-     * Gets all fields of this row as an unmodifiable list.
-     *
-     * @return all fields of this row, never {@code null}
-     */
-    public List<String> getFields() {
-        return Collections.unmodifiableList(Arrays.asList(fields));
-    }
+  internal constructor(originalLineNumber: Long, comment: Boolean) : this(originalLineNumber, EMPTY, comment)
 
-    /**
-     * Gets the number of fields of this row.
-     *
-     * @return the number of fields of this row
-     * @see CsvReader.CsvReaderBuilder#errorOnDifferentFieldCount(boolean)
-     */
-    public int getFieldCount() {
-        return fields.length;
-    }
+  /**
+   * Gets a field value by its index (starting with 0).
+   *
+   * @param index index of the field to return
+   * @return field value, never `null`
+   * @throws IndexOutOfBoundsException if index is out of range
+   */
+  fun getField(index: Int): String? {
+    return fields[index]
+  }
 
-    /**
-     * Provides the information if the row is a commented row.
-     *
-     * @return {@code true} if the row is a commented row
-     * @see CsvReader.CsvReaderBuilder#commentStrategy(CommentStrategy)
-     */
-    public boolean isComment() {
-        return comment;
-    }
+  /**
+   * Gets all fields of this row as an unmodifiable list.
+   *
+   * @return all fields of this row, never `null`
+   */
+  fun getFields(): List<String> {
+    return Collections.unmodifiableList(Arrays.asList(*fields))
+  }
 
-    /**
-     * Provides the information if the row is an empty row.
-     *
-     * @return {@code true} if the row is an empty row
-     * @see CsvReader.CsvReaderBuilder#skipEmptyRows(boolean)
-     */
-    public boolean isEmpty() {
-        return fields == EMPTY;
-    }
+  /**
+   * Gets the number of fields of this row.
+   *
+   * @return the number of fields of this row
+   * @see CsvReader.CsvReaderBuilder.errorOnDifferentFieldCount
+   */
+  fun getFieldCount(): Int {
+    return fields.size
+  }
 
-    @Override
-    public String toString() {
-        return new StringJoiner(", ", CsvRow.class.getSimpleName() + "[", "]")
-            .add("originalLineNumber=" + originalLineNumber)
-            .add("fields=" + Arrays.toString(fields))
-            .add("comment=" + comment)
-            .toString();
-    }
+  /**
+   * Provides the information if the row is an empty row.
+   *
+   * @return `true` if the row is an empty row
+   * @see CsvReader.CsvReaderBuilder.skipEmptyRows
+   */
+  fun isEmpty(): Boolean {
+    return fields == EMPTY
+  }
 
+  override fun toString(): String {
+    return StringJoiner(", ", CsvRow::class.java.simpleName + "[", "]")
+      .add("originalLineNumber=$originalLineNumber")
+      .add("fields=" + Arrays.toString(fields))
+      .add("comment=" + isComment)
+      .toString()
+  }
+
+  companion object {
+    private val EMPTY = arrayOf("")
+  }
 }

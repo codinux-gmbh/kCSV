@@ -1,12 +1,10 @@
-package de.siegmar.fastcsv.reader;
+package de.siegmar.fastcsv.reader
 
-import java.io.Closeable;
-import java.util.Iterator;
+import java.io.Closeable
 
 /**
  * Iterator that supports closing underlying resources.
  *
  * @param <E> the type of elements returned by this iterator
- */
-public interface CloseableIterator<E> extends Iterator<E>, Closeable {
-}
+</E> */
+interface CloseableIterator<E> : Iterator<E>, Closeable

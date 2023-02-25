@@ -1,403 +1,381 @@
-package de.siegmar.fastcsv.reader;
+package de.siegmar.fastcsv.reader
 
-import java.io.Closeable;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.Reader;
-import java.io.UncheckedIOException;
-import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.NoSuchElementException;
-import java.util.Objects;
-import java.util.Spliterator;
-import java.util.StringJoiner;
-import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
+import java.io.*
+import java.nio.charset.Charset
+import java.nio.charset.StandardCharsets
+import java.nio.file.Files
+import java.nio.file.Path
+import java.util.*
+import java.util.stream.Stream
+import java.util.stream.StreamSupport
 
 /**
  * This is the main class for reading CSV data.
- * <p>
+ *
+ *
  * Example use:
- * <pre>{@code
- * try (CsvReader csvReader = CsvReader.builder().build(path)) {
- *     for (CsvRow row : csvReader) {
- *         ...
- *     }
+ * <pre>`try (CsvReader csvReader = CsvReader.builder().build(path)) {
+ * for (CsvRow row : csvReader) {
+ * ...
  * }
- * }</pre>
+ * }
+`</pre> *
  */
-public final class CsvReader implements Iterable<CsvRow>, Closeable {
+class CsvReader : Iterable<CsvRow>, Closeable {
+  private val rowReader: RowReader
+  private val commentStrategy: CommentStrategy
+  private val skipEmptyRows: Boolean
+  private val errorOnDifferentFieldCount: Boolean
+  private val csvRowIterator: CloseableIterator<CsvRow> = CsvRowIterator()
+  private val reader: Reader?
+  private var firstLineFieldCount = -1
 
-    private static final char CR = '\r';
-    private static final char LF = '\n';
+  internal constructor(
+    reader: Reader?, fieldSeparator: Char, quoteCharacter: Char,
+    commentStrategy: CommentStrategy, commentCharacter: Char,
+    skipEmptyRows: Boolean, errorOnDifferentFieldCount: Boolean
+  ) {
+    assertFields(fieldSeparator, quoteCharacter, commentCharacter)
+    this.commentStrategy = commentStrategy
+    this.skipEmptyRows = skipEmptyRows
+    this.errorOnDifferentFieldCount = errorOnDifferentFieldCount
+    this.reader = reader
+    rowReader = RowReader(
+      reader, fieldSeparator, quoteCharacter, commentStrategy,
+      commentCharacter
+    )
+  }
 
-    private final RowReader rowReader;
-    private final CommentStrategy commentStrategy;
-    private final boolean skipEmptyRows;
-    private final boolean errorOnDifferentFieldCount;
-    private final CloseableIterator<CsvRow> csvRowIterator = new CsvRowIterator();
+  internal constructor(
+    data: String, fieldSeparator: Char, quoteCharacter: Char,
+    commentStrategy: CommentStrategy, commentCharacter: Char,
+    skipEmptyRows: Boolean, errorOnDifferentFieldCount: Boolean
+  ) {
+    assertFields(fieldSeparator, quoteCharacter, commentCharacter)
+    this.commentStrategy = commentStrategy
+    this.skipEmptyRows = skipEmptyRows
+    this.errorOnDifferentFieldCount = errorOnDifferentFieldCount
+    reader = null
+    rowReader = RowReader(
+      data, fieldSeparator, quoteCharacter, commentStrategy,
+      commentCharacter
+    )
+  }
 
-    private final Reader reader;
-    private int firstLineFieldCount = -1;
+  private fun assertFields(fieldSeparator: Char, quoteCharacter: Char, commentCharacter: Char) {
+    require(!(fieldSeparator == CR || fieldSeparator == LF)) { "fieldSeparator must not be a newline char" }
+    require(!(quoteCharacter == CR || quoteCharacter == LF)) { "quoteCharacter must not be a newline char" }
+    require(!(commentCharacter == CR || commentCharacter == LF)) { "commentCharacter must not be a newline char" }
+    require(!(fieldSeparator == quoteCharacter || fieldSeparator == commentCharacter || quoteCharacter == commentCharacter)) {
+      String.format(
+        "Control characters must differ"
+          + " (fieldSeparator=%s, quoteCharacter=%s, commentCharacter=%s)",
+        fieldSeparator, quoteCharacter, commentCharacter
+      )
+    }
+  }
 
-    CsvReader(final Reader reader, final char fieldSeparator, final char quoteCharacter,
-              final CommentStrategy commentStrategy, final char commentCharacter,
-              final boolean skipEmptyRows, final boolean errorOnDifferentFieldCount) {
+  override fun iterator(): CloseableIterator<CsvRow> {
+    return csvRowIterator
+  }
 
-        assertFields(fieldSeparator, quoteCharacter, commentCharacter);
+  override fun spliterator(): Spliterator<CsvRow> {
+    return CsvRowSpliterator(csvRowIterator)
+  }
 
-        this.commentStrategy = commentStrategy;
-        this.skipEmptyRows = skipEmptyRows;
-        this.errorOnDifferentFieldCount = errorOnDifferentFieldCount;
-        this.reader = reader;
+  /**
+   * Creates a new sequential `Stream` from this instance.
+   *
+   *
+   * A close handler is registered by this method in order to close the underlying resources.
+   * Don't forget to close the returned stream when you're done.
+   *
+   * @return a new sequential `Stream`.
+   */
+  fun stream(): Stream<CsvRow> {
+    return StreamSupport.stream(spliterator(), false)
+      .onClose {
+        try {
+          close()
+        } catch (e: IOException) {
+          throw UncheckedIOException(e)
+        }
+      }
+  }
 
-        rowReader = new RowReader(reader, fieldSeparator, quoteCharacter, commentStrategy,
-            commentCharacter);
+  @Throws(IOException::class)
+  private fun fetchRow(): CsvRow? {
+    while (true) {
+      val csvRow = rowReader.fetchAndRead() ?: break
+      // skip commented rows
+      if (commentStrategy == CommentStrategy.SKIP && csvRow.isComment) {
+        continue
+      }
+
+      // skip empty rows
+      if (csvRow.isEmpty()) {
+        if (skipEmptyRows) {
+          continue
+        }
+      } else if (errorOnDifferentFieldCount) {
+        val fieldCount = csvRow.getFieldCount()
+
+        // check the field count consistency on every row
+        if (firstLineFieldCount == -1) {
+          firstLineFieldCount = fieldCount
+        } else if (fieldCount != firstLineFieldCount) {
+          throw MalformedCsvException(
+            String.format(
+              "Row %d has %d fields, but first row had %d fields",
+              csvRow.originalLineNumber, fieldCount, firstLineFieldCount
+            )
+          )
+        }
+      }
+      return csvRow
     }
 
-    @SuppressWarnings("PMD.NullAssignment")
-    CsvReader(final String data, final char fieldSeparator, final char quoteCharacter,
-              final CommentStrategy commentStrategy, final char commentCharacter,
-              final boolean skipEmptyRows, final boolean errorOnDifferentFieldCount) {
+    return null
+  }
 
-        assertFields(fieldSeparator, quoteCharacter, commentCharacter);
+  @Throws(IOException::class)
+  override fun close() {
+    reader?.close()
+  }
 
-        this.commentStrategy = commentStrategy;
-        this.skipEmptyRows = skipEmptyRows;
-        this.errorOnDifferentFieldCount = errorOnDifferentFieldCount;
-        this.reader = null;
+  override fun toString(): String {
+    return StringJoiner(", ", CsvReader::class.java.simpleName + "[", "]")
+      .add("commentStrategy=$commentStrategy")
+      .add("skipEmptyRows=$skipEmptyRows")
+      .add("errorOnDifferentFieldCount=$errorOnDifferentFieldCount")
+      .toString()
+  }
 
-        rowReader = new RowReader(data, fieldSeparator, quoteCharacter, commentStrategy,
-            commentCharacter);
+  private inner class CsvRowIterator : CloseableIterator<CsvRow> {
+    private var fetchedRow: CsvRow? = null
+    private var fetched = false
+    override fun hasNext(): Boolean {
+      if (!fetched) {
+        fetch()
+      }
+      return fetchedRow != null
     }
 
-    private void assertFields(final char fieldSeparator, final char quoteCharacter, final char commentCharacter) {
-        if (fieldSeparator == CR || fieldSeparator == LF) {
-            throw new IllegalArgumentException("fieldSeparator must not be a newline char");
-        }
-        if (quoteCharacter == CR || quoteCharacter == LF) {
-            throw new IllegalArgumentException("quoteCharacter must not be a newline char");
-        }
-        if (commentCharacter == CR || commentCharacter == LF) {
-            throw new IllegalArgumentException("commentCharacter must not be a newline char");
-        }
-        if (fieldSeparator == quoteCharacter || fieldSeparator == commentCharacter
-            || quoteCharacter == commentCharacter) {
-            throw new IllegalArgumentException(String.format("Control characters must differ"
-                    + " (fieldSeparator=%s, quoteCharacter=%s, commentCharacter=%s)",
-                fieldSeparator, quoteCharacter, commentCharacter));
-        }
+    override fun next(): CsvRow {
+      if (!fetched) {
+        fetch()
+      }
+
+      fetchedRow?.let { row ->
+        fetched = false
+        return row
+      }
+
+      throw NoSuchElementException()
     }
+
+    private fun fetch() {
+      try {
+        fetchedRow = fetchRow()
+
+        fetched = true
+      } catch (e: IOException) {
+        val lastFetchedRow = fetchedRow
+        if (lastFetchedRow != null) {
+          throw UncheckedIOException("IOException when reading record that started in line ${lastFetchedRow.originalLineNumber + 1}", e)
+        } else {
+          throw UncheckedIOException("IOException when reading first record", e)
+        }
+      }
+    }
+
+    @Throws(IOException::class)
+    override fun close() {
+      this@CsvReader.close()
+    }
+  }
+
+  /**
+   * This builder is used to create configured instances of [CsvReader]. The default
+   * configuration of this class complies with RFC 4180.
+   *
+   *
+   * The line delimiter (line-feed, carriage-return or the combination of both) is detected
+   * automatically and thus not configurable.
+   */
+  class CsvReaderBuilder {
+    private var fieldSeparator = ','
+    private var quoteCharacter = '"'
+    private var commentStrategy = CommentStrategy.NONE
+    private var commentCharacter = '#'
+    private var skipEmptyRows = true
+    private var errorOnDifferentFieldCount = false
 
     /**
-     * Constructs a {@link CsvReaderBuilder} to configure and build instances of this class.
-     * @return a new {@link CsvReaderBuilder} instance.
-     */
-    public static CsvReaderBuilder builder() {
-        return new CsvReaderBuilder();
-    }
-
-    @Override
-    public CloseableIterator<CsvRow> iterator() {
-        return csvRowIterator;
-    }
-
-    @Override
-    public Spliterator<CsvRow> spliterator() {
-        return new CsvRowSpliterator<>(csvRowIterator);
-    }
-
-    /**
-     * Creates a new sequential {@code Stream} from this instance.
-     * <p>
-     * A close handler is registered by this method in order to close the underlying resources.
-     * Don't forget to close the returned stream when you're done.
+     * Sets the `fieldSeparator` used when reading CSV data.
      *
-     * @return a new sequential {@code Stream}.
+     * @param fieldSeparator the field separator character (default: `,` - comma).
+     * @return This updated object, so that additional method calls can be chained together.
      */
-    public Stream<CsvRow> stream() {
-        return StreamSupport.stream(spliterator(), false)
-            .onClose(() -> {
-                try {
-                    close();
-                } catch (final IOException e) {
-                    throw new UncheckedIOException(e);
-                }
-            });
-    }
-
-    @SuppressWarnings({
-        "PMD.AvoidBranchingStatementAsLastInLoop",
-        "PMD.AssignmentInOperand"
-    })
-    private CsvRow fetchRow() throws IOException {
-        CsvRow csvRow;
-        while ((csvRow = rowReader.fetchAndRead()) != null) {
-            // skip commented rows
-            if (commentStrategy == CommentStrategy.SKIP && csvRow.isComment()) {
-                continue;
-            }
-
-            // skip empty rows
-            if (csvRow.isEmpty()) {
-                if (skipEmptyRows) {
-                    continue;
-                }
-            } else if (errorOnDifferentFieldCount) {
-                final int fieldCount = csvRow.getFieldCount();
-
-                // check the field count consistency on every row
-                if (firstLineFieldCount == -1) {
-                    firstLineFieldCount = fieldCount;
-                } else if (fieldCount != firstLineFieldCount) {
-                    throw new MalformedCsvException(
-                        String.format("Row %d has %d fields, but first row had %d fields",
-                            csvRow.getOriginalLineNumber(), fieldCount, firstLineFieldCount));
-                }
-            }
-
-            break;
-        }
-
-        return csvRow;
-    }
-
-    @Override
-    public void close() throws IOException {
-        if (reader != null) {
-            reader.close();
-        }
-    }
-
-    @Override
-    public String toString() {
-        return new StringJoiner(", ", CsvReader.class.getSimpleName() + "[", "]")
-            .add("commentStrategy=" + commentStrategy)
-            .add("skipEmptyRows=" + skipEmptyRows)
-            .add("errorOnDifferentFieldCount=" + errorOnDifferentFieldCount)
-            .toString();
-    }
-
-    private class CsvRowIterator implements CloseableIterator<CsvRow> {
-
-        private CsvRow fetchedRow;
-        private boolean fetched;
-
-        @Override
-        public boolean hasNext() {
-            if (!fetched) {
-                fetch();
-            }
-            return fetchedRow != null;
-        }
-
-        @Override
-        public CsvRow next() {
-            if (!fetched) {
-                fetch();
-            }
-            if (fetchedRow == null) {
-                throw new NoSuchElementException();
-            }
-            fetched = false;
-
-            return fetchedRow;
-        }
-
-        private void fetch() {
-            try {
-                fetchedRow = fetchRow();
-            } catch (final IOException e) {
-                if (fetchedRow != null) {
-                    throw new UncheckedIOException("IOException when reading record that started in line "
-                        + (fetchedRow.getOriginalLineNumber() + 1), e);
-                } else {
-                    throw new UncheckedIOException("IOException when reading first record", e);
-                }
-            }
-            fetched = true;
-        }
-
-        @Override
-        public void close() throws IOException {
-            CsvReader.this.close();
-        }
-
+    fun fieldSeparator(fieldSeparator: Char): CsvReaderBuilder {
+      this.fieldSeparator = fieldSeparator
+      return this
     }
 
     /**
-     * This builder is used to create configured instances of {@link CsvReader}. The default
-     * configuration of this class complies with RFC 4180.
-     * <p>
-     * The line delimiter (line-feed, carriage-return or the combination of both) is detected
-     * automatically and thus not configurable.
+     * Sets the `quoteCharacter` used when reading CSV data.
+     *
+     * @param quoteCharacter the character used to enclose fields
+     * (default: `"` - double quotes).
+     * @return This updated object, so that additional method calls can be chained together.
      */
-    @SuppressWarnings({"checkstyle:HiddenField", "PMD.AvoidFieldNameMatchingMethodName"})
-    public static final class CsvReaderBuilder {
-
-        private char fieldSeparator = ',';
-        private char quoteCharacter = '"';
-        private CommentStrategy commentStrategy = CommentStrategy.NONE;
-        private char commentCharacter = '#';
-        private boolean skipEmptyRows = true;
-        private boolean errorOnDifferentFieldCount;
-
-        private CsvReaderBuilder() {
-        }
-
-        /**
-         * Sets the {@code fieldSeparator} used when reading CSV data.
-         *
-         * @param fieldSeparator the field separator character (default: {@code ,} - comma).
-         * @return This updated object, so that additional method calls can be chained together.
-         */
-        public CsvReaderBuilder fieldSeparator(final char fieldSeparator) {
-            this.fieldSeparator = fieldSeparator;
-            return this;
-        }
-
-        /**
-         * Sets the {@code quoteCharacter} used when reading CSV data.
-         *
-         * @param quoteCharacter the character used to enclose fields
-         *                       (default: {@code "} - double quotes).
-         * @return This updated object, so that additional method calls can be chained together.
-         */
-        public CsvReaderBuilder quoteCharacter(final char quoteCharacter) {
-            this.quoteCharacter = quoteCharacter;
-            return this;
-        }
-
-        /**
-         * Sets the strategy that defines how (and if) commented lines should be handled
-         * (default: {@link CommentStrategy#NONE} as comments are not defined in RFC 4180).
-         *
-         * @param commentStrategy the strategy for handling comments.
-         * @return This updated object, so that additional method calls can be chained together.
-         * @see #commentCharacter(char)
-         */
-        public CsvReaderBuilder commentStrategy(final CommentStrategy commentStrategy) {
-            this.commentStrategy = commentStrategy;
-            return this;
-        }
-
-        /**
-         * Sets the {@code commentCharacter} used to comment lines.
-         *
-         * @param commentCharacter the character used to comment lines (default: {@code #} - hash)
-         * @return This updated object, so that additional method calls can be chained together.
-         * @see #commentStrategy(CommentStrategy)
-         */
-        public CsvReaderBuilder commentCharacter(final char commentCharacter) {
-            this.commentCharacter = commentCharacter;
-            return this;
-        }
-
-        /**
-         * Defines if empty rows should be skipped when reading data.
-         *
-         * @param skipEmptyRows if empty rows should be skipped (default: {@code true}).
-         * @return This updated object, so that additional method calls can be chained together.
-         */
-        public CsvReaderBuilder skipEmptyRows(final boolean skipEmptyRows) {
-            this.skipEmptyRows = skipEmptyRows;
-            return this;
-        }
-
-        /**
-         * Defines if an {@link MalformedCsvException} should be thrown if lines do contain a
-         * different number of columns.
-         *
-         * @param errorOnDifferentFieldCount if an exception should be thrown, if CSV data contains
-         *                                   different field count (default: {@code false}).
-         * @return This updated object, so that additional method calls can be chained together.
-         */
-        public CsvReaderBuilder errorOnDifferentFieldCount(
-            final boolean errorOnDifferentFieldCount) {
-            this.errorOnDifferentFieldCount = errorOnDifferentFieldCount;
-            return this;
-        }
-
-        /**
-         * Constructs a new {@link CsvReader} for the specified arguments.
-         * <p>
-         * This library uses built-in buffering, so you do not need to pass in a buffered Reader
-         * implementation such as {@link java.io.BufferedReader}. Performance may be even likely
-         * better if you do not.
-         * <p>
-         * Use {@link #build(Path, Charset)} for optimal performance when
-         * reading files and {@link #build(String)} when reading Strings.
-         *
-         * @param reader the data source to read from.
-         * @return a new CsvReader - never {@code null}.
-         * @throws NullPointerException if reader is {@code null}
-         */
-        public CsvReader build(final Reader reader) {
-            return newReader(Objects.requireNonNull(reader, "reader must not be null"));
-        }
-
-        /**
-         * Constructs a new {@link CsvReader} for the specified arguments.
-         *
-         * @param data    the data to read.
-         * @return a new CsvReader - never {@code null}.
-         */
-        public CsvReader build(final String data) {
-            return newReader(Objects.requireNonNull(data, "data must not be null"));
-        }
-
-        /**
-         * Constructs a new {@link CsvReader} for the specified path using UTF-8 as the character set.
-         *
-         * @param path    the file to read data from.
-         * @return a new CsvReader - never {@code null}. Don't forget to close it!
-         * @throws IOException if an I/O error occurs.
-         * @throws NullPointerException if path or charset is {@code null}
-         */
-        public CsvReader build(final Path path) throws IOException {
-            return build(path, StandardCharsets.UTF_8);
-        }
-
-        /**
-         * Constructs a new {@link CsvReader} for the specified arguments.
-         *
-         * @param path    the file to read data from.
-         * @param charset the character set to use.
-         * @return a new CsvReader - never {@code null}. Don't forget to close it!
-         * @throws IOException if an I/O error occurs.
-         * @throws NullPointerException if path or charset is {@code null}
-         */
-        public CsvReader build(final Path path, final Charset charset) throws IOException {
-            Objects.requireNonNull(path, "path must not be null");
-            Objects.requireNonNull(charset, "charset must not be null");
-
-            return newReader(new InputStreamReader(Files.newInputStream(path), charset));
-        }
-
-        private CsvReader newReader(final Reader reader) {
-            return new CsvReader(reader, fieldSeparator, quoteCharacter, commentStrategy,
-                commentCharacter, skipEmptyRows, errorOnDifferentFieldCount);
-        }
-
-        private CsvReader newReader(final String data) {
-            return new CsvReader(data, fieldSeparator, quoteCharacter, commentStrategy,
-                commentCharacter, skipEmptyRows, errorOnDifferentFieldCount);
-        }
-
-        @Override
-        public String toString() {
-            return new StringJoiner(", ", CsvReaderBuilder.class.getSimpleName() + "[", "]")
-                .add("fieldSeparator=" + fieldSeparator)
-                .add("quoteCharacter=" + quoteCharacter)
-                .add("commentStrategy=" + commentStrategy)
-                .add("commentCharacter=" + commentCharacter)
-                .add("skipEmptyRows=" + skipEmptyRows)
-                .add("errorOnDifferentFieldCount=" + errorOnDifferentFieldCount)
-                .toString();
-        }
-
+    fun quoteCharacter(quoteCharacter: Char): CsvReaderBuilder {
+      this.quoteCharacter = quoteCharacter
+      return this
     }
 
+    /**
+     * Sets the strategy that defines how (and if) commented lines should be handled
+     * (default: [CommentStrategy.NONE] as comments are not defined in RFC 4180).
+     *
+     * @param commentStrategy the strategy for handling comments.
+     * @return This updated object, so that additional method calls can be chained together.
+     * @see .commentCharacter
+     */
+    fun commentStrategy(commentStrategy: CommentStrategy): CsvReaderBuilder {
+      this.commentStrategy = commentStrategy
+      return this
+    }
+
+    /**
+     * Sets the `commentCharacter` used to comment lines.
+     *
+     * @param commentCharacter the character used to comment lines (default: `#` - hash)
+     * @return This updated object, so that additional method calls can be chained together.
+     * @see .commentStrategy
+     */
+    fun commentCharacter(commentCharacter: Char): CsvReaderBuilder {
+      this.commentCharacter = commentCharacter
+      return this
+    }
+
+    /**
+     * Defines if empty rows should be skipped when reading data.
+     *
+     * @param skipEmptyRows if empty rows should be skipped (default: `true`).
+     * @return This updated object, so that additional method calls can be chained together.
+     */
+    fun skipEmptyRows(skipEmptyRows: Boolean): CsvReaderBuilder {
+      this.skipEmptyRows = skipEmptyRows
+      return this
+    }
+
+    /**
+     * Defines if an [MalformedCsvException] should be thrown if lines do contain a
+     * different number of columns.
+     *
+     * @param errorOnDifferentFieldCount if an exception should be thrown, if CSV data contains
+     * different field count (default: `false`).
+     * @return This updated object, so that additional method calls can be chained together.
+     */
+    fun errorOnDifferentFieldCount(
+      errorOnDifferentFieldCount: Boolean
+    ): CsvReaderBuilder {
+      this.errorOnDifferentFieldCount = errorOnDifferentFieldCount
+      return this
+    }
+
+    /**
+     * Constructs a new [CsvReader] for the specified arguments.
+     *
+     *
+     * This library uses built-in buffering, so you do not need to pass in a buffered Reader
+     * implementation such as [java.io.BufferedReader]. Performance may be even likely
+     * better if you do not.
+     *
+     *
+     * Use [.build] for optimal performance when
+     * reading files and [.build] when reading Strings.
+     *
+     * @param reader the data source to read from.
+     * @return a new CsvReader - never `null`.
+     * @throws NullPointerException if reader is `null`
+     */
+    fun build(reader: Reader?): CsvReader {
+      return newReader(Objects.requireNonNull(reader, "reader must not be null"))
+    }
+
+    /**
+     * Constructs a new [CsvReader] for the specified arguments.
+     *
+     * @param data    the data to read.
+     * @return a new CsvReader - never `null`.
+     */
+    fun build(data: String): CsvReader {
+      return newReader(Objects.requireNonNull(data, "data must not be null"))
+    }
+    /**
+     * Constructs a new [CsvReader] for the specified arguments.
+     *
+     * @param path    the file to read data from.
+     * @param charset the character set to use.
+     * @return a new CsvReader - never `null`. Don't forget to close it!
+     * @throws IOException if an I/O error occurs.
+     * @throws NullPointerException if path or charset is `null`
+     */
+    /**
+     * Constructs a new [CsvReader] for the specified path using UTF-8 as the character set.
+     *
+     * @param path    the file to read data from.
+     * @return a new CsvReader - never `null`. Don't forget to close it!
+     * @throws IOException if an I/O error occurs.
+     * @throws NullPointerException if path or charset is `null`
+     */
+    @JvmOverloads
+    @Throws(IOException::class)
+    fun build(path: Path?, charset: Charset? = StandardCharsets.UTF_8): CsvReader {
+      Objects.requireNonNull(path, "path must not be null")
+      Objects.requireNonNull(charset, "charset must not be null")
+      return newReader(InputStreamReader(Files.newInputStream(path), charset))
+    }
+
+    private fun newReader(reader: Reader?): CsvReader {
+      return CsvReader(
+        reader, fieldSeparator, quoteCharacter, commentStrategy,
+        commentCharacter, skipEmptyRows, errorOnDifferentFieldCount
+      )
+    }
+
+    private fun newReader(data: String): CsvReader {
+      return CsvReader(
+        data, fieldSeparator, quoteCharacter, commentStrategy,
+        commentCharacter, skipEmptyRows, errorOnDifferentFieldCount
+      )
+    }
+
+    override fun toString(): String {
+      return StringJoiner(", ", CsvReaderBuilder::class.java.simpleName + "[", "]")
+        .add("fieldSeparator=$fieldSeparator")
+        .add("quoteCharacter=$quoteCharacter")
+        .add("commentStrategy=$commentStrategy")
+        .add("commentCharacter=$commentCharacter")
+        .add("skipEmptyRows=$skipEmptyRows")
+        .add("errorOnDifferentFieldCount=$errorOnDifferentFieldCount")
+        .toString()
+    }
+  }
+
+  companion object {
+    private const val CR = '\r'
+    private const val LF = '\n'
+
+    /**
+     * Constructs a [CsvReaderBuilder] to configure and build instances of this class.
+     * @return a new [CsvReaderBuilder] instance.
+     */
+    @JvmStatic
+    fun builder(): CsvReaderBuilder {
+      return CsvReaderBuilder()
+    }
+  }
 }

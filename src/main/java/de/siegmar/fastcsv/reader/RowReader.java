@@ -1,331 +1,336 @@
-package de.siegmar.fastcsv.reader;
+package de.siegmar.fastcsv.reader
 
-import java.io.IOException;
-import java.io.Reader;
+import java.io.IOException
+import java.io.Reader
 
 /*
  * This class contains ugly, performance optimized code - be warned!
  */
-@SuppressWarnings({
-    "checkstyle:CyclomaticComplexity",
-    "checkstyle:ExecutableStatementCount",
-    "checkstyle:InnerAssignment",
-    "checkstyle:JavaNCSS",
-    "checkstyle:NestedIfDepth",
-    "PMD.UnusedAssignment"
-})
-final class RowReader {
+internal class RowReader {
+  private val rowHandler = RowHandler(32)
+  private val buffer: Buffer
+  private val fsep: Char
+  private val qChar: Char
+  private val cStrat: CommentStrategy
+  private val cChar: Char
+  private var status = 0
+  private var finished = false
 
-    private static final char LF = '\n';
-    private static final char CR = '\r';
+  constructor(
+    reader: Reader?, fieldSeparator: Char, quoteCharacter: Char,
+    commentStrategy: CommentStrategy, commentCharacter: Char
+  ) {
+    buffer = Buffer(reader)
+    fsep = fieldSeparator
+    qChar = quoteCharacter
+    cStrat = commentStrategy
+    cChar = commentCharacter
+  }
 
-    private static final int STATUS_LAST_CHAR_WAS_CR = 32;
-    private static final int STATUS_COMMENTED_ROW = 16;
-    private static final int STATUS_NEW_FIELD = 8;
-    private static final int STATUS_QUOTED_MODE = 4;
-    private static final int STATUS_QUOTED_COLUMN = 2;
-    private static final int STATUS_DATA_COLUMN = 1;
-    private static final int STATUS_RESET = 0;
+  constructor(
+    data: String, fieldSeparator: Char, quoteCharacter: Char,
+    commentStrategy: CommentStrategy, commentCharacter: Char
+  ) {
+    buffer = Buffer(data)
+    fsep = fieldSeparator
+    qChar = quoteCharacter
+    cStrat = commentStrategy
+    cChar = commentCharacter
+  }
 
-    private final RowHandler rowHandler = new RowHandler(32);
-    private final Buffer buffer;
-    private final char fsep;
-    private final char qChar;
-    private final CommentStrategy cStrat;
-    private final char cChar;
-
-    private int status;
-    private boolean finished;
-
-    RowReader(final Reader reader, final char fieldSeparator, final char quoteCharacter,
-              final CommentStrategy commentStrategy, final char commentCharacter) {
-        buffer = new Buffer(reader);
-        this.fsep = fieldSeparator;
-        this.qChar = quoteCharacter;
-        this.cStrat = commentStrategy;
-        this.cChar = commentCharacter;
+  @Throws(IOException::class)
+  fun fetchAndRead(): CsvRow? {
+    if (finished) {
+      return null
     }
-
-    RowReader(final String data, final char fieldSeparator, final char quoteCharacter,
-              final CommentStrategy commentStrategy, final char commentCharacter) {
-        buffer = new Buffer(data);
-        this.fsep = fieldSeparator;
-        this.qChar = quoteCharacter;
-        this.cStrat = commentStrategy;
-        this.cChar = commentCharacter;
-    }
-
-    CsvRow fetchAndRead() throws IOException {
-        if (finished) {
-            return null;
+    do {
+      if (buffer.len == buffer.pos) {
+        // cursor reached current EOD -- need to fetch
+        if (buffer.fetchData()) {
+          // reached end of stream
+          if (buffer.begin < buffer.pos || rowHandler.isCommentMode) {
+            rowHandler.add(
+              materialize(
+                buffer.buf, buffer.begin,
+                buffer.pos - buffer.begin, status, qChar
+              )
+            )
+          } else if (status and STATUS_NEW_FIELD != 0) {
+            rowHandler.add("")
+          }
+          finished = true
+          break
         }
+      }
+    } while (consume(rowHandler, buffer.buf, buffer.len))
+    return rowHandler.buildAndReset()
+  }
 
-        do {
-            if (buffer.len == buffer.pos) {
-                // cursor reached current EOD -- need to fetch
-                if (buffer.fetchData()) {
-                    // reached end of stream
-                    if (buffer.begin < buffer.pos || rowHandler.isCommentMode()) {
-                        rowHandler.add(materialize(buffer.buf, buffer.begin,
-                            buffer.pos - buffer.begin, status, qChar));
-                    } else if ((status & STATUS_NEW_FIELD) != 0) {
-                        rowHandler.add("");
-                    }
-
-                    finished = true;
-                    break;
-                }
-            }
-        } while (consume(rowHandler, buffer.buf, buffer.len));
-
-        return rowHandler.buildAndReset();
-    }
-
-    @SuppressWarnings("PMD.EmptyIfStmt")
-    boolean consume(final RowHandler rh, final char[] lBuf, final int lLen) {
-        int lPos = buffer.pos;
-        int lBegin = buffer.begin;
-        int lStatus = status;
-        boolean moreDataNeeded = true;
-
-        OUTER: {
-            mode_check: do {
-                if ((lStatus & STATUS_QUOTED_MODE) != 0) {
-                    // we're in quotes
-                    while (lPos < lLen) {
-                        final char c = lBuf[lPos++];
-
-                        if (c == qChar) {
-                            lStatus &= ~STATUS_QUOTED_MODE;
-                            continue mode_check;
-                        } else if (c == CR) {
-                            lStatus |= STATUS_LAST_CHAR_WAS_CR;
-                            rh.incLines();
-                        } else if (c == LF) {
-                            if ((lStatus & STATUS_LAST_CHAR_WAS_CR) == 0) {
-                                rh.incLines();
-                            } else {
-                                lStatus &= ~STATUS_LAST_CHAR_WAS_CR;
-                            }
-                        } else {
-                            // fast-forward
-                            while (lPos < lLen) {
-                                final char lookAhead = lBuf[lPos++];
-                                if (lookAhead == qChar || lookAhead == LF || lookAhead == CR) {
-                                    lPos--;
-                                    break;
-                                }
-                            }
-                        }
-                    }
-                } else if ((lStatus & STATUS_COMMENTED_ROW) != 0) {
-                    // commented line
-                    while (lPos < lLen) {
-                        final char lookAhead = lBuf[lPos++];
-
-                        if (lookAhead == CR) {
-                            rh.add(materialize(lBuf, lBegin, lPos - lBegin - 1, lStatus,
-                                qChar));
-                            status = STATUS_LAST_CHAR_WAS_CR;
-                            lBegin = lPos;
-                            moreDataNeeded = false;
-                            break OUTER;
-                        } else if (lookAhead == LF) {
-                            rh.add(materialize(lBuf, lBegin, lPos - lBegin - 1, lStatus,
-                                qChar));
-                            status = STATUS_RESET;
-                            lBegin = lPos;
-                            moreDataNeeded = false;
-                            break OUTER;
-                        }
-                    }
-                } else {
-                    // we're not in quotes
-                    while (lPos < lLen) {
-                        final char c = lBuf[lPos++];
-
-                        if (c == fsep) {
-                            rh.add(materialize(lBuf, lBegin, lPos - lBegin - 1, lStatus,
-                                qChar));
-                            lStatus = STATUS_NEW_FIELD;
-                            lBegin = lPos;
-                        } else if (c == CR) {
-                            rh.add(materialize(lBuf, lBegin, lPos - lBegin - 1, lStatus,
-                                qChar));
-                            status = STATUS_LAST_CHAR_WAS_CR;
-                            lBegin = lPos;
-                            moreDataNeeded = false;
-                            break OUTER;
-                        } else if (c == LF) {
-                            if ((lStatus & STATUS_LAST_CHAR_WAS_CR) == 0) {
-                                rh.add(materialize(lBuf, lBegin, lPos - lBegin - 1,
-                                    lStatus, qChar));
-                                status = STATUS_RESET;
-                                lBegin = lPos;
-                                moreDataNeeded = false;
-                                break OUTER;
-                            }
-
-                            lStatus = STATUS_RESET;
-                            lBegin = lPos;
-                        } else if (cStrat != CommentStrategy.NONE && c == cChar
-                            && (lStatus == STATUS_RESET || lStatus == STATUS_LAST_CHAR_WAS_CR)) {
-                            lBegin = lPos;
-                            lStatus = STATUS_COMMENTED_ROW;
-                            rh.enableCommentMode();
-                            continue mode_check;
-                        } else if (c == qChar && (lStatus & STATUS_DATA_COLUMN) == 0) {
-                            // quote and not in data-only mode
-                            lStatus = STATUS_QUOTED_COLUMN | STATUS_QUOTED_MODE;
-                            continue mode_check;
-                        } else {
-                            if ((lStatus & STATUS_QUOTED_COLUMN) == 0) {
-                                // normal unquoted data
-                                lStatus = STATUS_DATA_COLUMN;
-
-                                // fast-forward
-                                while (lPos < lLen) {
-                                    final char lookAhead = lBuf[lPos++];
-                                    if (lookAhead == fsep || lookAhead == LF || lookAhead == CR) {
-                                        lPos--;
-                                        break;
-                                    }
-                                }
-                            } else {
-                                // field data after closing quote
-                            }
-                        }
-                    }
-                }
-            } while (lPos < lLen);
-
-            status = lStatus;
-        }
-
-        buffer.pos = lPos;
-        buffer.begin = lBegin;
-
-        return moreDataNeeded;
-    }
-
-    private static String materialize(final char[] lBuf,
-                                      final int lBegin, final int lPos, final int lStatus,
-                                      final char quoteCharacter) {
-        if ((lStatus & STATUS_QUOTED_COLUMN) == 0) {
-            // column without quotes
-            return new String(lBuf, lBegin, lPos);
-        }
-
-        // column with quotes
-        final int shift = cleanDelimiters(lBuf, lBegin + 1, lBegin + lPos,
-            quoteCharacter);
-        return new String(lBuf, lBegin + 1, lPos - 1 - shift);
-    }
-
-    private static int cleanDelimiters(final char[] buf, final int begin, final int pos,
-                                       final char quoteCharacter) {
-        int shift = 0;
-        boolean escape = false;
-        for (int i = begin; i < pos; i++) {
-            final char c = buf[i];
-
-            if (c == quoteCharacter) {
-                if (!escape) {
-                    shift++;
-                    escape = true;
-                    continue;
-                } else {
-                    escape = false;
-                }
-            }
-
-            if (shift > 0) {
-                buf[i - shift] = c;
-            }
-        }
-
-        return shift;
-    }
-
-    @SuppressWarnings("checkstyle:visibilitymodifier")
-    private static class Buffer {
-        private static final int READ_SIZE = 8192;
-        private static final int BUFFER_SIZE = READ_SIZE;
-        private static final int MAX_BUFFER_SIZE = 8 * 1024 * 1024;
-
-        char[] buf;
-        int len;
-        int begin;
-        int pos;
-
-        private final Reader reader;
-
-        Buffer(final Reader reader) {
-            this.reader = reader;
-            buf = new char[BUFFER_SIZE];
-        }
-
-        Buffer(final String data) {
-            reader = null;
-            buf = data.toCharArray();
-            len = data.length();
-        }
-
-        /**
-         * Reads data from the underlying reader and manages the local buffer.
-         *
-         * @return {@code true}, if EOD reached.
-         * @throws IOException if a read error occurs
-         */
-        private boolean fetchData() throws IOException {
-            if (reader == null) {
-                return true;
-            }
-
-            if (begin < pos) {
-                // we have data that can be relocated
-
-                if (READ_SIZE > buf.length - pos) {
-                    // need to relocate data in buffer -- not enough capacity left
-
-                    final int lenToCopy = pos - begin;
-                    if (READ_SIZE > buf.length - lenToCopy) {
-                        // need to relocate data in new, larger buffer
-                        buf = extendAndRelocate(buf, begin);
-                    } else {
-                        // relocate data in existing buffer
-                        System.arraycopy(buf, begin, buf, 0, lenToCopy);
-                    }
-                    pos -= begin;
-                    begin = 0;
-                }
+  fun consume(rh: RowHandler, lBuf: CharArray, lLen: Int): Boolean {
+    var lPos = buffer.pos
+    var lBegin = buffer.begin
+    var lStatus = status
+    var moreDataNeeded = true
+    OUTER@ {
+      mode_check@ do {
+        if (lStatus and STATUS_QUOTED_MODE != 0) {
+          // we're in quotes
+          while (lPos < lLen) {
+            val c = lBuf[lPos++]
+            if (c == qChar) {
+              lStatus = lStatus and STATUS_QUOTED_MODE.inv()
+              continue@mode_check
+            } else if (c == CR) {
+              lStatus = lStatus or STATUS_LAST_CHAR_WAS_CR
+              rh.incLines()
+            } else if (c == LF) {
+              if (lStatus and STATUS_LAST_CHAR_WAS_CR == 0) {
+                rh.incLines()
+              } else {
+                lStatus = lStatus and STATUS_LAST_CHAR_WAS_CR.inv()
+              }
             } else {
-                // all data was consumed -- nothing to relocate
-                pos = begin = 0;
+              // fast-forward
+              while (lPos < lLen) {
+                val lookAhead = lBuf[lPos++]
+                if (lookAhead == qChar || lookAhead == LF || lookAhead == CR) {
+                  lPos--
+                  break
+                }
+              }
             }
+          }
+        } else if (lStatus and STATUS_COMMENTED_ROW != 0) {
+          // commented line
+          while (lPos < lLen) {
+            val lookAhead = lBuf[lPos++]
+            if (lookAhead == CR) {
+              rh.add(
+                materialize(
+                  lBuf, lBegin, lPos - lBegin - 1, lStatus,
+                  qChar
+                )
+              )
+              status = STATUS_LAST_CHAR_WAS_CR
+              lBegin = lPos
+              moreDataNeeded = false
+              return@OUTER
+            } else if (lookAhead == LF) {
+              rh.add(
+                materialize(
+                  lBuf, lBegin, lPos - lBegin - 1, lStatus,
+                  qChar
+                )
+              )
+              status = STATUS_RESET
+              lBegin = lPos
+              moreDataNeeded = false
+              return@OUTER
+            }
+          }
+        } else {
+          // we're not in quotes
+          while (lPos < lLen) {
+            val c = lBuf[lPos++]
+            if (c == fsep) {
+              rh.add(
+                materialize(
+                  lBuf, lBegin, lPos - lBegin - 1, lStatus,
+                  qChar
+                )
+              )
+              lStatus = STATUS_NEW_FIELD
+              lBegin = lPos
+            } else if (c == CR) {
+              rh.add(
+                materialize(
+                  lBuf, lBegin, lPos - lBegin - 1, lStatus,
+                  qChar
+                )
+              )
+              status = STATUS_LAST_CHAR_WAS_CR
+              lBegin = lPos
+              moreDataNeeded = false
+              return@OUTER
+            } else if (c == LF) {
+              if (lStatus and STATUS_LAST_CHAR_WAS_CR == 0) {
+                rh.add(
+                  materialize(
+                    lBuf, lBegin, lPos - lBegin - 1,
+                    lStatus, qChar
+                  )
+                )
+                status = STATUS_RESET
+                lBegin = lPos
+                moreDataNeeded = false
+                return@OUTER
+              }
+              lStatus = STATUS_RESET
+              lBegin = lPos
+            } else if (cStrat != CommentStrategy.NONE && c == cChar && (lStatus == STATUS_RESET || lStatus == STATUS_LAST_CHAR_WAS_CR)) {
+              lBegin = lPos
+              lStatus = STATUS_COMMENTED_ROW
+              rh.enableCommentMode()
+              continue@mode_check
+            } else if (c == qChar && lStatus and STATUS_DATA_COLUMN == 0) {
+              // quote and not in data-only mode
+              lStatus = STATUS_QUOTED_COLUMN or STATUS_QUOTED_MODE
+              continue@mode_check
+            } else {
+              if (lStatus and STATUS_QUOTED_COLUMN == 0) {
+                // normal unquoted data
+                lStatus = STATUS_DATA_COLUMN
 
-            final int cnt = reader.read(buf, pos, READ_SIZE);
-            if (cnt == -1) {
-                return true;
+                // fast-forward
+                while (lPos < lLen) {
+                  val lookAhead = lBuf[lPos++]
+                  if (lookAhead == fsep || lookAhead == LF || lookAhead == CR) {
+                    lPos--
+                    break
+                  }
+                }
+              } else {
+                // field data after closing quote
+              }
             }
-            len = pos + cnt;
-            return false;
+          }
         }
+      } while (lPos < lLen)
+      status = lStatus
+    }
+    buffer.pos = lPos
+    buffer.begin = lBegin
+    return moreDataNeeded
+  }
 
-        private static char[] extendAndRelocate(final char[] buf, final int begin)
-            throws IOException {
+  private class Buffer {
+    var buf: CharArray
+    var len = 0
+    var begin = 0
+    var pos = 0
+    private val reader: Reader?
 
-            final int newBufferSize = buf.length * 2;
-            if (newBufferSize > MAX_BUFFER_SIZE) {
-                throw new IOException("Maximum buffer size " + MAX_BUFFER_SIZE + " is not enough "
-                    + "to read data of a single field. Typically, this happens if quotation "
-                    + "started but did not end within this buffer's maximum boundary.");
-            }
-            final char[] newBuf = new char[newBufferSize];
-            System.arraycopy(buf, begin, newBuf, 0, buf.length - begin);
-            return newBuf;
-        }
-
+    internal constructor(reader: Reader?) {
+      this.reader = reader
+      buf = CharArray(BUFFER_SIZE)
     }
 
+    internal constructor(data: String) {
+      reader = null
+      buf = data.toCharArray()
+      len = data.length
+    }
+
+    /**
+     * Reads data from the underlying reader and manages the local buffer.
+     *
+     * @return `true`, if EOD reached.
+     * @throws IOException if a read error occurs
+     */
+    @Throws(IOException::class)
+    fun fetchData(): Boolean {
+      if (reader == null) {
+        return true
+      }
+      if (begin < pos) {
+        // we have data that can be relocated
+        if (READ_SIZE > buf.size - pos) {
+          // need to relocate data in buffer -- not enough capacity left
+          val lenToCopy = pos - begin
+          if (READ_SIZE > buf.size - lenToCopy) {
+            // need to relocate data in new, larger buffer
+            buf = extendAndRelocate(buf, begin)
+          } else {
+            // relocate data in existing buffer
+            System.arraycopy(buf, begin, buf, 0, lenToCopy)
+          }
+          pos -= begin
+          begin = 0
+        }
+      } else {
+        // all data was consumed -- nothing to relocate
+        begin = 0
+        pos = begin
+      }
+      val cnt = reader.read(buf, pos, READ_SIZE)
+      if (cnt == -1) {
+        return true
+      }
+      len = pos + cnt
+      return false
+    }
+
+    companion object {
+      private const val READ_SIZE = 8192
+      private const val BUFFER_SIZE = READ_SIZE
+      private const val MAX_BUFFER_SIZE = 8 * 1024 * 1024
+      @Throws(IOException::class)
+      private fun extendAndRelocate(buf: CharArray, begin: Int): CharArray {
+        val newBufferSize = buf.size * 2
+        if (newBufferSize > MAX_BUFFER_SIZE) {
+          throw IOException(
+            "Maximum buffer size " + MAX_BUFFER_SIZE + " is not enough "
+              + "to read data of a single field. Typically, this happens if quotation "
+              + "started but did not end within this buffer's maximum boundary."
+          )
+        }
+        val newBuf = CharArray(newBufferSize)
+        System.arraycopy(buf, begin, newBuf, 0, buf.size - begin)
+        return newBuf
+      }
+    }
+  }
+
+  companion object {
+    private const val LF = '\n'
+    private const val CR = '\r'
+    private const val STATUS_LAST_CHAR_WAS_CR = 32
+    private const val STATUS_COMMENTED_ROW = 16
+    private const val STATUS_NEW_FIELD = 8
+    private const val STATUS_QUOTED_MODE = 4
+    private const val STATUS_QUOTED_COLUMN = 2
+    private const val STATUS_DATA_COLUMN = 1
+    private const val STATUS_RESET = 0
+    private fun materialize(
+      lBuf: CharArray,
+      lBegin: Int, lPos: Int, lStatus: Int,
+      quoteCharacter: Char
+    ): String {
+      if (lStatus and STATUS_QUOTED_COLUMN == 0) {
+        // column without quotes
+        return String(lBuf, lBegin, lPos)
+      }
+
+      // column with quotes
+      val shift = cleanDelimiters(
+        lBuf, lBegin + 1, lBegin + lPos,
+        quoteCharacter
+      )
+      return String(lBuf, lBegin + 1, lPos - 1 - shift)
+    }
+
+    private fun cleanDelimiters(
+      buf: CharArray, begin: Int, pos: Int,
+      quoteCharacter: Char
+    ): Int {
+      var shift = 0
+      var escape = false
+      for (i in begin until pos) {
+        val c = buf[i]
+        if (c == quoteCharacter) {
+          if (!escape) {
+            shift++
+            escape = true
+            continue
+          } else {
+            escape = false
+          }
+        }
+        if (shift > 0) {
+          buf[i - shift] = c
+        }
+      }
+      return shift
+    }
+  }
 }
