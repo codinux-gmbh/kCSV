@@ -14,7 +14,7 @@ class CsvRow internal constructor(
    * @return the original line number
    */
     @JvmField val originalLineNumber: Long,
-    private val fields: Array<String?>,
+    private val fields: Array<String>,
     /**
    * Provides the information if the row is a commented row.
    *
@@ -33,7 +33,7 @@ class CsvRow internal constructor(
    * @return field value, never `null`
    * @throws IndexOutOfBoundsException if index is out of range
    */
-  fun getField(index: Int): String? {
+  fun getField(index: Int): String {
     return fields[index]
   }
 
@@ -75,6 +75,6 @@ class CsvRow internal constructor(
   }
 
   companion object {
-    private val EMPTY = arrayOf<String?>("")
+    private val EMPTY = arrayOf("")
   }
 }

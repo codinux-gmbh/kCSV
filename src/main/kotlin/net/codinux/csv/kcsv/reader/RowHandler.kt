@@ -1,18 +1,14 @@
 package net.codinux.csv.kcsv.reader
 
 internal class RowHandler(private var len: Int) {
-  private var row: Array<String?>
+  private var row: Array<String> = Array(len) { "" }
   private var idx = 0
   private var lines = 1
   var isCommentMode = false
     private set
   private var originalLineNumber: Long = 1
 
-  init {
-    row = arrayOfNulls(len)
-  }
-
-  fun add(value: String?) {
+  fun add(value: String) {
     if (idx == len) {
       extendCapacity()
     }
@@ -21,9 +17,7 @@ internal class RowHandler(private var len: Int) {
 
   private fun extendCapacity() {
     len *= 2
-    val newRow = arrayOfNulls<String>(len)
-    System.arraycopy(row, 0, newRow, 0, idx)
-    row = newRow
+    row = Array(len) { index -> if (index < idx) row[index] else "" }
   }
 
   fun buildAndReset(): CsvRow? {
@@ -36,9 +30,8 @@ internal class RowHandler(private var len: Int) {
   }
 
   private fun build(): CsvRow {
-    if (idx > 1 || !row[0]!!.isEmpty()) {
-      val ret = arrayOfNulls<String>(idx)
-      System.arraycopy(row, 0, ret, 0, idx)
+    if (idx > 1 || row[0].isNotEmpty()) {
+      val ret = Array(idx) { index -> row[index] }
       return CsvRow(originalLineNumber, ret, isCommentMode)
     }
     return CsvRow(originalLineNumber, isCommentMode)

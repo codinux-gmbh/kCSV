@@ -15,7 +15,7 @@ class NamedCsvRow internal constructor(header: Set<String>, row: CsvRow) {
    */
   @JvmField
   val originalLineNumber: Long
-  private val fieldMap: MutableMap<String?, String?>
+  private val fieldMap: MutableMap<String, String>
 
   init {
     originalLineNumber = row.originalLineNumber
@@ -41,7 +41,7 @@ class NamedCsvRow internal constructor(header: Set<String>, row: CsvRow) {
       )
   }
 
-  val fields: Map<String?, String?>
+  val fields: Map<String, String>
     /**
      * Gets an unmodifiable map of header names and field values of this row.
      *
