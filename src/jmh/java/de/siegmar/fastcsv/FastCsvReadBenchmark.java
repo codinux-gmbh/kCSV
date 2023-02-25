@@ -1,16 +1,15 @@
 package de.siegmar.fastcsv;
 
-import java.io.IOException;
-
+import net.codinux.csv.kcsv.reader.CloseableIterator;
+import net.codinux.csv.kcsv.reader.CsvReader;
+import net.codinux.csv.kcsv.reader.CsvRow;
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.Scope;
 import org.openjdk.jmh.annotations.Setup;
 import org.openjdk.jmh.annotations.State;
 import org.openjdk.jmh.annotations.TearDown;
 
-import de.siegmar.fastcsv.reader.CloseableIterator;
-import de.siegmar.fastcsv.reader.CsvReader;
-import de.siegmar.fastcsv.reader.CsvRow;
+import java.io.IOException;
 
 public class FastCsvReadBenchmark {
 

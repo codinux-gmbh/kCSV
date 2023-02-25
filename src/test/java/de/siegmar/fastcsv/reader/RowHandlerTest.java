@@ -1,9 +1,11 @@
 package de.siegmar.fastcsv.reader;
 
+import net.codinux.csv.kcsv.reader.CsvRow;
+import net.codinux.csv.kcsv.reader.RowHandler;
+import org.junit.jupiter.api.Test;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-
-import org.junit.jupiter.api.Test;
 
 public class RowHandlerTest {
 

@@ -1,4 +1,4 @@
-package de.siegmar.fastcsv.reader
+package net.codinux.csv.kcsv.reader
 
 import java.util.*
 
@@ -75,6 +75,6 @@ class CsvRow internal constructor(
   }
 
   companion object {
-    private val EMPTY = arrayOf("")
+    private val EMPTY = arrayOf<String?>("")
   }
 }

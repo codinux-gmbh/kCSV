@@ -1,19 +1,18 @@
 package blackbox.reader;
 
-import static blackbox.reader.CharacterConv.parse;
-import static blackbox.reader.CharacterConv.print;
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import net.codinux.csv.kcsv.reader.CommentStrategy;
+import net.codinux.csv.kcsv.reader.CsvReader;
+import net.codinux.csv.kcsv.reader.CsvRow;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import java.io.IOException;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.MethodSource;
-
-import de.siegmar.fastcsv.reader.CommentStrategy;
-import de.siegmar.fastcsv.reader.CsvReader;
-import de.siegmar.fastcsv.reader.CsvRow;
+import static blackbox.reader.CharacterConv.parse;
+import static blackbox.reader.CharacterConv.print;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class GenericDataTest {
 

@@ -1,4 +1,4 @@
-package de.siegmar.fastcsv.reader
+package net.codinux.csv.kcsv.reader
 
 /**
  * This strategy is used for handling comments in (non RFC conforming) CSV data.

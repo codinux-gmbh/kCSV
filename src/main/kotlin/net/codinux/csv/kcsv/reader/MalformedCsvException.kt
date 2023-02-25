@@ -1,4 +1,4 @@
-package de.siegmar.fastcsv.reader
+package net.codinux.csv.kcsv.reader
 
 /**
  * Exception to be thrown when malformed csv data is read.

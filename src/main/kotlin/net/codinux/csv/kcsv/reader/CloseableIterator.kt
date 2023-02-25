@@ -1,4 +1,4 @@
-package de.siegmar.fastcsv.reader
+package net.codinux.csv.kcsv.reader
 
 import java.io.Closeable
 

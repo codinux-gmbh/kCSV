@@ -1,4 +1,4 @@
-package de.siegmar.fastcsv.reader
+package net.codinux.csv.kcsv.reader
 
 import java.io.IOException
 import java.io.Reader
@@ -71,7 +71,7 @@ internal class RowReader {
     var lBegin = buffer.begin
     var lStatus = status
     var moreDataNeeded = true
-    OUTER@ {
+    run OUTER@ {
       mode_check@ do {
         if (lStatus and STATUS_QUOTED_MODE != 0) {
           // we're in quotes

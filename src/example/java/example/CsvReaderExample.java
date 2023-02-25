@@ -1,5 +1,11 @@
 package example;
 
+import net.codinux.csv.kcsv.reader.CommentStrategy;
+import net.codinux.csv.kcsv.reader.CsvReader;
+import net.codinux.csv.kcsv.reader.CsvRow;
+import net.codinux.csv.kcsv.reader.NamedCsvReader;
+import net.codinux.csv.kcsv.reader.NamedCsvRow;
+
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -7,12 +13,6 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.Optional;
 import java.util.stream.Collectors;
-
-import de.siegmar.fastcsv.reader.CommentStrategy;
-import de.siegmar.fastcsv.reader.CsvReader;
-import de.siegmar.fastcsv.reader.CsvRow;
-import de.siegmar.fastcsv.reader.NamedCsvReader;
-import de.siegmar.fastcsv.reader.NamedCsvRow;
 
 @SuppressWarnings("PMD.SystemPrintln")
 public class CsvReaderExample {

@@ -1,15 +1,15 @@
 package example;
 
+import de.siegmar.fastcsv.writer.CsvWriter;
+import de.siegmar.fastcsv.writer.LineDelimiter;
+import de.siegmar.fastcsv.writer.QuoteStrategy;
+import net.codinux.csv.kcsv.reader.NamedCsvReader;
+import net.codinux.csv.kcsv.reader.NamedCsvRow;
+
 import java.io.IOException;
 import java.io.StringWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
-
-import de.siegmar.fastcsv.reader.NamedCsvReader;
-import de.siegmar.fastcsv.reader.NamedCsvRow;
-import de.siegmar.fastcsv.writer.CsvWriter;
-import de.siegmar.fastcsv.writer.LineDelimiter;
-import de.siegmar.fastcsv.writer.QuoteStrategy;
 
 @SuppressWarnings("PMD.SystemPrintln")
 public class CsvWriterExample {

@@ -1,6 +1,6 @@
-package de.siegmar.fastcsv.reader
+package net.codinux.csv.kcsv.reader
 
-import de.siegmar.fastcsv.reader.CsvReader.CsvReaderBuilder
+import net.codinux.csv.kcsv.reader.CsvReader.CsvReaderBuilder
 import java.io.Closeable
 import java.io.IOException
 import java.io.Reader
@@ -43,6 +43,9 @@ class NamedCsvReader private constructor(private val csvReader: CsvReader) : Ite
     }
     isInitialized = true
   }
+
+  private val headerIfInitialized: Set<String?>? =
+    if (this::header.isInitialized) header else null
 
   /**
    * Returns the header columns. Can be called at any time.
@@ -93,7 +96,7 @@ class NamedCsvReader private constructor(private val csvReader: CsvReader) : Ite
 
   override fun toString(): String {
     return StringJoiner(", ", NamedCsvReader::class.java.simpleName + "[", "]")
-      .add("header=$header")
+      .add("header=$headerIfInitialized")
       .add("csvReader=$csvReader")
       .toString()
   }
@@ -224,7 +227,7 @@ class NamedCsvReader private constructor(private val csvReader: CsvReader) : Ite
     }
 
     private fun csvReaderBuilder(): CsvReaderBuilder {
-      return CsvReader.Companion.builder()
+      return CsvReader.builder()
         .fieldSeparator(fieldSeparator)
         .quoteCharacter(quoteCharacter)
         .commentCharacter(commentCharacter)

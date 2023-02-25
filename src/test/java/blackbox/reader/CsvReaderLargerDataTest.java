@@ -1,15 +1,14 @@
 package blackbox.reader;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import de.siegmar.fastcsv.writer.CsvWriter;
+import net.codinux.csv.kcsv.reader.CsvReader;
+import net.codinux.csv.kcsv.reader.CsvRow;
+import org.junit.jupiter.api.Test;
 
 import java.io.StringReader;
 import java.io.StringWriter;
 
-import org.junit.jupiter.api.Test;
-
-import de.siegmar.fastcsv.reader.CsvReader;
-import de.siegmar.fastcsv.reader.CsvRow;
-import de.siegmar.fastcsv.writer.CsvWriter;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @SuppressWarnings("PMD.CloseResource")
 public class CsvReaderLargerDataTest {

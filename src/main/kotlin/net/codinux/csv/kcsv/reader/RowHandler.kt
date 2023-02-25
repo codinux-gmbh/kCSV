@@ -1,4 +1,4 @@
-package de.siegmar.fastcsv.reader
+package net.codinux.csv.kcsv.reader
 
 internal class RowHandler(private var len: Int) {
   private var row: Array<String?>
