@@ -10,7 +10,7 @@ import java.io.StringWriter
 class CsvReaderLargerDataTest {
   @Test
   fun largerData() {
-    val reader = CsvReader.builder().build(StringReader(createSampleCSV()))
+    val reader = CsvReader(createSampleCSV())
     var i = 0
     for (row in reader) {
       Assertions.assertEquals(6, row.getFieldCount())

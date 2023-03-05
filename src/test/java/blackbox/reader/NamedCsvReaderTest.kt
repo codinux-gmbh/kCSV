@@ -1,6 +1,7 @@
 package blackbox.reader
 
 import blackbox.Util
+import net.codinux.csv.kcsv.reader.CloseableIterator
 import net.codinux.csv.kcsv.reader.NamedCsvReader
 import net.codinux.csv.kcsv.reader.NamedCsvRow
 import org.junit.jupiter.api.Assertions
@@ -11,7 +12,6 @@ import java.io.UncheckedIOException
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.function.Consumer
 import java.util.function.Supplier
-import java.util.stream.Collectors
 
 class NamedCsvReaderTest {
   private val crb = NamedCsvReader.builder()
@@ -30,7 +30,7 @@ class NamedCsvReaderTest {
     Assertions.assertEquals(
       "NamedCsvReader[header=null, csvReader=CsvReader["
         + "commentStrategy=NONE, skipEmptyRows=true, errorOnDifferentFieldCount=true]]",
-      crb.build("h1\nd1").toString()
+      NamedCsvReader("h1\nd1").toString()
     )
   }
 
@@ -135,8 +135,7 @@ class NamedCsvReaderTest {
   // line numbering
   @Test
   fun lineNumbering() {
-    val it: Iterator<NamedCsvRow> = crb
-      .build(
+    val it: Iterator<NamedCsvRow> = NamedCsvReader(
         """
             h1,h2
             a,line 2
@@ -174,13 +173,13 @@ class NamedCsvReaderTest {
     val consumer = Consumer { csvRow: NamedCsvRow? -> }
     val supp = Supplier { CloseStatusReader(StringReader("h1,h2\nfoo,bar")) }
     var csr = supp.get()
-    crb.build(csr).use { reader -> reader.stream().forEach(consumer) }
+    NamedCsvReader(csr).use { reader -> reader.forEach(consumer) }
     Assertions.assertTrue(csr.isClosed)
     csr = supp.get()
-    crb.build(csr).iterator().use { it -> it.forEachRemaining(consumer) }
+    (NamedCsvReader(csr).iterator() as CloseableIterator<NamedCsvRow>).use { it.forEachRemaining(consumer) }
     Assertions.assertTrue(csr.isClosed)
     csr = supp.get()
-    crb.build(csr).stream().use { stream -> stream.forEach(consumer) }
+    NamedCsvReader(csr).stream().use { stream -> stream.forEach(consumer) }
     Assertions.assertTrue(csr.isClosed)
   }
 
@@ -192,7 +191,7 @@ class NamedCsvReaderTest {
 
   @Test
   fun spliterator() {
-    val spliterator = crb.build("a,b,c\n1,2,3\n4,5,6").spliterator()
+    val spliterator = NamedCsvReader("a,b,c\n1,2,3\n4,5,6").spliterator()
     Assertions.assertNull(spliterator.trySplit())
     Assertions.assertEquals(Long.MAX_VALUE, spliterator.estimateSize())
     val rows = AtomicInteger()
@@ -207,8 +206,7 @@ class NamedCsvReaderTest {
   // Coverage
   @Test
   fun closeException() {
-    val csvReader = crb
-      .build(UncloseableReader(StringReader("foo")))
+    val csvReader = NamedCsvReader(UncloseableReader(StringReader("foo")))
     val e = Assertions.assertThrows(
       UncheckedIOException::class.java
     ) { csvReader.stream().close() }
@@ -217,10 +215,10 @@ class NamedCsvReaderTest {
 
   // test helpers
   private fun parse(data: String): NamedCsvReader {
-    return crb.build(data)
+    return NamedCsvReader(data)
   }
 
   private fun readAll(data: String): List<NamedCsvRow> {
-    return parse(data).stream().collect(Collectors.toList())
+    return parse(data).toList()
   }
 }

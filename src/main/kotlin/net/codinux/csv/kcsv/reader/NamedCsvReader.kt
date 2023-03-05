@@ -1,5 +1,6 @@
 package net.codinux.csv.kcsv.reader
 
+import net.codinux.csv.kcsv.reader.CsvReader.Companion.reader
 import net.codinux.csv.kcsv.reader.CsvReader.CsvReaderBuilder
 import java.io.Closeable
 import java.io.IOException
@@ -25,6 +26,37 @@ import java.util.stream.StreamSupport
 `</pre> *
  */
 class NamedCsvReader private constructor(private val csvReader: CsvReader) : Iterable<NamedCsvRow>, Closeable {
+
+  /**
+   * For programing languages that don't support default parameters like Java, Swift, JavaScript, ...
+   *
+   * To set individual options better use [NamedCsvReader.builder].
+   */
+  constructor(data: String) : this(data, skipComments = Config.NamedCsvReaderDefaultSkipComments)
+
+  /**
+   * For programing languages that don't support default parameters like Java, Swift, JavaScript, ...
+   *
+   * To set individual options better use [NamedCsvReader.builder].
+   */
+  constructor(reader: Reader) : this(reader, skipComments = Config.NamedCsvReaderDefaultSkipComments)
+
+  constructor(
+    data: String,
+    fieldSeparator: Char = Config.DefaultFieldSeparator,
+    quoteCharacter: Char = Config.DefaultQuoteCharacter,
+    skipComments: Boolean = Config.NamedCsvReaderDefaultSkipComments,
+    commentCharacter: Char = Config.DefaultCommentCharacter
+  ) : this(reader(data), fieldSeparator, quoteCharacter, skipComments, commentCharacter)
+
+  constructor(
+    reader: Reader,
+    fieldSeparator: Char = Config.DefaultFieldSeparator,
+    quoteCharacter: Char = Config.DefaultQuoteCharacter,
+    skipComments: Boolean = Config.NamedCsvReaderDefaultSkipComments,
+    commentCharacter: Char = Config.DefaultCommentCharacter
+  ) : this(CsvReader(reader, fieldSeparator, quoteCharacter, if (skipComments) CommentStrategy.SKIP else CommentStrategy.NONE, commentCharacter, errorOnDifferentFieldCount = Config.NamedCsvReaderDefaultErrorOnDifferentFieldCount))
+
   private val csvIterator: CloseableIterator<CsvRow> = csvReader.iterator()
   private val namedCsvIterator: CloseableIterator<NamedCsvRow> = NamedCsvRowIterator(csvIterator)
   private lateinit var header: Set<String>

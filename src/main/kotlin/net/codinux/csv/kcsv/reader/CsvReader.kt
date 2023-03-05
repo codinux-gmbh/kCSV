@@ -21,43 +21,50 @@ import java.util.stream.StreamSupport
  * }
 `</pre> *
  */
-class CsvReader : Iterable<CsvRow>, Closeable {
+class CsvReader(
+  private val reader: Reader?,
+  private val fieldSeparator: Char = Config.DefaultFieldSeparator,
+  private val quoteCharacter: Char = Config.DefaultQuoteCharacter,
+  private val commentStrategy: CommentStrategy = Config.DefaultCommentStrategy,
+  private val commentCharacter: Char = Config.DefaultCommentCharacter,
+  private val skipEmptyRows: Boolean = Config.DefaultSkipEmptyRows,
+  private val errorOnDifferentFieldCount: Boolean = Config.DefaultErrorOnDifferentFieldCount
+) : Iterable<CsvRow>, Closeable {
+
+  /**
+   * For programing languages that don't support default parameters like Java, Swift, JavaScript, ...
+   *
+   * To set individual options better use [CsvReader.builder].
+   */
+  constructor(reader: Reader) : this(reader, fieldSeparator = Config.DefaultFieldSeparator)
+
+  /**
+   * For programing languages that don't support default parameters like Java, Swift, JavaScript, ...
+   *
+   * To set individual options better use [CsvReader.builder].
+   */
+  constructor(data: String) : this(data, fieldSeparator = Config.DefaultFieldSeparator)
+
+  constructor(
+    data: String,
+    fieldSeparator: Char = Config.DefaultFieldSeparator,
+    quoteCharacter: Char = Config.DefaultQuoteCharacter,
+    commentStrategy: CommentStrategy = Config.DefaultCommentStrategy,
+    commentCharacter: Char = Config.DefaultCommentCharacter,
+    skipEmptyRows: Boolean = Config.DefaultSkipEmptyRows,
+    errorOnDifferentFieldCount: Boolean = Config.DefaultErrorOnDifferentFieldCount
+  ) : this(reader(data), fieldSeparator, quoteCharacter, commentStrategy, commentCharacter, skipEmptyRows, errorOnDifferentFieldCount)
+
+
   private val rowReader: RowReader
-  private val commentStrategy: CommentStrategy
-  private val skipEmptyRows: Boolean
-  private val errorOnDifferentFieldCount: Boolean
   private val csvRowIterator: CloseableIterator<CsvRow> = CsvRowIterator()
-  private val reader: Reader?
   private var firstLineFieldCount = -1
 
-  internal constructor(
-    reader: Reader?, fieldSeparator: Char, quoteCharacter: Char,
-    commentStrategy: CommentStrategy, commentCharacter: Char,
-    skipEmptyRows: Boolean, errorOnDifferentFieldCount: Boolean
-  ) {
+  init {
     assertFields(fieldSeparator, quoteCharacter, commentCharacter)
-    this.commentStrategy = commentStrategy
-    this.skipEmptyRows = skipEmptyRows
-    this.errorOnDifferentFieldCount = errorOnDifferentFieldCount
-    this.reader = reader
+
     rowReader = RowReader(
       reader, fieldSeparator, quoteCharacter, commentStrategy,
-      commentCharacter
-    )
-  }
-
-  internal constructor(
-    data: String, fieldSeparator: Char, quoteCharacter: Char,
-    commentStrategy: CommentStrategy, commentCharacter: Char,
-    skipEmptyRows: Boolean, errorOnDifferentFieldCount: Boolean
-  ) {
-    assertFields(fieldSeparator, quoteCharacter, commentCharacter)
-    this.commentStrategy = commentStrategy
-    this.skipEmptyRows = skipEmptyRows
-    this.errorOnDifferentFieldCount = errorOnDifferentFieldCount
-    reader = null
-    rowReader = RowReader(
-      data, fieldSeparator, quoteCharacter, commentStrategy,
       commentCharacter
     )
   }
@@ -377,5 +384,11 @@ class CsvReader : Iterable<CsvRow>, Closeable {
     fun builder(): CsvReaderBuilder {
       return CsvReaderBuilder()
     }
+
+    fun reader(path: Path, charset: Charset = StandardCharsets.UTF_8) =
+      InputStreamReader(Files.newInputStream(path), charset)
+
+    fun reader(data: String) =
+      StringReader(data)
   }
 }

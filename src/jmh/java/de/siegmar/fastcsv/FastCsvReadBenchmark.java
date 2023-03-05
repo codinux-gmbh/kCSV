@@ -25,7 +25,7 @@ public class FastCsvReadBenchmark {
 
         @Setup
         public void setup() {
-            it = CsvReader.builder().build(new InfiniteDataReader(Constants.DATA)).iterator();
+            it = new CsvReader(new InfiniteDataReader(Constants.DATA)).iterator();
         }
 
         @TearDown

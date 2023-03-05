@@ -54,7 +54,7 @@ object CsvWriterExample {
   @Throws(IOException::class)
   private fun transformData() {
     val out = StringWriter()
-    NamedCsvReader.builder().build(
+    NamedCsvReader(
       "firstname,lastname,age\njohn,smith,30"
     ).use { reader ->
       CsvWriter.builder().build(out).use { writer ->

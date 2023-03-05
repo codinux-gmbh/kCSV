@@ -1,6 +1,7 @@
 package example
 
 import net.codinux.csv.kcsv.reader.*
+import net.codinux.csv.kcsv.reader.CsvReader.Companion.reader
 import java.io.IOException
 import java.nio.file.Files
 import java.util.function.Consumer
@@ -21,28 +22,27 @@ object CsvReaderExample {
 
   private fun simple() {
     print("For-Each loop: ")
-    for (csvRow in CsvReader.builder().build("foo,bar")) {
+    for (csvRow in CsvReader("foo,bar")) {
       println(csvRow.getFields())
     }
   }
 
   private fun forEachLambda() {
     print("Loop using forEach lambda: ")
-    CsvReader.builder().build("foo,bar")
+    CsvReader("foo,bar")
       .forEach(Consumer { x: CsvRow? -> println(x) })
   }
 
   private fun stream() {
     System.out.printf(
       "CSV contains %d rows%n",
-      CsvReader.builder().build("foo,bar").stream().count()
+      CsvReader("foo,bar").count()
     )
   }
 
   private operator fun iterator() {
     print("Iterator loop: ")
-    val iterator: Iterator<CsvRow> = CsvReader.builder()
-      .build("foo,bar\nfoo2,bar2").iterator()
+    val iterator: Iterator<CsvRow> = CsvReader("foo,bar\nfoo2,bar2").iterator()
     while (iterator.hasNext()) {
       val csvRow = iterator.next()
       print(csvRow.getFields())
@@ -55,9 +55,9 @@ object CsvReaderExample {
   }
 
   private fun header() {
-    val first = NamedCsvReader.builder()
-      .build("header1,header2\nvalue1,value2")
-      .stream().findFirst()
+    val first = NamedCsvReader("header1,header2\nvalue1,value2")
+      .stream()
+      .findFirst()
     first.ifPresent { row: NamedCsvRow -> println("Header/Name based: " + row.getField("header2")) }
   }
 
@@ -81,6 +81,6 @@ object CsvReaderExample {
   private fun file() {
     val path = Files.createTempFile("fastcsv", ".csv")
     Files.write(path, listOf("foo,bar\n"))
-    CsvReader.builder().build(path).use { csvReader -> csvReader.forEach(Consumer { x: CsvRow? -> println(x) }) }
+    CsvReader(reader(path)).use { csvReader -> csvReader.forEach { row -> println(row) } }
   }
 }
