@@ -58,15 +58,15 @@ class NamedCsvReader private constructor(private val csvReader: CsvReader) : Ite
   ) : this(CsvReader(reader, fieldSeparator, quoteCharacter, if (skipComments) CommentStrategy.SKIP else CommentStrategy.NONE, commentCharacter,
     errorOnDifferentFieldCount = Config.NamedCsvReaderDefaultErrorOnDifferentFieldCount, hasHeader = true))
 
-  private val csvIterator: CloseableIterator<CsvRow> = csvReader.iterator()
-  private val namedCsvIterator: CloseableIterator<NamedCsvRow> = NamedCsvRowIterator(csvIterator)
-
   /**
    * Returns the header columns. Can be called at any time.
    *
    * @return the header columns
    */
   val header: Set<String> = csvReader.header
+
+  private val csvIterator: CloseableIterator<CsvRow> = csvReader.iterator()
+  private val namedCsvIterator: CloseableIterator<NamedCsvRow> = NamedCsvRowIterator(csvIterator, header)
 
   override fun iterator(): CloseableIterator<NamedCsvRow> = namedCsvIterator
 
@@ -103,21 +103,6 @@ class NamedCsvReader private constructor(private val csvReader: CsvReader) : Ite
       .add("header=$header")
       .add("csvReader=$csvReader")
       .toString()
-  }
-
-  private inner class NamedCsvRowIterator internal constructor(private val csvIterator: CloseableIterator<CsvRow>) : CloseableIterator<NamedCsvRow> {
-    override fun hasNext(): Boolean {
-      return csvIterator.hasNext()
-    }
-
-    override fun next(): NamedCsvRow {
-      return NamedCsvRow(header, csvIterator.next())
-    }
-
-    @Throws(IOException::class)
-    override fun close() {
-      csvIterator.close()
-    }
   }
 
   /**
