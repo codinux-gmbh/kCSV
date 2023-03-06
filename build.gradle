@@ -12,7 +12,7 @@ plugins {
     id 'pmd'
     id 'jacoco'
     id 'com.github.spotbugs' version '4.5.0'
-    id 'me.champeau.gradle.jmh' version '0.5.1'
+    id 'me.champeau.jmh' version '0.7.0'
     id 'info.solidsoft.pitest' version '1.5.2'
     id 'org.jetbrains.kotlin.jvm' version '1.8.10'
 }
@@ -106,7 +106,7 @@ task proguardCheck(type: proguard.gradle.ProGuardTask, dependsOn: jar) {
     injars project.jar.archivePath
     libraryjars files(String.format("%s/platforms/android-%s/android.jar",
             System.getenv("ANDROID_HOME"), System.getenv("API_LEVEL")))
-    libraryjars files(configurations.compile)
+    libraryjars files(configurations.implementation)
     // Don't really try to do anything, we just want this tool for it's bytecode lint
     dontshrink
     dontobfuscate
