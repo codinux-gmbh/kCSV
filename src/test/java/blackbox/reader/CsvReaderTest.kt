@@ -123,6 +123,13 @@ class CsvReaderTest {
     Assertions.assertEquals("Row 2 has 2 fields, but first row had 1 fields", e.message)
   }
 
+  @Test
+  fun hasHeader() {
+    val reader = CsvReader("h1,h2,h3\n1,2,3", hasHeader = true)
+
+    Assertions.assertTrue(reader.header == setOf("h1", "h2", "h3"))
+  }
+
   @get:Test
   val nonExistingFieldByIndex: Unit
     // field by index

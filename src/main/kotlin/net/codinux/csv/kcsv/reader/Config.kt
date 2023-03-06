@@ -17,6 +17,8 @@ object Config {
 
   const val DefaultErrorOnDifferentFieldCount = false
 
+  const val DefaultHasHeader = false
+
   const val NamedCsvReaderDefaultErrorOnDifferentFieldCount = true
 
   const val NamedCsvReaderDefaultSkipComments = false

@@ -28,7 +28,8 @@ class CsvReader(
   private val commentStrategy: CommentStrategy = Config.DefaultCommentStrategy,
   private val commentCharacter: Char = Config.DefaultCommentCharacter,
   private val skipEmptyRows: Boolean = Config.DefaultSkipEmptyRows,
-  private val errorOnDifferentFieldCount: Boolean = Config.DefaultErrorOnDifferentFieldCount
+  private val errorOnDifferentFieldCount: Boolean = Config.DefaultErrorOnDifferentFieldCount,
+  private val hasHeader: Boolean = Config.DefaultHasHeader
 ) : Iterable<CsvRow>, Closeable {
 
   /**
@@ -52,13 +53,16 @@ class CsvReader(
     commentStrategy: CommentStrategy = Config.DefaultCommentStrategy,
     commentCharacter: Char = Config.DefaultCommentCharacter,
     skipEmptyRows: Boolean = Config.DefaultSkipEmptyRows,
-    errorOnDifferentFieldCount: Boolean = Config.DefaultErrorOnDifferentFieldCount
-  ) : this(reader(data), fieldSeparator, quoteCharacter, commentStrategy, commentCharacter, skipEmptyRows, errorOnDifferentFieldCount)
+    errorOnDifferentFieldCount: Boolean = Config.DefaultErrorOnDifferentFieldCount,
+    hasHeader: Boolean = Config.DefaultHasHeader
+  ) : this(reader(data), fieldSeparator, quoteCharacter, commentStrategy, commentCharacter, skipEmptyRows, errorOnDifferentFieldCount, hasHeader)
 
 
   private val rowReader: RowReader
   private val csvRowIterator: CloseableIterator<CsvRow> = CsvRowIterator()
   private var firstLineFieldCount = -1
+
+  val header: Set<String>
 
   init {
     assertFields(fieldSeparator, quoteCharacter, commentCharacter)
@@ -67,6 +71,8 @@ class CsvReader(
       reader, fieldSeparator, quoteCharacter, commentStrategy,
       commentCharacter
     )
+
+    header = readHeader()
   }
 
   private fun assertFields(fieldSeparator: Char, quoteCharacter: Char, commentCharacter: Char) {
@@ -81,6 +87,18 @@ class CsvReader(
       )
     }
   }
+
+  private fun readHeader() =
+    if (hasHeader == false || csvRowIterator.hasNext() == false) {
+      emptySet()
+    } else {
+      val firstRow = csvRowIterator.next()
+      val headerSet: MutableSet<String> = LinkedHashSet(firstRow.getFieldCount())
+      for (field in firstRow.getFields()) {
+        check(headerSet.add(field)) { "Duplicate header field '$field' found" }
+      }
+      Collections.unmodifiableSet(headerSet)
+    }
 
   override fun iterator(): CloseableIterator<CsvRow> {
     return csvRowIterator
@@ -211,12 +229,13 @@ class CsvReader(
    * automatically and thus not configurable.
    */
   class CsvReaderBuilder {
-    private var fieldSeparator = ','
-    private var quoteCharacter = '"'
-    private var commentStrategy = CommentStrategy.NONE
-    private var commentCharacter = '#'
-    private var skipEmptyRows = true
-    private var errorOnDifferentFieldCount = false
+    private var fieldSeparator = Config.DefaultFieldSeparator
+    private var quoteCharacter = Config.DefaultQuoteCharacter
+    private var commentStrategy = Config.DefaultCommentStrategy
+    private var commentCharacter = Config.DefaultCommentCharacter
+    private var skipEmptyRows = Config.DefaultSkipEmptyRows
+    private var errorOnDifferentFieldCount = Config.DefaultErrorOnDifferentFieldCount
+    private var hasHeader = Config.DefaultHasHeader
 
     /**
      * Sets the `fieldSeparator` used when reading CSV data.
@@ -292,6 +311,10 @@ class CsvReader(
       return this
     }
 
+    fun hasHeader(hasHeader: Boolean) = this.apply {
+      this.hasHeader = hasHeader
+    }
+
     /**
      * Constructs a new [CsvReader] for the specified arguments.
      *
@@ -349,14 +372,14 @@ class CsvReader(
     private fun newReader(reader: Reader?): CsvReader {
       return CsvReader(
         reader, fieldSeparator, quoteCharacter, commentStrategy,
-        commentCharacter, skipEmptyRows, errorOnDifferentFieldCount
+        commentCharacter, skipEmptyRows, errorOnDifferentFieldCount, hasHeader
       )
     }
 
     private fun newReader(data: String): CsvReader {
       return CsvReader(
         data, fieldSeparator, quoteCharacter, commentStrategy,
-        commentCharacter, skipEmptyRows, errorOnDifferentFieldCount
+        commentCharacter, skipEmptyRows, errorOnDifferentFieldCount, hasHeader
       )
     }
 
@@ -368,6 +391,7 @@ class CsvReader(
         .add("commentCharacter=$commentCharacter")
         .add("skipEmptyRows=$skipEmptyRows")
         .add("errorOnDifferentFieldCount=$errorOnDifferentFieldCount")
+        .add("hasHeader=$hasHeader")
         .toString()
     }
   }

@@ -18,7 +18,7 @@ class NamedCsvReaderTest {
   @Test
   fun empty() {
     val parse = parse("")
-    Assertions.assertArrayEquals(arrayOfNulls<String>(0), parse.getHeader()!!.toTypedArray())
+    Assertions.assertArrayEquals(arrayOfNulls<String>(0), parse.header.toTypedArray())
     val it: Iterator<NamedCsvRow> = parse.iterator()
     Assertions.assertFalse(it.hasNext())
     Assertions.assertThrows(NoSuchElementException::class.java) { it.next() }
@@ -28,7 +28,7 @@ class NamedCsvReaderTest {
   @Test
   fun readerToString() {
     Assertions.assertEquals(
-      "NamedCsvReader[header=null, csvReader=CsvReader["
+      "NamedCsvReader[header=[h1], csvReader=CsvReader["
         + "commentStrategy=NONE, skipEmptyRows=true, errorOnDifferentFieldCount=true]]",
       NamedCsvReader("h1\nd1").toString()
     )
@@ -36,14 +36,14 @@ class NamedCsvReaderTest {
 
   @Test
   fun duplicateHeader() {
-    val e = Assertions.assertThrows(IllegalStateException::class.java) { parse("a,b,a").getHeader() }
+    val e = Assertions.assertThrows(IllegalStateException::class.java) { parse("a,b,a").header }
     Assertions.assertEquals("Duplicate header field 'a' found", e.message)
   }
 
   @Test
   fun onlyHeader() {
     val csv = parse("foo,bar\n")
-    Assertions.assertArrayEquals(Util.asArray("foo", "bar"), csv.getHeader()!!.toTypedArray())
+    Assertions.assertArrayEquals(Util.asArray("foo", "bar"), csv.header.toTypedArray())
     Assertions.assertFalse(csv.iterator().hasNext())
     Assertions.assertThrows(NoSuchElementException::class.java) { csv.iterator().next() }
   }
@@ -51,7 +51,7 @@ class NamedCsvReaderTest {
   @Test
   fun onlyHeaderIterator() {
     val csv = parse("foo,bar\n")
-    Assertions.assertArrayEquals(Util.asArray("foo", "bar"), csv.getHeader()!!.toTypedArray())
+    Assertions.assertArrayEquals(Util.asArray("foo", "bar"), csv.header.toTypedArray())
     Assertions.assertFalse(csv.iterator().hasNext())
   }
 
@@ -64,19 +64,19 @@ class NamedCsvReaderTest {
   @get:Test
   val header: Unit
     get() {
-      Assertions.assertArrayEquals(Util.asArray("foo"), parse("foo\nbar").getHeader()!!.toTypedArray())
+      Assertions.assertArrayEquals(Util.asArray("foo"), parse("foo\nbar").header.toTypedArray())
       val reader = parse("foo,bar\n1,2")
-      Assertions.assertArrayEquals(Util.asArray("foo", "bar"), reader.getHeader()!!.toTypedArray())
+      Assertions.assertArrayEquals(Util.asArray("foo", "bar"), reader.header.toTypedArray())
 
       // second call
-      Assertions.assertArrayEquals(Util.asArray("foo", "bar"), reader.getHeader()!!.toTypedArray())
+      Assertions.assertArrayEquals(Util.asArray("foo", "bar"), reader.header.toTypedArray())
     }
 
   @get:Test
   val headerEmptyRows: Unit
     get() {
       val csv = parse("foo,bar")
-      Assertions.assertArrayEquals(Util.asArray("foo", "bar"), csv.getHeader()!!.toTypedArray())
+      Assertions.assertArrayEquals(Util.asArray("foo", "bar"), csv.header.toTypedArray())
       val it: Iterator<NamedCsvRow> = csv.iterator()
       Assertions.assertFalse(it.hasNext())
       Assertions.assertThrows(NoSuchElementException::class.java) { it.next() }
@@ -86,7 +86,7 @@ class NamedCsvReaderTest {
   val headerAfterSkippedRow: Unit
     get() {
       val csv = parse("\nfoo,bar")
-      Assertions.assertArrayEquals(Util.asArray("foo", "bar"), csv.getHeader()!!.toTypedArray())
+      Assertions.assertArrayEquals(Util.asArray("foo", "bar"), csv.header.toTypedArray())
       val it: Iterator<NamedCsvRow> = csv.iterator()
       Assertions.assertFalse(it.hasNext())
     }
@@ -94,7 +94,7 @@ class NamedCsvReaderTest {
   @get:Test
   val headerWithoutNextRowCall: Unit
     get() {
-      Assertions.assertArrayEquals(Util.asArray("foo"), parse("foo\n").getHeader()!!.toTypedArray())
+      Assertions.assertArrayEquals(Util.asArray("foo"), parse("foo\n").header.toTypedArray())
     }
 
   @Test

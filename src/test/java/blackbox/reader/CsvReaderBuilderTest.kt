@@ -53,7 +53,7 @@ class CsvReaderBuilderTest {
     Assertions.assertEquals(
       "CsvReaderBuilder[fieldSeparator=,, quoteCharacter=\", "
         + "commentStrategy=NONE, commentCharacter=#, skipEmptyRows=true, "
-        + "errorOnDifferentFieldCount=false]", crb.toString()
+        + "errorOnDifferentFieldCount=false, hasHeader=false]", crb.toString()
     )
   }
 

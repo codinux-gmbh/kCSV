@@ -55,48 +55,20 @@ class NamedCsvReader private constructor(private val csvReader: CsvReader) : Ite
     quoteCharacter: Char = Config.DefaultQuoteCharacter,
     skipComments: Boolean = Config.NamedCsvReaderDefaultSkipComments,
     commentCharacter: Char = Config.DefaultCommentCharacter
-  ) : this(CsvReader(reader, fieldSeparator, quoteCharacter, if (skipComments) CommentStrategy.SKIP else CommentStrategy.NONE, commentCharacter, errorOnDifferentFieldCount = Config.NamedCsvReaderDefaultErrorOnDifferentFieldCount))
+  ) : this(CsvReader(reader, fieldSeparator, quoteCharacter, if (skipComments) CommentStrategy.SKIP else CommentStrategy.NONE, commentCharacter,
+    errorOnDifferentFieldCount = Config.NamedCsvReaderDefaultErrorOnDifferentFieldCount, hasHeader = true))
 
   private val csvIterator: CloseableIterator<CsvRow> = csvReader.iterator()
   private val namedCsvIterator: CloseableIterator<NamedCsvRow> = NamedCsvRowIterator(csvIterator)
-  private lateinit var header: Set<String>
-  private var isInitialized = false
-
-  private fun initialize() {
-    header = if (!csvIterator.hasNext()) {
-      emptySet()
-    } else {
-      val firstRow = csvIterator.next()
-      val headerSet: MutableSet<String> = LinkedHashSet(firstRow.getFieldCount())
-      for (field in firstRow.getFields()) {
-        check(headerSet.add(field)) { "Duplicate header field '$field' found" }
-      }
-      Collections.unmodifiableSet(headerSet)
-    }
-    isInitialized = true
-  }
-
-  private val headerIfInitialized: Set<String?>? =
-    if (this::header.isInitialized) header else null
 
   /**
    * Returns the header columns. Can be called at any time.
    *
    * @return the header columns
    */
-  fun getHeader(): Set<String?>? {
-    if (!isInitialized) {
-      initialize()
-    }
-    return header
-  }
+  val header: Set<String> = csvReader.header
 
-  override fun iterator(): CloseableIterator<NamedCsvRow> {
-    if (!isInitialized) {
-      initialize()
-    }
-    return namedCsvIterator
-  }
+  override fun iterator(): CloseableIterator<NamedCsvRow> = namedCsvIterator
 
   override fun spliterator(): Spliterator<NamedCsvRow> {
     return CsvRowSpliterator(iterator())
@@ -128,7 +100,7 @@ class NamedCsvReader private constructor(private val csvReader: CsvReader) : Ite
 
   override fun toString(): String {
     return StringJoiner(", ", NamedCsvReader::class.java.simpleName + "[", "]")
-      .add("header=$headerIfInitialized")
+      .add("header=$header")
       .add("csvReader=$csvReader")
       .toString()
   }
@@ -157,10 +129,10 @@ class NamedCsvReader private constructor(private val csvReader: CsvReader) : Ite
    * automatically and thus not configurable.
    */
   class NamedCsvReaderBuilder {
-    private var fieldSeparator = ','
-    private var quoteCharacter = '"'
-    private var commentCharacter = '#'
-    private var skipComments = false
+    private var fieldSeparator = Config.DefaultFieldSeparator
+    private var quoteCharacter = Config.DefaultQuoteCharacter
+    private var commentCharacter = Config.DefaultCommentCharacter
+    private var skipComments = Config.NamedCsvReaderDefaultSkipComments
 
     /**
      * Sets the `fieldSeparator` used when reading CSV data.
@@ -265,6 +237,7 @@ class NamedCsvReader private constructor(private val csvReader: CsvReader) : Ite
         .commentCharacter(commentCharacter)
         .commentStrategy(if (skipComments) CommentStrategy.SKIP else CommentStrategy.NONE)
         .errorOnDifferentFieldCount(true)
+        .hasHeader(true)
     }
 
     override fun toString(): String {
