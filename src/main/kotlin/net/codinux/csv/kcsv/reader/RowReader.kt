@@ -1,14 +1,16 @@
 package net.codinux.csv.kcsv.reader
 
+import java.io.Closeable
 import java.io.IOException
 import java.io.Reader
 
 /*
  * This class contains ugly, performance optimized code - be warned!
  */
-internal class RowReader {
+class RowReader : Closeable {
   private val rowHandler = RowHandler(32)
   private val buffer: Buffer
+  private val reader: Reader?
   private val fsep: Char
   private val qChar: Char
   private val cStrat: CommentStrategy
@@ -21,6 +23,7 @@ internal class RowReader {
     commentStrategy: CommentStrategy, commentCharacter: Char
   ) {
     buffer = Buffer(reader)
+    this.reader = reader
     fsep = fieldSeparator
     qChar = quoteCharacter
     cStrat = commentStrategy
@@ -32,6 +35,7 @@ internal class RowReader {
     commentStrategy: CommentStrategy, commentCharacter: Char
   ) {
     buffer = Buffer(data)
+    reader = null
     fsep = fieldSeparator
     qChar = quoteCharacter
     cStrat = commentStrategy
@@ -66,7 +70,7 @@ internal class RowReader {
     return rowHandler.buildAndReset()
   }
 
-  fun consume(rh: RowHandler, lBuf: CharArray, lLen: Int): Boolean {
+  private fun consume(rh: RowHandler, lBuf: CharArray, lLen: Int): Boolean {
     var lPos = buffer.pos
     var lBegin = buffer.begin
     var lStatus = status
@@ -332,5 +336,9 @@ internal class RowReader {
       }
       return shift
     }
+  }
+
+  override fun close() {
+    reader?.close()
   }
 }

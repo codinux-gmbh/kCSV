@@ -59,7 +59,7 @@ class CsvReader(
 
 
   private val rowReader: RowReader
-  private val csvRowIterator: CloseableIterator<CsvRow> = CsvRowIterator(commentStrategy, skipEmptyRows, errorOnDifferentFieldCount)
+  private val csvRowIterator: CloseableIterator<CsvRow>
 
   val header: Set<String>
 
@@ -70,6 +70,8 @@ class CsvReader(
       reader, fieldSeparator, quoteCharacter, commentStrategy,
       commentCharacter
     )
+
+    csvRowIterator = CsvRowIterator(rowReader, commentStrategy, skipEmptyRows, errorOnDifferentFieldCount)
 
     header = readHeader()
   }
@@ -129,7 +131,7 @@ class CsvReader(
 
   @Throws(IOException::class)
   override fun close() {
-    reader?.close()
+    csvRowIterator.close()
   }
 
   override fun toString(): String {
@@ -138,92 +140,6 @@ class CsvReader(
       .add("skipEmptyRows=$skipEmptyRows")
       .add("errorOnDifferentFieldCount=$errorOnDifferentFieldCount")
       .toString()
-  }
-
-  private inner class CsvRowIterator(
-    private val commentStrategy: CommentStrategy,
-    private val skipEmptyRows: Boolean,
-    private val errorOnDifferentFieldCount: Boolean
-  ) : CloseableIterator<CsvRow> {
-
-    private var fetchedRow: CsvRow? = null
-    private var fetched = false
-    private var firstLineFieldCount = -1
-
-    override fun hasNext(): Boolean {
-      if (!fetched) {
-        fetch()
-      }
-      return fetchedRow != null
-    }
-
-    override fun next(): CsvRow {
-      if (!fetched) {
-        fetch()
-      }
-
-      fetchedRow?.let { row ->
-        fetched = false
-        return row
-      }
-
-      throw NoSuchElementException()
-    }
-
-    private fun fetch() {
-      try {
-        fetchedRow = fetchRow()
-
-        fetched = true
-      } catch (e: IOException) {
-        val lastFetchedRow = fetchedRow
-        if (lastFetchedRow != null) {
-          throw UncheckedIOException("IOException when reading record that started in line ${lastFetchedRow.originalLineNumber + 1}", e)
-        } else {
-          throw UncheckedIOException("IOException when reading first record", e)
-        }
-      }
-    }
-
-    @Throws(IOException::class)
-    private fun fetchRow(): CsvRow? {
-      while (true) {
-        val csvRow = rowReader.fetchAndRead() ?: break
-        // skip commented rows
-        if (commentStrategy == CommentStrategy.SKIP && csvRow.isComment) {
-          continue
-        }
-
-        // skip empty rows
-        if (csvRow.isEmpty()) {
-          if (skipEmptyRows) {
-            continue
-          }
-        } else if (errorOnDifferentFieldCount) {
-          val fieldCount = csvRow.getFieldCount()
-
-          // check the field count consistency on every row
-          if (firstLineFieldCount == -1) {
-            firstLineFieldCount = fieldCount
-          } else if (fieldCount != firstLineFieldCount) {
-            throw MalformedCsvException(
-              String.format(
-                "Row %d has %d fields, but first row had %d fields",
-                csvRow.originalLineNumber, fieldCount, firstLineFieldCount
-              )
-            )
-          }
-        }
-        return csvRow
-      }
-
-      return null
-    }
-
-    @Throws(IOException::class)
-    override fun close() {
-      this@CsvReader.close()
-    }
   }
 
   /**
