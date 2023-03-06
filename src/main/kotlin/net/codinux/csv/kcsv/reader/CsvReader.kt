@@ -29,7 +29,8 @@ class CsvReader(
   private val commentCharacter: Char = Config.DefaultCommentCharacter,
   private val skipEmptyRows: Boolean = Config.DefaultSkipEmptyRows,
   private val errorOnDifferentFieldCount: Boolean = Config.DefaultErrorOnDifferentFieldCount,
-  private val hasHeader: Boolean = Config.DefaultHasHeader
+  private val hasHeader: Boolean = Config.DefaultHasHeader,
+  private val ignoreInvalidQuoteChars: Boolean = Config.DefaultIgnoreInvalidQuoteChars
 ) : Iterable<CsvRow>, Closeable {
 
   /**
@@ -54,8 +55,9 @@ class CsvReader(
     commentCharacter: Char = Config.DefaultCommentCharacter,
     skipEmptyRows: Boolean = Config.DefaultSkipEmptyRows,
     errorOnDifferentFieldCount: Boolean = Config.DefaultErrorOnDifferentFieldCount,
-    hasHeader: Boolean = Config.DefaultHasHeader
-  ) : this(reader(data), fieldSeparator, quoteCharacter, commentStrategy, commentCharacter, skipEmptyRows, errorOnDifferentFieldCount, hasHeader)
+    hasHeader: Boolean = Config.DefaultHasHeader,
+    ignoreInvalidQuoteChars: Boolean = Config.DefaultIgnoreInvalidQuoteChars
+  ) : this(reader(data), fieldSeparator, quoteCharacter, commentStrategy, commentCharacter, skipEmptyRows, errorOnDifferentFieldCount, hasHeader, ignoreInvalidQuoteChars)
 
 
   private val rowReader: RowReader
@@ -68,7 +70,7 @@ class CsvReader(
 
     rowReader = RowReader(
       reader, fieldSeparator, quoteCharacter, commentStrategy,
-      commentCharacter
+      commentCharacter, ignoreInvalidQuoteChars
     )
 
     csvRowIterator = CsvRowIterator(rowReader, commentStrategy, skipEmptyRows, errorOnDifferentFieldCount)
@@ -158,6 +160,7 @@ class CsvReader(
     private var skipEmptyRows = Config.DefaultSkipEmptyRows
     private var errorOnDifferentFieldCount = Config.DefaultErrorOnDifferentFieldCount
     private var hasHeader = Config.DefaultHasHeader
+    private var ignoreInvalidQuoteChars = Config.DefaultIgnoreInvalidQuoteChars
 
     /**
      * Sets the `fieldSeparator` used when reading CSV data.
@@ -238,6 +241,16 @@ class CsvReader(
     }
 
     /**
+     * Defines if invalid placed quote chars like "\"Contains \" in cell content\"" should be ignored.
+     *
+     * @param ignoreInvalidQuoteChars If true invalid placed quote chars will be ignored
+     * @return This updated object, so that additional method calls can be chained together.
+     */
+    fun ignoreInvalidQuoteChars(ignoreInvalidQuoteChars: Boolean) = this.apply {
+      this.ignoreInvalidQuoteChars = ignoreInvalidQuoteChars
+    }
+
+    /**
      * Constructs a new [CsvReader] for the specified arguments.
      *
      *
@@ -294,14 +307,16 @@ class CsvReader(
     private fun newReader(reader: Reader?): CsvReader {
       return CsvReader(
         reader, fieldSeparator, quoteCharacter, commentStrategy,
-        commentCharacter, skipEmptyRows, errorOnDifferentFieldCount, hasHeader
+        commentCharacter, skipEmptyRows, errorOnDifferentFieldCount,
+        hasHeader, ignoreInvalidQuoteChars
       )
     }
 
     private fun newReader(data: String): CsvReader {
       return CsvReader(
         data, fieldSeparator, quoteCharacter, commentStrategy,
-        commentCharacter, skipEmptyRows, errorOnDifferentFieldCount, hasHeader
+        commentCharacter, skipEmptyRows, errorOnDifferentFieldCount,
+        hasHeader, ignoreInvalidQuoteChars
       )
     }
 

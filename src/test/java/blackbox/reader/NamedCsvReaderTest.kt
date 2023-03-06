@@ -176,7 +176,7 @@ class NamedCsvReaderTest {
     NamedCsvReader(csr).use { reader -> reader.forEach(consumer) }
     Assertions.assertTrue(csr.isClosed)
     csr = supp.get()
-    (NamedCsvReader(csr).iterator() as CloseableIterator<NamedCsvRow>).use { it.forEachRemaining(consumer) }
+    NamedCsvReader(csr).iterator().use { it.forEachRemaining(consumer) }
     Assertions.assertTrue(csr.isClosed)
     csr = supp.get()
     NamedCsvReader(csr).stream().use { stream -> stream.forEach(consumer) }

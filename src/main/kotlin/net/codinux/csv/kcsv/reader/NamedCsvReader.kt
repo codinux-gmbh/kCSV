@@ -118,6 +118,7 @@ class NamedCsvReader private constructor(private val csvReader: CsvReader) : Ite
     private var quoteCharacter = Config.DefaultQuoteCharacter
     private var commentCharacter = Config.DefaultCommentCharacter
     private var skipComments = Config.NamedCsvReaderDefaultSkipComments
+    private var ignoreInvalidQuoteChars = Config.DefaultIgnoreInvalidQuoteChars
 
     /**
      * Sets the `fieldSeparator` used when reading CSV data.
@@ -164,6 +165,17 @@ class NamedCsvReader private constructor(private val csvReader: CsvReader) : Ite
       this.skipComments = skipComments
       return this
     }
+
+    /**
+     * Defines if invalid placed quote chars like "\"Contains \" in cell content\"" should be ignored.
+     *
+     * @param ignoreInvalidQuoteChars If true invalid placed quote chars will be ignored
+     * @return This updated object, so that additional method calls can be chained together.
+     */
+    fun ignoreInvalidQuoteChars(ignoreInvalidQuoteChars: Boolean) = this.apply {
+      this.ignoreInvalidQuoteChars = ignoreInvalidQuoteChars
+    }
+
     /**
      * Constructs a new [NamedCsvReader] for the specified arguments.
      *
@@ -223,6 +235,7 @@ class NamedCsvReader private constructor(private val csvReader: CsvReader) : Ite
         .commentStrategy(if (skipComments) CommentStrategy.SKIP else CommentStrategy.NONE)
         .errorOnDifferentFieldCount(true)
         .hasHeader(true)
+        .ignoreInvalidQuoteChars(ignoreInvalidQuoteChars)
     }
 
     override fun toString(): String {

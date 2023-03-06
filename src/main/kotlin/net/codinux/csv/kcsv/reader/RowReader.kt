@@ -15,12 +15,13 @@ class RowReader : Closeable {
   private val qChar: Char
   private val cStrat: CommentStrategy
   private val cChar: Char
+  private val ignoreInvalidQuoteChars: Boolean
   private var status = 0
   private var finished = false
 
   constructor(
     reader: Reader?, fieldSeparator: Char, quoteCharacter: Char,
-    commentStrategy: CommentStrategy, commentCharacter: Char
+    commentStrategy: CommentStrategy, commentCharacter: Char, ignoreInvalidQuoteChars: Boolean
   ) {
     buffer = Buffer(reader)
     this.reader = reader
@@ -28,11 +29,12 @@ class RowReader : Closeable {
     qChar = quoteCharacter
     cStrat = commentStrategy
     cChar = commentCharacter
+    this.ignoreInvalidQuoteChars = ignoreInvalidQuoteChars
   }
 
   constructor(
     data: String, fieldSeparator: Char, quoteCharacter: Char,
-    commentStrategy: CommentStrategy, commentCharacter: Char
+    commentStrategy: CommentStrategy, commentCharacter: Char, ignoreInvalidQuoteChars: Boolean
   ) {
     buffer = Buffer(data)
     reader = null
@@ -40,6 +42,7 @@ class RowReader : Closeable {
     qChar = quoteCharacter
     cStrat = commentStrategy
     cChar = commentCharacter
+    this.ignoreInvalidQuoteChars = ignoreInvalidQuoteChars
   }
 
   @Throws(IOException::class)
@@ -82,7 +85,9 @@ class RowReader : Closeable {
           while (lPos < lLen) {
             val c = lBuf[lPos++]
             if (c == qChar) {
-              lStatus = lStatus and STATUS_QUOTED_MODE.inv()
+              if (ignoreInvalidQuoteChars == false || isInvalidQuoteChar(lPos, lLen, lBuf) == false) {
+                lStatus = lStatus and STATUS_QUOTED_MODE.inv()
+              }
               continue@mode_check
             } else if (c == CR) {
               lStatus = lStatus or STATUS_LAST_CHAR_WAS_CR
@@ -207,6 +212,62 @@ class RowReader : Closeable {
     return moreDataNeeded
   }
 
+  private fun isInvalidQuoteChar(lPos: Int, lLen: Int, lBuf: CharArray): Boolean {
+    if (lPos < lLen) {
+      val nextChar = lBuf[lPos]
+      if (nextChar != fsep && nextChar != CR && nextChar != LF) {
+        return true
+      }
+    }
+
+    return false
+  }
+
+  private fun materialize(
+    lBuf: CharArray,
+    lBegin: Int, lPos: Int, lStatus: Int,
+    quoteCharacter: Char
+  ): String {
+    if (lStatus and STATUS_QUOTED_COLUMN == 0) {
+      // column without quotes
+      return String(lBuf, lBegin, lPos)
+    }
+
+    // column with quotes
+    val shift = cleanDelimiters(
+      lBuf, lBegin + 1, lBegin + lPos,
+      quoteCharacter
+    )
+    return String(lBuf, lBegin + 1, lPos - 1 - shift)
+  }
+
+  private fun cleanDelimiters(
+    buf: CharArray, begin: Int, pos: Int,
+    quoteCharacter: Char
+  ): Int {
+    var shift = 0
+    var escape = false
+
+    for (i in begin until pos) {
+      val c = buf[i]
+      if (c == quoteCharacter && (ignoreInvalidQuoteChars == false || i >= pos - 1)) {
+        if (!escape) {
+          shift++
+          escape = true
+          continue
+        } else {
+          escape = false
+        }
+      }
+
+      if (shift > 0) {
+        buf[i - shift] = c
+      }
+    }
+
+    return shift
+  }
+
   private class Buffer {
     var buf: CharArray
     var len = 0
@@ -295,47 +356,6 @@ class RowReader : Closeable {
     private const val STATUS_QUOTED_COLUMN = 2
     private const val STATUS_DATA_COLUMN = 1
     private const val STATUS_RESET = 0
-    private fun materialize(
-      lBuf: CharArray,
-      lBegin: Int, lPos: Int, lStatus: Int,
-      quoteCharacter: Char
-    ): String {
-      if (lStatus and STATUS_QUOTED_COLUMN == 0) {
-        // column without quotes
-        return String(lBuf, lBegin, lPos)
-      }
-
-      // column with quotes
-      val shift = cleanDelimiters(
-        lBuf, lBegin + 1, lBegin + lPos,
-        quoteCharacter
-      )
-      return String(lBuf, lBegin + 1, lPos - 1 - shift)
-    }
-
-    private fun cleanDelimiters(
-      buf: CharArray, begin: Int, pos: Int,
-      quoteCharacter: Char
-    ): Int {
-      var shift = 0
-      var escape = false
-      for (i in begin until pos) {
-        val c = buf[i]
-        if (c == quoteCharacter) {
-          if (!escape) {
-            shift++
-            escape = true
-            continue
-          } else {
-            escape = false
-          }
-        }
-        if (shift > 0) {
-          buf[i - shift] = c
-        }
-      }
-      return shift
-    }
   }
 
   override fun close() {
