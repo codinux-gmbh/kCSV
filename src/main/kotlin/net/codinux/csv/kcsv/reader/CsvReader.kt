@@ -59,8 +59,7 @@ class CsvReader(
 
 
   private val rowReader: RowReader
-  private val csvRowIterator: CloseableIterator<CsvRow> = CsvRowIterator()
-  private var firstLineFieldCount = -1
+  private val csvRowIterator: CloseableIterator<CsvRow> = CsvRowIterator(commentStrategy, skipEmptyRows, errorOnDifferentFieldCount)
 
   val header: Set<String>
 
@@ -129,41 +128,6 @@ class CsvReader(
   }
 
   @Throws(IOException::class)
-  private fun fetchRow(): CsvRow? {
-    while (true) {
-      val csvRow = rowReader.fetchAndRead() ?: break
-      // skip commented rows
-      if (commentStrategy == CommentStrategy.SKIP && csvRow.isComment) {
-        continue
-      }
-
-      // skip empty rows
-      if (csvRow.isEmpty()) {
-        if (skipEmptyRows) {
-          continue
-        }
-      } else if (errorOnDifferentFieldCount) {
-        val fieldCount = csvRow.getFieldCount()
-
-        // check the field count consistency on every row
-        if (firstLineFieldCount == -1) {
-          firstLineFieldCount = fieldCount
-        } else if (fieldCount != firstLineFieldCount) {
-          throw MalformedCsvException(
-            String.format(
-              "Row %d has %d fields, but first row had %d fields",
-              csvRow.originalLineNumber, fieldCount, firstLineFieldCount
-            )
-          )
-        }
-      }
-      return csvRow
-    }
-
-    return null
-  }
-
-  @Throws(IOException::class)
   override fun close() {
     reader?.close()
   }
@@ -176,9 +140,16 @@ class CsvReader(
       .toString()
   }
 
-  private inner class CsvRowIterator : CloseableIterator<CsvRow> {
+  private inner class CsvRowIterator(
+    private val commentStrategy: CommentStrategy,
+    private val skipEmptyRows: Boolean,
+    private val errorOnDifferentFieldCount: Boolean
+  ) : CloseableIterator<CsvRow> {
+
     private var fetchedRow: CsvRow? = null
     private var fetched = false
+    private var firstLineFieldCount = -1
+
     override fun hasNext(): Boolean {
       if (!fetched) {
         fetch()
@@ -212,6 +183,41 @@ class CsvReader(
           throw UncheckedIOException("IOException when reading first record", e)
         }
       }
+    }
+
+    @Throws(IOException::class)
+    private fun fetchRow(): CsvRow? {
+      while (true) {
+        val csvRow = rowReader.fetchAndRead() ?: break
+        // skip commented rows
+        if (commentStrategy == CommentStrategy.SKIP && csvRow.isComment) {
+          continue
+        }
+
+        // skip empty rows
+        if (csvRow.isEmpty()) {
+          if (skipEmptyRows) {
+            continue
+          }
+        } else if (errorOnDifferentFieldCount) {
+          val fieldCount = csvRow.getFieldCount()
+
+          // check the field count consistency on every row
+          if (firstLineFieldCount == -1) {
+            firstLineFieldCount = fieldCount
+          } else if (fieldCount != firstLineFieldCount) {
+            throw MalformedCsvException(
+              String.format(
+                "Row %d has %d fields, but first row had %d fields",
+                csvRow.originalLineNumber, fieldCount, firstLineFieldCount
+              )
+            )
+          }
+        }
+        return csvRow
+      }
+
+      return null
     }
 
     @Throws(IOException::class)
