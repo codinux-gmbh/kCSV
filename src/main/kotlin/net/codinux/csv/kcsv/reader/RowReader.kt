@@ -38,7 +38,7 @@ class RowReader(
             rowHandler.add(
               materialize(
                 buffer.buf, buffer.begin,
-                buffer.pos - buffer.begin, status, quoteCharacter
+                buffer.pos, status, quoteCharacter
               )
             )
           } else if (status and STATUS_NEW_FIELD != 0) {
@@ -95,7 +95,7 @@ class RowReader(
             if (lookAhead == CR) {
               rh.add(
                 materialize(
-                  lBuf, lBegin, lPos - lBegin - 1, lStatus,
+                  lBuf, lBegin, lPos - 1, lStatus,
                   quoteCharacter
                 )
               )
@@ -106,7 +106,7 @@ class RowReader(
             } else if (lookAhead == LF) {
               rh.add(
                 materialize(
-                  lBuf, lBegin, lPos - lBegin - 1, lStatus,
+                  lBuf, lBegin, lPos - 1, lStatus,
                   quoteCharacter
                 )
               )
@@ -123,7 +123,7 @@ class RowReader(
             if (c == fieldSeparator) {
               rh.add(
                 materialize(
-                  lBuf, lBegin, lPos - lBegin - 1, lStatus,
+                  lBuf, lBegin, lPos - 1, lStatus,
                   quoteCharacter
                 )
               )
@@ -132,7 +132,7 @@ class RowReader(
             } else if (c == CR) {
               rh.add(
                 materialize(
-                  lBuf, lBegin, lPos - lBegin - 1, lStatus,
+                  lBuf, lBegin, lPos - 1, lStatus,
                   quoteCharacter
                 )
               )
@@ -144,7 +144,7 @@ class RowReader(
               if (lStatus and STATUS_LAST_CHAR_WAS_CR == 0) {
                 rh.add(
                   materialize(
-                    lBuf, lBegin, lPos - lBegin - 1,
+                    lBuf, lBegin, lPos - 1,
                     lStatus, quoteCharacter
                   )
                 )
@@ -207,17 +207,17 @@ class RowReader(
     lBegin: Int, lPos: Int, lStatus: Int,
     quoteCharacter: Char
   ): String {
-    if (lStatus and STATUS_QUOTED_COLUMN == 0) {
-      // column without quotes
-      return String(lBuf, lBegin, lPos)
+    if (lStatus and STATUS_QUOTED_COLUMN == 0) { // column without quotes
+      return lBuf.concatToString(lBegin, lPos)
     }
 
     // column with quotes
     val shift = cleanDelimiters(
-      lBuf, lBegin + 1, lBegin + lPos,
+      lBuf, lBegin + 1, lPos,
       quoteCharacter
     )
-    return String(lBuf, lBegin + 1, lPos - 1 - shift)
+
+    return lBuf.concatToString(lBegin + 1, lPos - shift)
   }
 
   private fun cleanDelimiters(
