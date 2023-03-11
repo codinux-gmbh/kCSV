@@ -2,6 +2,7 @@ package blackbox.reader
 
 import net.codinux.csv.kcsv.reader.*
 import net.codinux.csv.kcsv.reader.CsvReader.CsvReaderBuilder
+import net.codinux.csv.kcsv.reader.datareader.DataReader
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -13,6 +14,7 @@ import org.junit.jupiter.params.provider.MethodSource
 import org.junit.jupiter.params.provider.ValueSource
 import java.io.CharArrayReader
 import java.io.IOException
+import java.io.Reader
 import java.io.StringReader
 import java.io.UncheckedIOException
 import java.util.*
@@ -160,7 +162,7 @@ class CsvReaderTest {
       .append('\n') // and end line / data set
     val reader: CsvReader = crb
       .ignoreInvalidQuoteChars(true)
-      .build(StringReader(csvData.toString()))
+      .build(DataReader.reader(StringReader(csvData.toString())))
     val row = reader.iterator().next()
     val cell = row.getField(0)
     assertTrue(cell.length > bufferSize)
@@ -181,7 +183,7 @@ class CsvReaderTest {
       .append('\n') // and end line / data set
     val reader: CsvReader = crb
       .ignoreInvalidQuoteChars(true)
-      .build(StringReader(csvData.toString()))
+      .build(DataReader.reader(StringReader(csvData.toString())))
     val row = reader.iterator().next()
     val cell = row.getField(0)
     assertEquals(bufferSize - 2, cell.length)
@@ -259,7 +261,7 @@ class CsvReaderTest {
     val buf = CharArray(8192 + extra.size)
     Arrays.fill(buf, 'X')
     System.arraycopy(extra, 0, buf, 8190, extra.size)
-    val row = CsvReader(CharArrayReader(buf)).iterator().next()
+    val row = csvReader(CharArrayReader(buf)).iterator().next()
     assertEquals(4, row.getFieldCount())
     assertEquals("a\"b\"c", row.getField(1))
     assertEquals("d", row.getField(2))
@@ -272,9 +274,9 @@ class CsvReaderTest {
     val buf = CharArray(8 * 1024 * 1024)
     Arrays.fill(buf, 'X')
     buf[buf.size - 1] = ','
-    CsvReader(CharArrayReader(buf)).iterator().next()
+    csvReader(CharArrayReader(buf)).iterator().next()
     buf[buf.size - 1] = Char('X'.code.toByte().toUShort())
-    val exception = Assertions.assertThrows(UncheckedIOException::class.java) { CsvReader(CharArrayReader(buf)).iterator().next() }
+    val exception = Assertions.assertThrows(UncheckedIOException::class.java) { csvReader(CharArrayReader(buf)).iterator().next() }
     assertEquals("IOException when reading first record", exception.message)
     assertEquals(
       "Maximum buffer size 8388608 is not enough to read data of a single field. "
@@ -290,7 +292,7 @@ class CsvReaderTest {
     Arrays.fill(buf, 'X')
     val s = "a,b,c\n\""
     System.arraycopy(s.toCharArray(), 0, buf, 0, s.length)
-    val iterator = CsvReader(CharArrayReader(buf)).iterator()
+    val iterator = csvReader(CharArrayReader(buf)).iterator()
     iterator.next()
     val exception = Assertions.assertThrows(UncheckedIOException::class.java) { iterator.next() }
     assertEquals("IOException when reading record that started in line 2", exception.message)
@@ -309,13 +311,13 @@ class CsvReaderTest {
     val consumer = Consumer { csvRow: CsvRow? -> }
     val supp = Supplier { CloseStatusReader(StringReader("foo,bar")) }
     var csr = supp.get()
-    CsvReader(csr).use { reader -> reader.forEach(consumer) }
+    csvReader(csr).use { reader -> reader.forEach(consumer) }
     assertTrue(csr.isClosed)
     csr = supp.get()
-    CsvReader(csr).iterator().use { it.forEachRemaining(consumer) }
+    csvReader(csr).iterator().use { it.forEachRemaining(consumer) }
     assertTrue(csr.isClosed)
     csr = supp.get()
-    CsvReader(csr).stream().use { stream -> stream.forEach(consumer) }
+    csvReader(csr).stream().use { stream -> stream.forEach(consumer) }
     assertTrue(csr.isClosed)
   }
 
@@ -350,7 +352,7 @@ class CsvReaderTest {
   // Coverage
   @Test
   fun closeException() {
-    val csvReader = CsvReader(UncloseableReader(StringReader("foo"))).stream()
+    val csvReader = csvReader(UncloseableReader(StringReader("foo"))).stream()
     val e = Assertions.assertThrows(
       UncheckedIOException::class.java
     ) { csvReader.close() }
@@ -359,9 +361,12 @@ class CsvReaderTest {
 
   @Test
   fun unreadable() {
-    val e = Assertions.assertThrows(UncheckedIOException::class.java) { CsvReader(UnreadableReader()).iterator().next() }
+    val e = Assertions.assertThrows(UncheckedIOException::class.java) { csvReader(UnreadableReader()).iterator().next() }
     assertEquals("IOException when reading first record", e.message)
   }
+
+
+  private fun csvReader(reader: Reader) = CsvReader(DataReader.reader(reader))
 
   // test helpers
   private fun readSingleRow(data: String): CsvRow {

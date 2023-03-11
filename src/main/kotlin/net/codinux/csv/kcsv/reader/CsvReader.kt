@@ -1,10 +1,8 @@
 package net.codinux.csv.kcsv.reader
 
+import net.codinux.csv.kcsv.reader.datareader.DataReader
+import net.codinux.csv.kcsv.reader.datareader.DataReader.Companion.reader
 import java.io.*
-import java.nio.charset.Charset
-import java.nio.charset.StandardCharsets
-import java.nio.file.Files
-import java.nio.file.Path
 import java.util.*
 import java.util.stream.Stream
 import java.util.stream.StreamSupport
@@ -22,7 +20,7 @@ import java.util.stream.StreamSupport
 `</pre> *
  */
 class CsvReader(
-  private val reader: Reader?,
+  private val reader: DataReader,
   private val fieldSeparator: Char = Config.DefaultFieldSeparator,
   private val quoteCharacter: Char = Config.DefaultQuoteCharacter,
   private val commentStrategy: CommentStrategy = Config.DefaultCommentStrategy,
@@ -38,7 +36,7 @@ class CsvReader(
    *
    * To set individual options better use [CsvReader.builder].
    */
-  constructor(reader: Reader) : this(reader, fieldSeparator = Config.DefaultFieldSeparator)
+  constructor(reader: DataReader) : this(reader, fieldSeparator = Config.DefaultFieldSeparator)
 
   /**
    * For programing languages that don't support default parameters like Java, Swift, JavaScript, ...
@@ -253,6 +251,16 @@ class CsvReader(
     /**
      * Constructs a new [CsvReader] for the specified arguments.
      *
+     * @param data    the data to read.
+     * @return a new CsvReader - never `null`.
+     */
+    fun build(data: String): CsvReader {
+      return newReader(Objects.requireNonNull(data, "data must not be null"))
+    }
+
+    /**
+     * Constructs a new [CsvReader] for the specified arguments.
+     *
      *
      * This library uses built-in buffering, so you do not need to pass in a buffered Reader
      * implementation such as [java.io.BufferedReader]. Performance may be even likely
@@ -266,45 +274,7 @@ class CsvReader(
      * @return a new CsvReader - never `null`.
      * @throws NullPointerException if reader is `null`
      */
-    fun build(reader: Reader?): CsvReader {
-      return newReader(Objects.requireNonNull(reader, "reader must not be null"))
-    }
-
-    /**
-     * Constructs a new [CsvReader] for the specified arguments.
-     *
-     * @param data    the data to read.
-     * @return a new CsvReader - never `null`.
-     */
-    fun build(data: String): CsvReader {
-      return newReader(Objects.requireNonNull(data, "data must not be null"))
-    }
-    /**
-     * Constructs a new [CsvReader] for the specified arguments.
-     *
-     * @param path    the file to read data from.
-     * @param charset the character set to use.
-     * @return a new CsvReader - never `null`. Don't forget to close it!
-     * @throws IOException if an I/O error occurs.
-     * @throws NullPointerException if path or charset is `null`
-     */
-    /**
-     * Constructs a new [CsvReader] for the specified path using UTF-8 as the character set.
-     *
-     * @param path    the file to read data from.
-     * @return a new CsvReader - never `null`. Don't forget to close it!
-     * @throws IOException if an I/O error occurs.
-     * @throws NullPointerException if path or charset is `null`
-     */
-    @JvmOverloads
-    @Throws(IOException::class)
-    fun build(path: Path?, charset: Charset? = StandardCharsets.UTF_8): CsvReader {
-      Objects.requireNonNull(path, "path must not be null")
-      Objects.requireNonNull(charset, "charset must not be null")
-      return newReader(InputStreamReader(Files.newInputStream(path), charset))
-    }
-
-    private fun newReader(reader: Reader?): CsvReader {
+    fun build(reader: DataReader): CsvReader {
       return CsvReader(
         reader, fieldSeparator, quoteCharacter, commentStrategy,
         commentCharacter, skipEmptyRows, errorOnDifferentFieldCount,
@@ -345,11 +315,5 @@ class CsvReader(
     fun builder(): CsvReaderBuilder {
       return CsvReaderBuilder()
     }
-
-    fun reader(path: Path, charset: Charset = StandardCharsets.UTF_8) =
-      InputStreamReader(Files.newInputStream(path), charset)
-
-    fun reader(data: String) =
-      StringReader(data)
   }
 }

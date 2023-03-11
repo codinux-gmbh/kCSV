@@ -1,5 +1,7 @@
 package net.codinux.csv.kcsv.writer
 
+import kotlin.jvm.JvmStatic
+
 /**
  * Enumeration for different line delimiters (LF, CR, CRLF, platform default).
  */

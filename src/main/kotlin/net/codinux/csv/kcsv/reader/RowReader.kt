@@ -1,49 +1,28 @@
 package net.codinux.csv.kcsv.reader
 
+import net.codinux.csv.kcsv.reader.datareader.DataReader
 import java.io.Closeable
 import java.io.IOException
-import java.io.Reader
 
 /*
  * This class contains ugly, performance optimized code - be warned!
  */
-class RowReader : Closeable {
-  private val rowHandler = RowHandler(32)
-  private val buffer: Buffer
-  private val reader: Reader?
-  private val fsep: Char
-  private val qChar: Char
-  private val cStrat: CommentStrategy
-  private val cChar: Char
+class RowReader(
+  private val reader: DataReader,
+  private val fieldSeparator: Char,
+  private val quoteCharacter: Char,
+  private val commentStrategy: CommentStrategy,
+  private val commentCharacter: Char,
   private val ignoreInvalidQuoteChars: Boolean
+) : Closeable {
+
+  private val buffer: Buffer = Buffer(reader)
+
+  private val rowHandler = RowHandler(32)
+
   private var status = 0
+
   private var finished = false
-
-  constructor(
-    reader: Reader?, fieldSeparator: Char, quoteCharacter: Char,
-    commentStrategy: CommentStrategy, commentCharacter: Char, ignoreInvalidQuoteChars: Boolean
-  ) {
-    buffer = Buffer(reader)
-    this.reader = reader
-    fsep = fieldSeparator
-    qChar = quoteCharacter
-    cStrat = commentStrategy
-    cChar = commentCharacter
-    this.ignoreInvalidQuoteChars = ignoreInvalidQuoteChars
-  }
-
-  constructor(
-    data: String, fieldSeparator: Char, quoteCharacter: Char,
-    commentStrategy: CommentStrategy, commentCharacter: Char, ignoreInvalidQuoteChars: Boolean
-  ) {
-    buffer = Buffer(data)
-    reader = null
-    fsep = fieldSeparator
-    qChar = quoteCharacter
-    cStrat = commentStrategy
-    cChar = commentCharacter
-    this.ignoreInvalidQuoteChars = ignoreInvalidQuoteChars
-  }
 
   @Throws(IOException::class)
   fun fetchAndRead(): CsvRow? {
@@ -59,7 +38,7 @@ class RowReader : Closeable {
             rowHandler.add(
               materialize(
                 buffer.buf, buffer.begin,
-                buffer.pos - buffer.begin, status, qChar
+                buffer.pos - buffer.begin, status, quoteCharacter
               )
             )
           } else if (status and STATUS_NEW_FIELD != 0) {
@@ -84,7 +63,7 @@ class RowReader : Closeable {
           // we're in quotes
           while (lPos < lLen) {
             val c = lBuf[lPos++]
-            if (c == qChar) {
+            if (c == quoteCharacter) {
               if (ignoreInvalidQuoteChars == false || isInvalidQuoteChar(lPos, lLen, lBuf) == false) {
                 lStatus = lStatus and STATUS_QUOTED_MODE.inv()
               }
@@ -102,7 +81,7 @@ class RowReader : Closeable {
               // fast-forward
               while (lPos < lLen) {
                 val lookAhead = lBuf[lPos++]
-                if (lookAhead == qChar || lookAhead == LF || lookAhead == CR) {
+                if (lookAhead == quoteCharacter || lookAhead == LF || lookAhead == CR) {
                   lPos--
                   break
                 }
@@ -117,7 +96,7 @@ class RowReader : Closeable {
               rh.add(
                 materialize(
                   lBuf, lBegin, lPos - lBegin - 1, lStatus,
-                  qChar
+                  quoteCharacter
                 )
               )
               status = STATUS_LAST_CHAR_WAS_CR
@@ -128,7 +107,7 @@ class RowReader : Closeable {
               rh.add(
                 materialize(
                   lBuf, lBegin, lPos - lBegin - 1, lStatus,
-                  qChar
+                  quoteCharacter
                 )
               )
               status = STATUS_RESET
@@ -141,11 +120,11 @@ class RowReader : Closeable {
           // we're not in quotes
           while (lPos < lLen) {
             val c = lBuf[lPos++]
-            if (c == fsep) {
+            if (c == fieldSeparator) {
               rh.add(
                 materialize(
                   lBuf, lBegin, lPos - lBegin - 1, lStatus,
-                  qChar
+                  quoteCharacter
                 )
               )
               lStatus = STATUS_NEW_FIELD
@@ -154,7 +133,7 @@ class RowReader : Closeable {
               rh.add(
                 materialize(
                   lBuf, lBegin, lPos - lBegin - 1, lStatus,
-                  qChar
+                  quoteCharacter
                 )
               )
               status = STATUS_LAST_CHAR_WAS_CR
@@ -166,7 +145,7 @@ class RowReader : Closeable {
                 rh.add(
                   materialize(
                     lBuf, lBegin, lPos - lBegin - 1,
-                    lStatus, qChar
+                    lStatus, quoteCharacter
                   )
                 )
                 status = STATUS_RESET
@@ -176,12 +155,12 @@ class RowReader : Closeable {
               }
               lStatus = STATUS_RESET
               lBegin = lPos
-            } else if (cStrat != CommentStrategy.NONE && c == cChar && (lStatus == STATUS_RESET || lStatus == STATUS_LAST_CHAR_WAS_CR)) {
+            } else if (commentStrategy != CommentStrategy.NONE && c == commentCharacter && (lStatus == STATUS_RESET || lStatus == STATUS_LAST_CHAR_WAS_CR)) {
               lBegin = lPos
               lStatus = STATUS_COMMENTED_ROW
               rh.enableCommentMode()
               continue@mode_check
-            } else if (c == qChar && lStatus and STATUS_DATA_COLUMN == 0) {
+            } else if (c == quoteCharacter && lStatus and STATUS_DATA_COLUMN == 0) {
               // quote and not in data-only mode
               lStatus = STATUS_QUOTED_COLUMN or STATUS_QUOTED_MODE
               continue@mode_check
@@ -193,7 +172,7 @@ class RowReader : Closeable {
                 // fast-forward
                 while (lPos < lLen) {
                   val lookAhead = lBuf[lPos++]
-                  if (lookAhead == fsep || lookAhead == LF || lookAhead == CR) {
+                  if (lookAhead == fieldSeparator || lookAhead == LF || lookAhead == CR) {
                     lPos--
                     break
                   }
@@ -215,7 +194,7 @@ class RowReader : Closeable {
   private fun isInvalidQuoteChar(lPos: Int, lLen: Int, lBuf: CharArray): Boolean {
     if (lPos < lLen) {
       val nextChar = lBuf[lPos]
-      if (nextChar != fsep && nextChar != CR && nextChar != LF) {
+      if (nextChar != fieldSeparator && nextChar != CR && nextChar != LF) {
         return true
       }
     }
@@ -273,17 +252,17 @@ class RowReader : Closeable {
     var len = 0
     var begin = 0
     var pos = 0
-    private val reader: Reader?
+    private val reader: DataReader?
 
-    internal constructor(reader: Reader?) {
-      this.reader = reader
-      buf = CharArray(BUFFER_SIZE)
-    }
-
-    internal constructor(data: String) {
-      reader = null
-      buf = data.toCharArray()
-      len = data.length
+    constructor(reader: DataReader) {
+      if (reader.areAllDataBuffered) {
+        this.reader = null
+        buf = reader.getBufferedData()!!
+        len = buf.size
+      } else {
+        this.reader = reader
+        buf = CharArray(BUFFER_SIZE)
+      }
     }
 
     /**

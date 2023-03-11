@@ -7,6 +7,7 @@ import java.nio.file.Files
 import java.nio.file.OpenOption
 import java.nio.file.Path
 import java.util.*
+import kotlin.jvm.JvmStatic
 
 /**
  * This is the main class for writing CSV data.

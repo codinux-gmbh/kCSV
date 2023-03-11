@@ -1,7 +1,7 @@
 package example
 
 import net.codinux.csv.kcsv.reader.*
-import net.codinux.csv.kcsv.reader.CsvReader.Companion.reader
+import net.codinux.csv.kcsv.reader.datareader.DataReader
 import java.io.IOException
 import java.nio.file.Files
 import java.util.function.Consumer
@@ -81,6 +81,6 @@ object CsvReaderExample {
   private fun file() {
     val path = Files.createTempFile("fastcsv", ".csv")
     Files.write(path, listOf("foo,bar\n"))
-    CsvReader(reader(path)).use { csvReader -> csvReader.forEach { row -> println(row) } }
+    CsvReader(DataReader.reader(path)).use { csvReader -> csvReader.forEach { row -> println(row) } }
   }
 }

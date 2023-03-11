@@ -1,12 +1,14 @@
 package blackbox.reader
 
 import blackbox.Util
-import net.codinux.csv.kcsv.reader.CloseableIterator
 import net.codinux.csv.kcsv.reader.NamedCsvReader
 import net.codinux.csv.kcsv.reader.NamedCsvRow
+import net.codinux.csv.kcsv.reader.datareader.DataReader
+import net.codinux.csv.kcsv.reader.reader
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import java.io.IOException
+import java.io.Reader
 import java.io.StringReader
 import java.io.UncheckedIOException
 import java.util.concurrent.atomic.AtomicInteger
@@ -173,13 +175,13 @@ class NamedCsvReaderTest {
     val consumer = Consumer { csvRow: NamedCsvRow? -> }
     val supp = Supplier { CloseStatusReader(StringReader("h1,h2\nfoo,bar")) }
     var csr = supp.get()
-    NamedCsvReader(csr).use { reader -> reader.forEach(consumer) }
+    namedCsvReader(csr).use { reader -> reader.forEach(consumer) }
     Assertions.assertTrue(csr.isClosed)
     csr = supp.get()
-    NamedCsvReader(csr).iterator().use { it.forEachRemaining(consumer) }
+    namedCsvReader(csr).iterator().use { it.forEachRemaining(consumer) }
     Assertions.assertTrue(csr.isClosed)
     csr = supp.get()
-    NamedCsvReader(csr).stream().use { stream -> stream.forEach(consumer) }
+    namedCsvReader(csr).stream().use { stream -> stream.forEach(consumer) }
     Assertions.assertTrue(csr.isClosed)
   }
 
@@ -206,12 +208,15 @@ class NamedCsvReaderTest {
   // Coverage
   @Test
   fun closeException() {
-    val csvReader = NamedCsvReader(UncloseableReader(StringReader("foo")))
+    val csvReader = namedCsvReader(UncloseableReader(StringReader("foo")))
     val e = Assertions.assertThrows(
       UncheckedIOException::class.java
     ) { csvReader.stream().close() }
     Assertions.assertEquals("java.io.IOException: Cannot close", e.message)
   }
+
+
+  private fun namedCsvReader(reader: Reader) = NamedCsvReader(DataReader.reader(reader))
 
   // test helpers
   private fun parse(data: String): NamedCsvReader {

@@ -4,12 +4,13 @@ import java.math.BigDecimal
 import java.time.Instant
 import java.time.LocalDateTime
 import java.util.*
+import kotlin.jvm.JvmField
 
 /**
  * Index based CSV-row.
  */
 class CsvRow internal constructor(
-    /**
+  /**
    * Returns the original line number (starting with 1). On multi-line rows this is the starting
    * line number.
    * Empty lines could be skipped via [CsvReader.CsvReaderBuilder.skipEmptyRows].
@@ -18,7 +19,7 @@ class CsvRow internal constructor(
    */
     @JvmField val originalLineNumber: Long,
     private val fields: Array<String>,
-    /**
+  /**
    * Provides the information if the row is a commented row.
    *
    * @return `true` if the row is a commented row

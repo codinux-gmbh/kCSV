@@ -3,6 +3,7 @@ package blackbox.reader
 import net.codinux.csv.kcsv.reader.CommentStrategy
 import net.codinux.csv.kcsv.reader.CsvReader
 import net.codinux.csv.kcsv.reader.CsvRow
+import net.codinux.csv.kcsv.reader.build
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir

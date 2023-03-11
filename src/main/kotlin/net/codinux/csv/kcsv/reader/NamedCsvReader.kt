@@ -1,7 +1,8 @@
 package net.codinux.csv.kcsv.reader
 
-import net.codinux.csv.kcsv.reader.CsvReader.Companion.reader
 import net.codinux.csv.kcsv.reader.CsvReader.CsvReaderBuilder
+import net.codinux.csv.kcsv.reader.datareader.DataReader
+import net.codinux.csv.kcsv.reader.datareader.DataReader.Companion.reader
 import java.io.Closeable
 import java.io.IOException
 import java.io.Reader
@@ -39,7 +40,7 @@ class NamedCsvReader private constructor(private val csvReader: CsvReader) : Ite
    *
    * To set individual options better use [NamedCsvReader.builder].
    */
-  constructor(reader: Reader) : this(reader, skipComments = Config.NamedCsvReaderDefaultSkipComments)
+  constructor(reader: DataReader) : this(reader, skipComments = Config.NamedCsvReaderDefaultSkipComments)
 
   constructor(
     data: String,
@@ -50,7 +51,7 @@ class NamedCsvReader private constructor(private val csvReader: CsvReader) : Ite
   ) : this(reader(data), fieldSeparator, quoteCharacter, skipComments, commentCharacter)
 
   constructor(
-    reader: Reader,
+    reader: DataReader,
     fieldSeparator: Char = Config.DefaultFieldSeparator,
     quoteCharacter: Char = Config.DefaultQuoteCharacter,
     skipComments: Boolean = Config.NamedCsvReaderDefaultSkipComments,
@@ -179,29 +180,6 @@ class NamedCsvReader private constructor(private val csvReader: CsvReader) : Ite
     /**
      * Constructs a new [NamedCsvReader] for the specified arguments.
      *
-     * @param path    the file to read data from.
-     * @param charset the character set to use.
-     * @return a new NamedCsvReader - never `null`. Don't forget to close it!
-     * @throws IOException if an I/O error occurs.
-     * @throws NullPointerException if path or charset is `null`
-     */
-    /**
-     * Constructs a new [NamedCsvReader] for the specified path using UTF-8 as the character set.
-     *
-     * @param path    the file to read data from.
-     * @return a new NamedCsvReader - never `null`. Don't forget to close it!
-     * @throws IOException if an I/O error occurs.
-     * @throws NullPointerException if path or charset is `null`
-     */
-    @JvmOverloads
-    @Throws(IOException::class)
-    fun build(path: Path?, charset: Charset? = StandardCharsets.UTF_8): NamedCsvReader {
-      return NamedCsvReader(csvReaderBuilder().build(path, charset))
-    }
-
-    /**
-     * Constructs a new [NamedCsvReader] for the specified arguments.
-     *
      *
      * This library uses built-in buffering, so you do not need to pass in a buffered Reader
      * implementation such as [java.io.BufferedReader]. Performance may be even likely
@@ -213,7 +191,7 @@ class NamedCsvReader private constructor(private val csvReader: CsvReader) : Ite
      * @return a new NamedCsvReader - never `null`.
      * @throws NullPointerException if reader is `null`
      */
-    fun build(reader: Reader?): NamedCsvReader {
+    fun build(reader: DataReader): NamedCsvReader {
       return NamedCsvReader(csvReaderBuilder().build(reader))
     }
 

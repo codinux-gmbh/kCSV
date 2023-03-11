@@ -2,6 +2,8 @@ package blackbox.reader
 
 import net.codinux.csv.kcsv.reader.NamedCsvReader
 import net.codinux.csv.kcsv.reader.NamedCsvRow
+import net.codinux.csv.kcsv.reader.datareader.DataReader
+import net.codinux.csv.kcsv.reader.reader
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
@@ -76,7 +78,7 @@ class NamedCsvReaderBuilderTest {
     val file = tempDir.resolve("fastcsv.csv")
     Files.write(file, DATA.toByteArray(StandardCharsets.UTF_8))
     val list: List<NamedCsvRow>
-    crb.build(file).stream().use { stream -> list = stream.collect(Collectors.toList()) }
+    crb.build(DataReader.reader(file)).stream().use { stream -> list = stream.collect(Collectors.toList()) }
     Assertions.assertEquals(EXPECTED, list[0].fields.toString())
   }
 
