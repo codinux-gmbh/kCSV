@@ -306,7 +306,6 @@ class CsvReaderTest {
 
   // API
   @Test
-  @Throws(IOException::class)
   fun closeApi() {
     val consumer = Consumer { csvRow: CsvRow? -> }
     val supp = Supplier { CloseStatusReader(StringReader("foo,bar")) }

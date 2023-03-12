@@ -50,7 +50,6 @@ class CsvRowIterator(
     }
   }
 
-  @Throws(IOException::class)
   private fun fetchRow(): CsvRow? {
     while (true) {
       val csvRow = rowReader.fetchAndRead() ?: break
@@ -85,7 +84,6 @@ class CsvRowIterator(
     return null
   }
 
-  @Throws(IOException::class)
   override fun close() {
     rowReader.close()
   }

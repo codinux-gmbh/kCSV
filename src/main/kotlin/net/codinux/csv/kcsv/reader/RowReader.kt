@@ -24,7 +24,6 @@ class RowReader(
 
   private var finished = false
 
-  @Throws(IOException::class)
   fun fetchAndRead(): CsvRow? {
     if (finished) {
       return null
@@ -271,7 +270,6 @@ class RowReader(
      * @return `true`, if EOD reached.
      * @throws IOException if a read error occurs
      */
-    @Throws(IOException::class)
     fun fetchData(): Boolean {
       if (reader == null) {
         return true
@@ -308,7 +306,7 @@ class RowReader(
       private const val READ_SIZE = 8192
       private const val BUFFER_SIZE = READ_SIZE
       private const val MAX_BUFFER_SIZE = 8 * 1024 * 1024
-      @Throws(IOException::class)
+
       private fun extendAndRelocate(buf: CharArray, begin: Int): CharArray {
         val newBufferSize = buf.size * 2
         if (newBufferSize > MAX_BUFFER_SIZE) {

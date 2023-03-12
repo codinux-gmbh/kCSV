@@ -170,7 +170,6 @@ class NamedCsvReaderTest {
 
   // API
   @Test
-  @Throws(IOException::class)
   fun closeApi() {
     val consumer = Consumer { csvRow: NamedCsvRow? -> }
     val supp = Supplier { CloseStatusReader(StringReader("h1,h2\nfoo,bar")) }

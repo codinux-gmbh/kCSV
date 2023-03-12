@@ -111,7 +111,6 @@ class CsvWriter internal constructor(
     }
   }
 
-  @Throws(IOException::class)
   private fun writeInternal(value: String?, firstField: Boolean) {
     if (value == null) {
       if (quoteStrategy == QuoteStrategy.ALWAYS) {
@@ -156,7 +155,6 @@ class CsvWriter internal constructor(
     }
   }
 
-  @Throws(IOException::class)
   private fun writeEscaped(value: String, length: Int, nextDelimPos: Int) {
     var nextDelimPos = nextDelimPos
     var startPos = 0
@@ -204,7 +202,6 @@ class CsvWriter internal constructor(
     }
   }
 
-  @Throws(IOException::class)
   private fun writeCommentInternal(comment: String) {
     val length = comment.length
     var startPos = 0
@@ -238,7 +235,6 @@ class CsvWriter internal constructor(
     }
   }
 
-  @Throws(IOException::class)
   private fun endRow() {
     writer.write(lineDelimiter, 0, lineDelimiter.length)
     if (syncWriter) {
@@ -246,7 +242,6 @@ class CsvWriter internal constructor(
     }
   }
 
-  @Throws(IOException::class)
   override fun close() {
     writer.close()
   }
@@ -377,8 +372,7 @@ class CsvWriter internal constructor(
      * @throws IOException          if a write error occurs
      * @throws NullPointerException if path or charset is `null`
      */
-    @Throws(IOException::class)
-    fun build(path: Path?, vararg openOptions: OpenOption?): CsvWriter {
+    fun build(path: Path, vararg openOptions: OpenOption): CsvWriter {
       return build(path, StandardCharsets.UTF_8, *openOptions)
     }
 
@@ -393,9 +387,8 @@ class CsvWriter internal constructor(
      * @throws IOException          if a write error occurs
      * @throws NullPointerException if path or charset is `null`
      */
-    @Throws(IOException::class)
     fun build(
-      path: Path?, charset: Charset,
+      path: Path, charset: Charset,
       vararg openOptions: OpenOption?
     ): CsvWriter {
       return newWriter(
@@ -448,7 +441,6 @@ class CsvWriter internal constructor(
       buf = CharArray(bufferSize)
     }
 
-    @Throws(IOException::class)
     override fun write(c: Int) {
       if (pos == buf.size) {
         flush()
@@ -460,7 +452,6 @@ class CsvWriter internal constructor(
       throw IllegalStateException("Not implemented")
     }
 
-    @Throws(IOException::class)
     override fun write(str: String, off: Int, len: Int) {
       if (pos + len >= buf.size) {
         flush()
@@ -475,13 +466,11 @@ class CsvWriter internal constructor(
       pos += len
     }
 
-    @Throws(IOException::class)
     override fun flush() {
       writer.write(buf, 0, pos)
       pos = 0
     }
 
-    @Throws(IOException::class)
     override fun close() {
       flush()
       writer.close()

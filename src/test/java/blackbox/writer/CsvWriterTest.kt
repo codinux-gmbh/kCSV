@@ -157,7 +157,6 @@ class CsvWriterTest {
   }
 
   @Test
-  @Throws(IOException::class)
   fun path(@TempDir tempDir: Path) {
     val file = tempDir.resolve("fastcsv.csv")
     CsvWriter.builder().build(file).use { csv -> csv.writeRow("value1", "value2") }

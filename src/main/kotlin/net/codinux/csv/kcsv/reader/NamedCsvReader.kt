@@ -94,7 +94,6 @@ class NamedCsvReader private constructor(private val csvReader: CsvReader) : Ite
     }
   }
 
-  @Throws(IOException::class)
   override fun close() {
     csvReader.close()
   }

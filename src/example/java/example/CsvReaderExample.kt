@@ -8,7 +8,7 @@ import java.util.function.Consumer
 import java.util.stream.Collectors
 
 object CsvReaderExample {
-  @Throws(IOException::class)
+
   @JvmStatic
   fun main(args: Array<String>) {
     simple()
@@ -77,7 +77,6 @@ object CsvReaderExample {
     println("Parsed via advanced config: $parsedData")
   }
 
-  @Throws(IOException::class)
   private fun file() {
     val path = Files.createTempFile("fastcsv", ".csv")
     Files.write(path, listOf("foo,bar\n"))

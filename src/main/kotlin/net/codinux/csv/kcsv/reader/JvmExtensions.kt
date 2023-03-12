@@ -31,7 +31,6 @@ import java.util.*
  * @throws NullPointerException if path or charset is `null`
  */
 @JvmOverloads
-@Throws(IOException::class)
 fun CsvReader.CsvReaderBuilder.build(path: Path, charset: Charset = StandardCharsets.UTF_8): CsvReader {
   return build(DataReader.reader(path, charset))
 }
@@ -55,7 +54,6 @@ fun CsvReader.CsvReaderBuilder.build(path: Path, charset: Charset = StandardChar
  * @throws NullPointerException if path or charset is `null`
  */
 @JvmOverloads
-@Throws(IOException::class)
 fun NamedCsvReader.NamedCsvReaderBuilder.build(path: Path, charset: Charset = StandardCharsets.UTF_8): NamedCsvReader {
   return build(DataReader.reader(path, charset))
 }

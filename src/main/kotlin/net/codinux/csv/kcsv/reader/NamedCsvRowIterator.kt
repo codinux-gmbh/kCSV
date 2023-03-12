@@ -14,7 +14,6 @@ class NamedCsvRowIterator(
     return NamedCsvRow(header, csvIterator.next())
   }
 
-  @Throws(IOException::class)
   override fun close() {
     csvIterator.close()
   }

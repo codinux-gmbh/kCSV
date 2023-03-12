@@ -129,7 +129,6 @@ class CsvReader(
       }
   }
 
-  @Throws(IOException::class)
   override fun close() {
     csvRowIterator.close()
   }

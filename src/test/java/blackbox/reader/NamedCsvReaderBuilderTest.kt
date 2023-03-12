@@ -73,7 +73,6 @@ class NamedCsvReaderBuilderTest {
   }
 
   @Test
-  @Throws(IOException::class)
   fun path(@TempDir tempDir: Path) {
     val file = tempDir.resolve("fastcsv.csv")
     Files.write(file, DATA.toByteArray(StandardCharsets.UTF_8))

@@ -9,7 +9,7 @@ import java.io.StringWriter
 import java.nio.file.Files
 
 object CsvWriterExample {
-  @Throws(IOException::class)
+
   @JvmStatic
   fun main(args: Array<String>) {
     simple()
@@ -39,7 +39,6 @@ object CsvWriterExample {
     println(sw)
   }
 
-  @Throws(IOException::class)
   private fun file() {
     val path = Files.createTempFile("fastcsv", ".csv")
     CsvWriter.builder().build(path).use { csv ->
@@ -51,7 +50,6 @@ object CsvWriterExample {
       .forEach { line: String -> println("Line from path: $line") }
   }
 
-  @Throws(IOException::class)
   private fun transformData() {
     val out = StringWriter()
     NamedCsvReader(

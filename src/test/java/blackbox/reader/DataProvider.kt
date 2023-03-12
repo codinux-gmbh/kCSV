@@ -9,7 +9,7 @@ import java.util.regex.Pattern
 
 object DataProvider {
   private val LINE_PATTERN = Pattern.compile("^(?<input>\\S+)\\s+(?<expected>\\S+)(?:\\s+\\[(?<flags>\\w+)])?")
-  @Throws(IOException::class)
+
   fun loadTestData(name: String): List<TestData> {
     val data: MutableList<TestData> = ArrayList()
     resource(name).use { r ->

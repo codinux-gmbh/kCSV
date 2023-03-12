@@ -10,7 +10,6 @@ class FastBufferedWriterTest {
   private val sw = StringWriter()
   private val cw = FastBufferedWriter(sw, 8192)
   @Test
-  @Throws(IOException::class)
   fun appendSingle() {
     val sb = StringBuilder()
     for (i in 0..8191) {
@@ -23,7 +22,6 @@ class FastBufferedWriterTest {
   }
 
   @Test
-  @Throws(IOException::class)
   fun appendArray() {
     val sb = StringBuilder()
     for (i in 0..8191) {
@@ -35,7 +33,6 @@ class FastBufferedWriterTest {
   }
 
   @Test
-  @Throws(IOException::class)
   fun appendLarge() {
     val sb = buildLargeData()
     cw.write(sb, 0, sb.length)

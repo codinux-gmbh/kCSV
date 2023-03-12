@@ -27,7 +27,6 @@ class GenericDataTest {
 
   companion object {
     @JvmStatic
-    @Throws(IOException::class)
     fun dataProvider(): List<TestData?>? {
       return DataProvider.loadTestData("/test.txt")
     }
