@@ -47,8 +47,8 @@ class CsvWriter internal constructor(
     this.fieldSeparator = fieldSeparator
     this.quoteCharacter = quoteCharacter
     this.commentCharacter = commentCharacter
-    this.quoteStrategy = Objects.requireNonNull(quoteStrategy)
-    this.lineDelimiter = Objects.requireNonNull(lineDelimiter).toString()
+    this.quoteStrategy = quoteStrategy
+    this.lineDelimiter = lineDelimiter.toString()
     this.syncWriter = syncWriter
   }
 
@@ -364,7 +364,6 @@ class CsvWriter internal constructor(
      * @throws NullPointerException if writer is `null`
      */
     fun build(writer: Writer): CsvWriter {
-      Objects.requireNonNull(writer, "writer must not be null")
       return newWriter(writer, true)
     }
 
@@ -399,8 +398,6 @@ class CsvWriter internal constructor(
       path: Path?, charset: Charset,
       vararg openOptions: OpenOption?
     ): CsvWriter {
-      Objects.requireNonNull(path, "path must not be null")
-      Objects.requireNonNull(charset, "charset must not be null")
       return newWriter(
         OutputStreamWriter(
           Files.newOutputStream(path, *openOptions),

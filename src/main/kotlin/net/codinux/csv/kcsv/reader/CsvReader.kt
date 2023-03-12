@@ -255,7 +255,7 @@ class CsvReader(
      * @return a new CsvReader - never `null`.
      */
     fun build(data: String): CsvReader {
-      return newReader(Objects.requireNonNull(data, "data must not be null"))
+      return newReader(data)
     }
 
     /**

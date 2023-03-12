@@ -33,8 +33,6 @@ import java.util.*
 @JvmOverloads
 @Throws(IOException::class)
 fun CsvReader.CsvReaderBuilder.build(path: Path, charset: Charset = StandardCharsets.UTF_8): CsvReader {
-  Objects.requireNonNull(path, "path must not be null")
-  Objects.requireNonNull(charset, "charset must not be null")
   return build(DataReader.reader(path, charset))
 }
 
