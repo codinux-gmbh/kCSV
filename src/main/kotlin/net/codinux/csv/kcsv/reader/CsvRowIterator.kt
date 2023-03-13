@@ -71,10 +71,7 @@ class CsvRowIterator(
           firstLineFieldCount = fieldCount
         } else if (fieldCount != firstLineFieldCount) {
           throw MalformedCsvException(
-            String.format(
-              "Row %d has %d fields, but first row had %d fields",
-              csvRow.originalLineNumber, fieldCount, firstLineFieldCount
-            )
+              "Row ${csvRow.originalLineNumber} has $fieldCount fields, but first row had $firstLineFieldCount fields"
           )
         }
       }

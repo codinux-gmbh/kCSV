@@ -95,10 +95,10 @@ class NamedCsvReader private constructor(private val csvReader: CsvReader) : Ite
   }
 
   override fun toString(): String {
-    return StringJoiner(", ", NamedCsvReader::class.java.simpleName + "[", "]")
-      .add("header=$header")
-      .add("csvReader=$csvReader")
-      .toString()
+    return NamedCsvReader::class.java.simpleName + "[" +
+      "header=$header, " +
+      "csvReader=$csvReader" +
+      "]"
   }
 
   /**
@@ -212,12 +212,12 @@ class NamedCsvReader private constructor(private val csvReader: CsvReader) : Ite
     }
 
     override fun toString(): String {
-      return StringJoiner(", ", NamedCsvReaderBuilder::class.java.simpleName + "[", "]")
-        .add("fieldSeparator=$fieldSeparator")
-        .add("quoteCharacter=$quoteCharacter")
-        .add("commentCharacter=$commentCharacter")
-        .add("skipComments=$skipComments")
-        .toString()
+      return NamedCsvReaderBuilder::class.java.simpleName + "[" +
+        "fieldSeparator=$fieldSeparator, " +
+        "quoteCharacter=$quoteCharacter, " +
+        "commentCharacter=$commentCharacter, " +
+        "skipComments=$skipComments" +
+        "]"
     }
   }
 

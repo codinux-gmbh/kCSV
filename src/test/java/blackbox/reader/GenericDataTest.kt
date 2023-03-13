@@ -21,7 +21,7 @@ class GenericDataTest {
         commentStrategy
       )
     )
-    Assertions.assertEquals(expected, actual) { String.format("Error in line: '%s'", data) }
+    Assertions.assertEquals(expected, actual) { "Error in line: '$data'" }
   }
 
   companion object {

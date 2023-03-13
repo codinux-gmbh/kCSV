@@ -41,11 +41,8 @@ class CsvWriter internal constructor(
     require(!(quoteCharacter == CR || quoteCharacter == LF)) { "quoteCharacter must not be a newline char" }
     require(!(commentCharacter == CR || commentCharacter == LF)) { "commentCharacter must not be a newline char" }
     require(allDiffers(fieldSeparator, quoteCharacter, commentCharacter)) {
-      String.format(
-        "Control characters must differ"
-          + " (fieldSeparator=%s, quoteCharacter=%s, commentCharacter=%s)",
-        fieldSeparator, quoteCharacter, commentCharacter
-      )
+        "Control characters must differ" +
+          " (fieldSeparator=$fieldSeparator, quoteCharacter=$quoteCharacter, commentCharacter=$commentCharacter)"
     }
     this.writer = writer
     this.fieldSeparator = fieldSeparator
@@ -251,13 +248,13 @@ class CsvWriter internal constructor(
   }
 
   override fun toString(): String {
-    return StringJoiner(", ", CsvWriter::class.java.simpleName + "[", "]")
-      .add("fieldSeparator=$fieldSeparator")
-      .add("quoteCharacter=$quoteCharacter")
-      .add("commentCharacter=$commentCharacter")
-      .add("quoteStrategy=$quoteStrategy")
-      .add("lineDelimiter='$lineDelimiter'")
-      .toString()
+    return CsvWriter::class.java.simpleName + "[" +
+      "fieldSeparator=$fieldSeparator, " +
+      "quoteCharacter=$quoteCharacter, " +
+      "commentCharacter=$commentCharacter, " +
+      "quoteStrategy=$quoteStrategy, " +
+      "lineDelimiter='$lineDelimiter'" +
+      "]"
   }
 
   /**
@@ -416,14 +413,14 @@ class CsvWriter internal constructor(
     }
 
     override fun toString(): String {
-      return StringJoiner(", ", CsvWriterBuilder::class.java.simpleName + "[", "]")
-        .add("fieldSeparator=$fieldSeparator")
-        .add("quoteCharacter=$quoteCharacter")
-        .add("commentCharacter=$commentCharacter")
-        .add("quoteStrategy=$quoteStrategy")
-        .add("lineDelimiter=$lineDelimiter")
-        .add("bufferSize=$bufferSize")
-        .toString()
+      return CsvWriterBuilder::class.java.simpleName + "[" +
+        "fieldSeparator=$fieldSeparator, " +
+        "quoteCharacter=$quoteCharacter, " +
+        "commentCharacter=$commentCharacter, " +
+        "quoteStrategy=$quoteStrategy, " +
+        "lineDelimiter=$lineDelimiter, " +
+        "bufferSize=$bufferSize" +
+        "]"
     }
 
     companion object {

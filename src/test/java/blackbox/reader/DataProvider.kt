@@ -54,15 +54,15 @@ object DataProvider {
     }
 
     override fun toString(): String {
-      return StringJoiner(", ", TestData::class.java.simpleName + "[", "]")
-        .add("lineNo=$lineNo")
-        .add("line='$line'")
-        .add("input='$input'")
-        .add("expected='$expected'")
-        .add("skipEmptyLines=" + isSkipEmptyLines)
-        .add("readComments=" + isReadComments)
-        .add("skipComments=" + isSkipComments)
-        .toString()
+      return TestData::class.java.simpleName + "[" +
+        "lineNo=$lineNo, " +
+        "line='$line', " +
+        "input='$input', " +
+        "expected='$expected', " +
+        "skipEmptyLines=$isSkipEmptyLines, " +
+        "readComments=$isReadComments, " +
+        "skipComments=$isSkipComments" +
+        "]"
     }
   }
 }

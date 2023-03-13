@@ -126,11 +126,11 @@ class CsvRow internal constructor(
     this.getNullableString(fieldIndex)?.let { LocalDateTime.parse(it) }
 
   override fun toString(): String {
-    return StringJoiner(", ", CsvRow::class.java.simpleName + "[", "]")
-      .add("originalLineNumber=$originalLineNumber")
-      .add("fields=" + Arrays.toString(fields))
-      .add("comment=" + isComment)
-      .toString()
+    return CsvRow::class.java.simpleName + "[" +
+      "originalLineNumber=$originalLineNumber, " +
+      "fields=${fields.contentToString()}, " +
+      "comment=$isComment" +
+      "]"
   }
 
   companion object {

@@ -83,11 +83,8 @@ class CsvReader(
     require(!(quoteCharacter == CR || quoteCharacter == LF)) { "quoteCharacter must not be a newline char" }
     require(!(commentCharacter == CR || commentCharacter == LF)) { "commentCharacter must not be a newline char" }
     require(!(fieldSeparator == quoteCharacter || fieldSeparator == commentCharacter || quoteCharacter == commentCharacter)) {
-      String.format(
-        "Control characters must differ"
-          + " (fieldSeparator=%s, quoteCharacter=%s, commentCharacter=%s)",
-        fieldSeparator, quoteCharacter, commentCharacter
-      )
+        "Control characters must differ" +
+          " (fieldSeparator=$fieldSeparator, quoteCharacter=$quoteCharacter, commentCharacter=$commentCharacter)"
     }
   }
 
@@ -136,11 +133,11 @@ class CsvReader(
   }
 
   override fun toString(): String {
-    return StringJoiner(", ", CsvReader::class.java.simpleName + "[", "]")
-      .add("commentStrategy=$commentStrategy")
-      .add("skipEmptyRows=$skipEmptyRows")
-      .add("errorOnDifferentFieldCount=$errorOnDifferentFieldCount")
-      .toString()
+    return CsvReader::class.java.simpleName + "[" +
+      "commentStrategy=$commentStrategy, " +
+      "skipEmptyRows=$skipEmptyRows, " +
+      "errorOnDifferentFieldCount=$errorOnDifferentFieldCount" +
+      "]"
   }
 
   /**
@@ -292,15 +289,15 @@ class CsvReader(
     }
 
     override fun toString(): String {
-      return StringJoiner(", ", CsvReaderBuilder::class.java.simpleName + "[", "]")
-        .add("fieldSeparator=$fieldSeparator")
-        .add("quoteCharacter=$quoteCharacter")
-        .add("commentStrategy=$commentStrategy")
-        .add("commentCharacter=$commentCharacter")
-        .add("skipEmptyRows=$skipEmptyRows")
-        .add("errorOnDifferentFieldCount=$errorOnDifferentFieldCount")
-        .add("hasHeader=$hasHeader")
-        .toString()
+      return CsvReaderBuilder::class.java.simpleName + "[" +
+        "fieldSeparator=$fieldSeparator, " +
+        "quoteCharacter=$quoteCharacter, " +
+        "commentStrategy=$commentStrategy, " +
+        "commentCharacter=$commentCharacter, " +
+        "skipEmptyRows=$skipEmptyRows, " +
+        "errorOnDifferentFieldCount=$errorOnDifferentFieldCount, " +
+        "hasHeader=$hasHeader" +
+        "]"
     }
   }
 

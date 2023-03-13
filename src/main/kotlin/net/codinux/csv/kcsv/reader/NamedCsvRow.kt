@@ -113,9 +113,9 @@ class NamedCsvRow internal constructor(header: Set<String>, row: CsvRow) {
     this.getNullableString(name)?.let { LocalDateTime.parse(it) }
 
   override fun toString(): String {
-    return StringJoiner(", ", NamedCsvRow::class.java.simpleName + "[", "]")
-      .add("originalLineNumber=$originalLineNumber")
-      .add("fieldMap=$fieldMap")
-      .toString()
+    return NamedCsvRow::class.java.simpleName + "[" +
+      "originalLineNumber=$originalLineNumber, " +
+      "fieldMap=$fieldMap" +
+      "]"
   }
 }
