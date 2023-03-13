@@ -1,7 +1,5 @@
 package net.codinux.csv.kcsv.reader
 
-import java.io.IOException
-
 class NamedCsvRowIterator(
   private val csvIterator: CloseableIterator<CsvRow>,
   private val header: Set<String>

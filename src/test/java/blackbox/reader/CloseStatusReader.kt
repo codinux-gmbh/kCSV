@@ -1,6 +1,5 @@
 package blackbox.reader
 
-import java.io.IOException
 import java.io.Reader
 
 internal class CloseStatusReader(private val reader: Reader) : Reader() {

@@ -1,6 +1,6 @@
 package blackbox.reader
 
-import java.io.IOException
+import net.codinux.csv.kcsv.IOException
 import java.io.Reader
 
 internal class UnreadableReader : Reader() {

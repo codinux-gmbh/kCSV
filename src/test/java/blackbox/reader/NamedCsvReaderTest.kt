@@ -3,14 +3,13 @@ package blackbox.reader
 import blackbox.Util
 import net.codinux.csv.kcsv.reader.NamedCsvReader
 import net.codinux.csv.kcsv.reader.NamedCsvRow
+import net.codinux.csv.kcsv.UncheckedIOException
 import net.codinux.csv.kcsv.reader.datareader.DataReader
 import net.codinux.csv.kcsv.reader.reader
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
-import java.io.IOException
 import java.io.Reader
 import java.io.StringReader
-import java.io.UncheckedIOException
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.function.Consumer
 import java.util.function.Supplier
@@ -211,7 +210,7 @@ class NamedCsvReaderTest {
     val e = Assertions.assertThrows(
       UncheckedIOException::class.java
     ) { csvReader.stream().close() }
-    Assertions.assertEquals("java.io.IOException: Cannot close", e.message)
+    Assertions.assertEquals("net.codinux.csv.kcsv.IOException: Cannot close", e.message)
   }
 
 

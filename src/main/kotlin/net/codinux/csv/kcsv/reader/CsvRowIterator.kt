@@ -1,8 +1,8 @@
 package net.codinux.csv.kcsv.reader
 
-import java.io.IOException
-import java.io.UncheckedIOException
-import java.util.NoSuchElementException
+import net.codinux.csv.kcsv.IOException
+import net.codinux.csv.kcsv.UncheckedIOException
+import kotlin.NoSuchElementException
 
 class CsvRowIterator(
   private val rowReader: RowReader,

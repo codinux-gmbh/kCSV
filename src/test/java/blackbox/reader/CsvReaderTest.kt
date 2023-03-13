@@ -1,5 +1,6 @@
 package blackbox.reader
 
+import net.codinux.csv.kcsv.UncheckedIOException
 import net.codinux.csv.kcsv.reader.*
 import net.codinux.csv.kcsv.reader.CsvReader.CsvReaderBuilder
 import net.codinux.csv.kcsv.reader.datareader.DataReader
@@ -13,10 +14,8 @@ import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.MethodSource
 import org.junit.jupiter.params.provider.ValueSource
 import java.io.CharArrayReader
-import java.io.IOException
 import java.io.Reader
 import java.io.StringReader
-import java.io.UncheckedIOException
 import java.util.*
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.function.Consumer
@@ -355,7 +354,7 @@ class CsvReaderTest {
     val e = Assertions.assertThrows(
       UncheckedIOException::class.java
     ) { csvReader.close() }
-    assertEquals("java.io.IOException: Cannot close", e.message)
+    assertEquals("net.codinux.csv.kcsv.IOException: Cannot close", e.message)
   }
 
   @Test

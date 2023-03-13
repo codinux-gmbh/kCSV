@@ -3,12 +3,12 @@ package net.codinux.csv.kcsv.writer
 import net.codinux.csv.kcsv.writer.CsvWriter.FastBufferedWriter
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
-import java.io.IOException
 import java.io.StringWriter
 
 class FastBufferedWriterTest {
   private val sw = StringWriter()
   private val cw = FastBufferedWriter(sw, 8192)
+
   @Test
   fun appendSingle() {
     val sb = StringBuilder()

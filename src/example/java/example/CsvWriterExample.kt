@@ -4,7 +4,6 @@ import net.codinux.csv.kcsv.reader.NamedCsvReader
 import net.codinux.csv.kcsv.writer.CsvWriter
 import net.codinux.csv.kcsv.writer.LineDelimiter
 import net.codinux.csv.kcsv.writer.QuoteStrategy
-import java.io.IOException
 import java.io.StringWriter
 import java.nio.file.Files
 

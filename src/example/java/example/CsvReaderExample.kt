@@ -2,7 +2,6 @@ package example
 
 import net.codinux.csv.kcsv.reader.*
 import net.codinux.csv.kcsv.reader.datareader.DataReader
-import java.io.IOException
 import java.nio.file.Files
 import java.util.function.Consumer
 import java.util.stream.Collectors

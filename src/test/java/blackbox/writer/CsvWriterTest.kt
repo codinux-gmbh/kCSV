@@ -1,5 +1,6 @@
 package blackbox.writer
 
+import net.codinux.csv.kcsv.UncheckedIOException
 import net.codinux.csv.kcsv.writer.CsvWriter
 import net.codinux.csv.kcsv.writer.LineDelimiter
 import net.codinux.csv.kcsv.writer.QuoteStrategy
@@ -8,9 +9,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
-import java.io.IOException
 import java.io.StringWriter
-import java.io.UncheckedIOException
 import java.nio.charset.StandardCharsets
 import java.nio.file.Files
 import java.nio.file.Path
@@ -199,15 +198,15 @@ class CsvWriterTest {
   @Test
   fun unwritableArray() {
     val e = Assertions.assertThrows(UncheckedIOException::class.java) { crw.build(UnwritableWriter()).writeRow("foo") }
-    Assertions.assertEquals("java.io.IOException: Cannot write", e.message)
+    Assertions.assertEquals("net.codinux.csv.kcsv.IOException: Cannot write", e.message)
   }
 
   @Test
   fun unwritableIterable() {
     val e = Assertions.assertThrows(UncheckedIOException::class.java) { crw.build(UnwritableWriter()).writeRow(listOf("foo")) }
-    Assertions.assertEquals("java.io.IOException: Cannot write", e.message)
+    Assertions.assertEquals("net.codinux.csv.kcsv.IOException: Cannot write", e.message)
     val e2 = Assertions.assertThrows(UncheckedIOException::class.java) { crw.build(UnwritableWriter()).writeComment("foo") }
-    Assertions.assertEquals("java.io.IOException: Cannot write", e2.message)
+    Assertions.assertEquals("net.codinux.csv.kcsv.IOException: Cannot write", e2.message)
   }
 
   // buffer

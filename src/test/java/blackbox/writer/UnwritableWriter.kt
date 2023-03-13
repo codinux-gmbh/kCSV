@@ -1,6 +1,6 @@
 package blackbox.writer
 
-import java.io.IOException
+import net.codinux.csv.kcsv.IOException
 import java.io.Writer
 
 internal class UnwritableWriter : Writer() {

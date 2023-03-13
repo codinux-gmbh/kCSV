@@ -1,6 +1,10 @@
 package net.codinux.csv.kcsv.writer
 
-import java.io.*
+import net.codinux.csv.kcsv.IOException
+import net.codinux.csv.kcsv.UncheckedIOException
+import java.io.Closeable
+import java.io.OutputStreamWriter
+import java.io.Writer
 import java.nio.charset.Charset
 import java.nio.charset.StandardCharsets
 import java.nio.file.Files
