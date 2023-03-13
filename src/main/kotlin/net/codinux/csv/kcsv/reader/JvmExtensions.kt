@@ -62,3 +62,5 @@ fun DataReader.Companion.reader(path: Path, charset: Charset = StandardCharsets.
   IoReaderDataReader(InputStreamReader(Files.newInputStream(path), charset))
 
 fun DataReader.Companion.reader(reader: Reader) = IoReaderDataReader(reader)
+
+fun <T : Reader> T.dataReader() = DataReader.reader(this)

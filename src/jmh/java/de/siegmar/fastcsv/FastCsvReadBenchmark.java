@@ -3,6 +3,7 @@ package de.siegmar.fastcsv;
 import net.codinux.csv.kcsv.reader.CloseableIterator;
 import net.codinux.csv.kcsv.reader.CsvReader;
 import net.codinux.csv.kcsv.reader.CsvRow;
+import net.codinux.csv.kcsv.reader.JvmExtensionsKt;
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.Scope;
 import org.openjdk.jmh.annotations.Setup;
@@ -25,7 +26,7 @@ public class FastCsvReadBenchmark {
 
         @Setup
         public void setup() {
-            it = new CsvReader(new InfiniteDataReader(Constants.DATA)).iterator();
+            it = new CsvReader(JvmExtensionsKt.dataReader(new InfiniteDataReader(Constants.DATA))).iterator();
         }
 
         @TearDown
