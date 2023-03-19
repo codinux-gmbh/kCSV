@@ -37,6 +37,8 @@ sourceSets {
 }
 
 dependencies {
+    compileOnly("org.jetbrains.kotlinx:kotlinx-datetime:0.4.0")
+
     testImplementation(platform('org.junit:junit-bom:5.7.0'))
     testImplementation('org.junit.jupiter:junit-jupiter')
 

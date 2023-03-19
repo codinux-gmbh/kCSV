@@ -1,8 +1,8 @@
 package net.codinux.csv.kcsv.reader
 
+import kotlinx.datetime.Instant
+import kotlinx.datetime.LocalDateTime
 import java.math.BigDecimal
-import java.time.Instant
-import java.time.LocalDateTime
 import java.util.*
 import kotlin.jvm.JvmField
 
