@@ -94,12 +94,6 @@ class NamedCsvRow internal constructor(header: Set<String>, row: CsvRow) {
   fun getNullableDouble(name: String): Double? =
     this.getNullableString(name)?.toDoubleOrNull()
 
-  fun getBigDecimal(name: String): BigDecimal =
-    this.getString(name).toBigDecimal()
-
-  fun getNullableBigDecimal(name: String): BigDecimal? =
-    this.getNullableString(name)?.toBigDecimalOrNull()
-
   fun getInstant(name: String): Instant =
     Instant.parse(this.getString(name))
 

@@ -107,12 +107,6 @@ class CsvRow internal constructor(
   fun getNullableDouble(fieldIndex: Int): Double? =
     this.getNullableString(fieldIndex)?.toDoubleOrNull()
 
-  fun getBigDecimal(fieldIndex: Int): BigDecimal =
-    this.getString(fieldIndex).toBigDecimal()
-
-  fun getNullableBigDecimal(fieldIndex: Int): BigDecimal? =
-    this.getNullableString(fieldIndex)?.toBigDecimalOrNull()
-
   fun getInstant(fieldIndex: Int): Instant =
     Instant.parse(this.getString(fieldIndex))
 

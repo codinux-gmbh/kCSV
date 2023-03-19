@@ -7,6 +7,7 @@ import net.codinux.csv.kcsv.reader.datareader.JavaIoReaderDataReader
 import java.io.IOException
 import java.io.InputStreamReader
 import java.io.Reader
+import java.math.BigDecimal
 import java.nio.charset.Charset
 import java.nio.charset.StandardCharsets
 import java.nio.file.Files
@@ -64,3 +65,16 @@ fun DataReader.Companion.reader(path: Path, charset: Charset = StandardCharsets.
 fun DataReader.Companion.reader(reader: Reader) = JavaIoReaderDataReader(reader)
 
 fun <T : Reader> T.dataReader() = DataReader.reader(this)
+
+
+fun CsvRow.getBigDecimal(fieldIndex: Int): BigDecimal =
+  this.getString(fieldIndex).toBigDecimal()
+
+fun CsvRow.getNullableBigDecimal(fieldIndex: Int): BigDecimal? =
+  this.getNullableString(fieldIndex)?.toBigDecimalOrNull()
+
+fun NamedCsvRow.getBigDecimal(name: String): BigDecimal =
+  this.getString(name).toBigDecimal()
+
+fun NamedCsvRow.getNullableBigDecimal(name: String): BigDecimal? =
+  this.getNullableString(name)?.toBigDecimalOrNull()
