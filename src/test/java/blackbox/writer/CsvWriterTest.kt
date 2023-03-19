@@ -4,6 +4,7 @@ import net.codinux.csv.kcsv.UncheckedIOException
 import net.codinux.csv.kcsv.writer.CsvWriter
 import net.codinux.csv.kcsv.writer.LineDelimiter
 import net.codinux.csv.kcsv.writer.QuoteStrategy
+import net.codinux.csv.kcsv.writer.build
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir

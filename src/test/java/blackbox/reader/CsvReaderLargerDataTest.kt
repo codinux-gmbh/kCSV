@@ -2,9 +2,9 @@ package blackbox.reader
 
 import net.codinux.csv.kcsv.reader.CsvReader
 import net.codinux.csv.kcsv.writer.CsvWriter
+import net.codinux.csv.kcsv.writer.build
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
-import java.io.StringReader
 import java.io.StringWriter
 
 class CsvReaderLargerDataTest {

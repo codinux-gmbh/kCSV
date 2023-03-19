@@ -7,15 +7,15 @@ import java.io.StringWriter
 
 class FastBufferedWriterTest {
   private val sw = StringWriter()
-  private val cw = FastBufferedWriter(sw, 8192)
+  private val cw = FastBufferedWriter(sw.dataWriter(), 8192)
 
   @Test
   fun appendSingle() {
     val sb = StringBuilder()
     for (i in 0..8191) {
       sb.append("ab")
-      cw.write('a'.code)
-      cw.write('b'.code)
+      cw.write('a')
+      cw.write('b')
     }
     cw.close()
     Assertions.assertEquals(sb.toString(), sw.toString())
@@ -41,7 +41,7 @@ class FastBufferedWriterTest {
 
   @Test
   fun unreachable() {
-    Assertions.assertThrows(IllegalStateException::class.java) { cw.write(CharArray(0), 0, 0) }
+    Assertions.assertDoesNotThrow { cw.write(CharArray(0), 0, 0) }
   }
 
   private fun buildLargeData(): String {

@@ -2,15 +2,8 @@ package net.codinux.csv.kcsv.writer
 
 import net.codinux.csv.kcsv.IOException
 import net.codinux.csv.kcsv.UncheckedIOException
+import net.codinux.csv.kcsv.writer.datawriter.DataWriter
 import java.io.Closeable
-import java.io.OutputStreamWriter
-import java.io.Writer
-import java.nio.charset.Charset
-import java.nio.charset.StandardCharsets
-import java.nio.file.Files
-import java.nio.file.OpenOption
-import java.nio.file.Path
-import java.util.*
 import kotlin.jvm.JvmStatic
 
 /**
@@ -24,11 +17,11 @@ import kotlin.jvm.JvmStatic
 `</pre> *
  */
 class CsvWriter internal constructor(
-  writer: Writer, fieldSeparator: Char, quoteCharacter: Char,
+  writer: DataWriter, fieldSeparator: Char, quoteCharacter: Char,
   commentCharacter: Char, quoteStrategy: QuoteStrategy, lineDelimiter: LineDelimiter,
   syncWriter: Boolean
 ) : Closeable {
-  private val writer: Writer
+  private val writer: DataWriter
   private val fieldSeparator: Char
   private val quoteCharacter: Char
   private val commentCharacter: Char
@@ -76,7 +69,7 @@ class CsvWriter internal constructor(
       var firstField = true
       for (value in values) {
         if (!firstField) {
-          writer.write(fieldSeparator.code)
+          writer.write(fieldSeparator)
         }
         writeInternal(value, firstField)
         firstField = false
@@ -101,7 +94,7 @@ class CsvWriter internal constructor(
     return try {
       for (i in values.indices) {
         if (i > 0) {
-          writer.write(fieldSeparator.code)
+          writer.write(fieldSeparator)
         }
         writeInternal(values[i], i == 0)
       }
@@ -115,8 +108,8 @@ class CsvWriter internal constructor(
   private fun writeInternal(value: String?, firstField: Boolean) {
     if (value == null) {
       if (quoteStrategy == QuoteStrategy.ALWAYS) {
-        writer.write(quoteCharacter.code)
-        writer.write(quoteCharacter.code)
+        writer.write(quoteCharacter)
+        writer.write(quoteCharacter)
       }
       return
     }
@@ -124,8 +117,8 @@ class CsvWriter internal constructor(
       if (quoteStrategy == QuoteStrategy.ALWAYS
         || quoteStrategy == QuoteStrategy.EMPTY
       ) {
-        writer.write(quoteCharacter.code)
-        writer.write(quoteCharacter.code)
+        writer.write(quoteCharacter)
+        writer.write(quoteCharacter)
       }
       return
     }
@@ -144,7 +137,7 @@ class CsvWriter internal constructor(
       }
     }
     if (needsQuotes) {
-      writer.write(quoteCharacter.code)
+      writer.write(quoteCharacter)
     }
     if (nextDelimPos > -1) {
       writeEscaped(value, length, nextDelimPos)
@@ -152,7 +145,7 @@ class CsvWriter internal constructor(
       writer.write(value, 0, length)
     }
     if (needsQuotes) {
-      writer.write(quoteCharacter.code)
+      writer.write(quoteCharacter)
     }
   }
 
@@ -162,7 +155,7 @@ class CsvWriter internal constructor(
     do {
       val len = nextDelimPos - startPos + 1
       writer.write(value, startPos, len)
-      writer.write(quoteCharacter.code)
+      writer.write(quoteCharacter)
       startPos += len
       nextDelimPos = -1
       for (i in startPos until length) {
@@ -192,7 +185,7 @@ class CsvWriter internal constructor(
    */
   fun writeComment(comment: String?): CsvWriter {
     return try {
-      writer.write(commentCharacter.code)
+      writer.write(commentCharacter)
       if (comment != null && !comment.isEmpty()) {
         writeCommentInternal(comment)
       }
@@ -213,7 +206,7 @@ class CsvWriter internal constructor(
         val len = i - startPos
         writer.write(comment, startPos, len)
         writer.write(lineDelimiter, 0, lineDelimiter.length)
-        writer.write(commentCharacter.code)
+        writer.write(commentCharacter)
         startPos += len + 1
         lastCharWasCR = true
       } else if (c == LF) {
@@ -224,7 +217,7 @@ class CsvWriter internal constructor(
           val len = i - startPos
           writer.write(comment, startPos, len)
           writer.write(lineDelimiter, 0, lineDelimiter.length)
-          writer.write(commentCharacter.code)
+          writer.write(commentCharacter)
           startPos += len + 1
         }
       } else {
@@ -359,48 +352,11 @@ class CsvWriter internal constructor(
      * @return a new CsvWriter instance - never `null`.
      * @throws NullPointerException if writer is `null`
      */
-    fun build(writer: Writer): CsvWriter {
+    fun build(writer: DataWriter): CsvWriter {
       return newWriter(writer, true)
     }
 
-    /**
-     * Constructs a [CsvWriter] for the specified Path.
-     *
-     * @param path        the path to write data to.
-     * @param openOptions options specifying how the file is opened.
-     * See [Files.newOutputStream] for defaults.
-     * @return a new CsvWriter instance - never `null`. Don't forget to close it!
-     * @throws IOException          if a write error occurs
-     * @throws NullPointerException if path or charset is `null`
-     */
-    fun build(path: Path, vararg openOptions: OpenOption): CsvWriter {
-      return build(path, StandardCharsets.UTF_8, *openOptions)
-    }
-
-    /**
-     * Constructs a [CsvWriter] for the specified Path.
-     *
-     * @param path        the path to write data to.
-     * @param charset     the character set to be used for writing data to the file.
-     * @param openOptions options specifying how the file is opened.
-     * See [Files.newOutputStream] for defaults.
-     * @return a new CsvWriter instance - never `null`. Don't forget to close it!
-     * @throws IOException          if a write error occurs
-     * @throws NullPointerException if path or charset is `null`
-     */
-    fun build(
-      path: Path, charset: Charset,
-      vararg openOptions: OpenOption?
-    ): CsvWriter {
-      return newWriter(
-        OutputStreamWriter(
-          Files.newOutputStream(path, *openOptions),
-          charset
-        ), false
-      )
-    }
-
-    private fun newWriter(writer: Writer, syncWriter: Boolean): CsvWriter {
+    private fun newWriter(writer: DataWriter, syncWriter: Boolean): CsvWriter {
       return if (bufferSize > 0) {
         CsvWriter(
           FastBufferedWriter(writer, bufferSize), fieldSeparator, quoteCharacter,
@@ -434,7 +390,7 @@ class CsvWriter internal constructor(
    *
    * This class is intended for internal use only.
    */
-  internal class FastBufferedWriter(private val writer: Writer, bufferSize: Int) : Writer() {
+  internal class FastBufferedWriter(private val writer: DataWriter, bufferSize: Int) : DataWriter {
     private val buf: CharArray
     private var pos = 0
 
@@ -442,29 +398,29 @@ class CsvWriter internal constructor(
       buf = CharArray(bufferSize)
     }
 
-    override fun write(c: Int) {
+    override fun write(char: Char) {
       if (pos == buf.size) {
         flush()
       }
-      buf[pos++] = c.toChar()
+      buf[pos++] = char
     }
 
-    override fun write(cbuf: CharArray, off: Int, len: Int) {
-      throw IllegalStateException("Not implemented")
+    override fun write(charArray: CharArray, offset: Int, length: Int) {
+      writer.write(charArray, offset, length)
     }
 
-    override fun write(str: String, off: Int, len: Int) {
-      if (pos + len >= buf.size) {
+    override fun write(string: String, offset: Int, length: Int) {
+      if (pos + length >= buf.size) {
         flush()
-        if (len >= buf.size) {
-          val tmp = CharArray(len)
-          str.toCharArray(tmp, 0, off, off + len)
-          writer.write(tmp, 0, len)
+        if (length >= buf.size) {
+          val tmp = CharArray(length)
+          string.toCharArray(tmp, 0, offset, offset + length)
+          writer.write(tmp, 0, length)
           return
         }
       }
-      str.toCharArray(buf, pos, off, off + len)
-      pos += len
+      string.toCharArray(buf, pos, offset, offset + length)
+      pos += length
     }
 
     override fun flush() {
