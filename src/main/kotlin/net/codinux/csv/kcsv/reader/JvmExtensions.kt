@@ -3,7 +3,7 @@ package net.codinux.csv.kcsv.reader
 import net.codinux.csv.kcsv.reader.CsvReader
 import net.codinux.csv.kcsv.reader.NamedCsvReader
 import net.codinux.csv.kcsv.reader.datareader.DataReader
-import net.codinux.csv.kcsv.reader.datareader.IoReaderDataReader
+import net.codinux.csv.kcsv.reader.datareader.JavaIoReaderDataReader
 import java.io.IOException
 import java.io.InputStreamReader
 import java.io.Reader
@@ -59,8 +59,8 @@ fun NamedCsvReader.NamedCsvReaderBuilder.build(path: Path, charset: Charset = St
 }
 
 fun DataReader.Companion.reader(path: Path, charset: Charset = StandardCharsets.UTF_8) =
-  IoReaderDataReader(InputStreamReader(Files.newInputStream(path), charset))
+  JavaIoReaderDataReader(InputStreamReader(Files.newInputStream(path), charset))
 
-fun DataReader.Companion.reader(reader: Reader) = IoReaderDataReader(reader)
+fun DataReader.Companion.reader(reader: Reader) = JavaIoReaderDataReader(reader)
 
 fun <T : Reader> T.dataReader() = DataReader.reader(this)
