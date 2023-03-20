@@ -6,6 +6,7 @@ import net.codinux.csv.kcsv.reader.NamedCsvRow
 import net.codinux.csv.kcsv.UncheckedIOException
 import net.codinux.csv.kcsv.reader.datareader.DataReader
 import net.codinux.csv.kcsv.reader.reader
+import net.codinux.csv.kcsv.use
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import java.io.Reader

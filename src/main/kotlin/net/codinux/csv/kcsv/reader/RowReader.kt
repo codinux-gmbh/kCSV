@@ -1,8 +1,8 @@
 package net.codinux.csv.kcsv.reader
 
+import net.codinux.csv.kcsv.Closeable
 import net.codinux.csv.kcsv.IOException
 import net.codinux.csv.kcsv.reader.datareader.DataReader
-import java.io.Closeable
 
 /*
  * This class contains ugly, performance optimized code - be warned!

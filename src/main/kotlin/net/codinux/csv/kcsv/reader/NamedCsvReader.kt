@@ -1,11 +1,11 @@
 package net.codinux.csv.kcsv.reader
 
+import net.codinux.csv.kcsv.Closeable
 import net.codinux.csv.kcsv.IOException
 import net.codinux.csv.kcsv.UncheckedIOException
 import net.codinux.csv.kcsv.reader.CsvReader.CsvReaderBuilder
 import net.codinux.csv.kcsv.reader.datareader.DataReader
 import net.codinux.csv.kcsv.reader.datareader.DataReader.Companion.reader
-import java.io.Closeable
 import java.util.*
 import java.util.stream.Stream
 import java.util.stream.StreamSupport

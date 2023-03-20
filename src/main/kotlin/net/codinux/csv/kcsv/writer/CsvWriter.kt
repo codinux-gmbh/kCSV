@@ -1,9 +1,9 @@
 package net.codinux.csv.kcsv.writer
 
+import net.codinux.csv.kcsv.Closeable
 import net.codinux.csv.kcsv.IOException
 import net.codinux.csv.kcsv.UncheckedIOException
 import net.codinux.csv.kcsv.writer.datawriter.DataWriter
-import java.io.Closeable
 import kotlin.jvm.JvmStatic
 
 /**

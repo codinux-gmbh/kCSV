@@ -1,6 +1,6 @@
 package net.codinux.csv.kcsv.reader
 
-import java.io.Closeable
+import net.codinux.csv.kcsv.Closeable
 
 /**
  * Iterator that supports closing underlying resources.

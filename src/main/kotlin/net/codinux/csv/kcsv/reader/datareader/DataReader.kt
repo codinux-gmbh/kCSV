@@ -1,6 +1,8 @@
 package net.codinux.csv.kcsv.reader.datareader
 
-interface DataReader {
+import net.codinux.csv.kcsv.Closeable
+
+interface DataReader : Closeable {
 
   companion object {
 
@@ -14,7 +16,5 @@ interface DataReader {
   fun getBufferedData(): CharArray?
 
   fun read(buffer: CharArray, offset: Int, length: Int): Int
-
-  fun close()
 
 }

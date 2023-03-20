@@ -1,6 +1,8 @@
 package net.codinux.csv.kcsv.writer.datawriter
 
-interface DataWriter {
+import net.codinux.csv.kcsv.Closeable
+
+interface DataWriter : Closeable {
 
   companion object {
 
@@ -16,7 +18,5 @@ interface DataWriter {
   fun write(string: String, offset: Int, length: Int)
 
   fun flush()
-
-  fun close()
 
 }

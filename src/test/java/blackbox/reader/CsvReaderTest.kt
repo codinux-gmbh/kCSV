@@ -4,6 +4,7 @@ import net.codinux.csv.kcsv.UncheckedIOException
 import net.codinux.csv.kcsv.reader.*
 import net.codinux.csv.kcsv.reader.CsvReader.CsvReaderBuilder
 import net.codinux.csv.kcsv.reader.datareader.DataReader
+import net.codinux.csv.kcsv.use
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue

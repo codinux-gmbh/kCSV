@@ -1,6 +1,7 @@
 package blackbox.writer
 
 import net.codinux.csv.kcsv.UncheckedIOException
+import net.codinux.csv.kcsv.use
 import net.codinux.csv.kcsv.writer.CsvWriter
 import net.codinux.csv.kcsv.writer.LineDelimiter
 import net.codinux.csv.kcsv.writer.QuoteStrategy
