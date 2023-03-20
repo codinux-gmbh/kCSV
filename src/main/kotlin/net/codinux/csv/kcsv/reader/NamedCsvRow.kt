@@ -2,7 +2,6 @@ package net.codinux.csv.kcsv.reader
 
 import kotlinx.datetime.Instant
 import kotlinx.datetime.LocalDateTime
-import java.util.*
 import kotlin.NoSuchElementException
 import kotlin.jvm.JvmField
 
@@ -18,17 +17,9 @@ class NamedCsvRow internal constructor(header: Set<String>, row: CsvRow) {
    * @return the original line number
    */
   @JvmField
-  val originalLineNumber: Long
-  private val fieldMap: MutableMap<String, String>
+  val originalLineNumber: Long = row.originalLineNumber
 
-  init {
-    originalLineNumber = row.originalLineNumber
-    fieldMap = LinkedHashMap(header.size)
-    var i = 0
-    for (h in header) {
-      fieldMap[h] = row.getField(i++)
-    }
-  }
+  private val fieldMap: Map<String, String> = header.mapIndexed { index, header -> header to row.getString(index) }.toMap()
 
   /**
    * Gets an unmodifiable map of header names and field values of this row.
@@ -39,7 +30,7 @@ class NamedCsvRow internal constructor(header: Set<String>, row: CsvRow) {
    * @return an unmodifiable map of header names and field values of this row
    */
   val fields: Map<String, String>
-    get() = Collections.unmodifiableMap(fieldMap)
+    get() = fieldMap.toMap()
 
   /**
    * Gets a field value by its name.

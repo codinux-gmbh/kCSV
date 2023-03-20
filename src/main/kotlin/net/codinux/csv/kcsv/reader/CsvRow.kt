@@ -2,7 +2,6 @@ package net.codinux.csv.kcsv.reader
 
 import kotlinx.datetime.Instant
 import kotlinx.datetime.LocalDateTime
-import java.util.*
 import kotlin.jvm.JvmField
 
 /**
@@ -46,7 +45,7 @@ class CsvRow internal constructor(
    * @return all fields of this row, never `null`
    */
   fun getFields(): List<String> {
-    return Collections.unmodifiableList(Arrays.asList(*fields))
+    return fields.toList()
   }
 
   /**
