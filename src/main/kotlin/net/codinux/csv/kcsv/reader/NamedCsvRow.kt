@@ -16,7 +16,6 @@ class NamedCsvRow internal constructor(header: Set<String>, row: CsvRow) {
    *
    * @return the original line number
    */
-  @JvmField
   val originalLineNumber: Long = row.originalLineNumber
 
   private val fieldMap: Map<String, String> = header.mapIndexed { index, header -> header to row.getString(index) }.toMap()

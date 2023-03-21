@@ -15,15 +15,16 @@ class CsvRow internal constructor(
    *
    * @return the original line number
    */
-    @JvmField val originalLineNumber: Long,
-    private val fields: Array<String>,
+  val originalLineNumber: Long,
+
+  private val fields: Array<String>,
   /**
    * Provides the information if the row is a commented row.
    *
    * @return `true` if the row is a commented row
    * @see CsvReader.CsvReaderBuilder.commentStrategy
    */
-  val isComment: Boolean
+  val isComment: Boolean,
 ) {
 
   internal constructor(originalLineNumber: Long, comment: Boolean) : this(originalLineNumber, EMPTY, comment)
