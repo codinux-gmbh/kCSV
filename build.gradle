@@ -6,6 +6,7 @@ buildscript {
 
 plugins {
     id 'org.jetbrains.kotlin.multiplatform' version "$kotlinVersion"
+    id("io.kotest.multiplatform") version "$kotestVersion"
     id 'maven-publish'
     id 'signing'
     id 'checkstyle'
@@ -98,6 +99,9 @@ kotlin {
         commonTest {
             dependencies {
                 implementation kotlin("test")
+
+                implementation("io.kotest:kotest-framework-engine:$kotestVersion")
+                implementation("io.kotest:kotest-assertions-core:$kotestVersion")
             }
         }
 
@@ -109,6 +113,8 @@ kotlin {
 
         jvmTest.dependencies {
             implementation('org.junit.jupiter:junit-jupiter')
+
+            implementation("io.kotest:kotest-runner-junit5:$kotestVersion")
 
             implementation "org.assertj:assertj-core:$assertJVersion"
 

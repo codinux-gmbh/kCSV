@@ -1,44 +1,43 @@
 package net.codinux.csv.kcsv.writer
 
+import io.kotest.core.spec.style.FunSpec
 import net.codinux.csv.kcsv.IOException
 import net.codinux.csv.kcsv.UncheckedIOException
 import net.codinux.csv.kcsv.writer.datawriter.DataWriter
 import net.codinux.csv.kcsv.writer.datawriter.StringBuilderDataWriter
 import kotlin.test.*
 
-class CsvWriterTest {
+class CsvWriterTest : FunSpec({
+
+  listOf('\r', '\n').forEachIndexed { index, char ->
+    test("[$index] configBuilder for '$char'") {
+      val e = assertFailsWith(IllegalArgumentException::class) { CsvWriter.builder().fieldSeparator(char).build(DataWriter.writer()) }
+      assertEquals("fieldSeparator must not be a newline char", e.message)
+      val e2 = assertFailsWith(IllegalArgumentException::class) { CsvWriter.builder().quoteCharacter(char).build(DataWriter.writer()) }
+      assertEquals("quoteCharacter must not be a newline char", e2.message)
+      val e3 = assertFailsWith(IllegalArgumentException::class) { CsvWriter.builder().commentCharacter(char).build(DataWriter.writer()) }
+      assertEquals("commentCharacter must not be a newline char", e3.message)
+    }
+  }
+
+  val crw = CsvWriter.builder()
+    .lineDelimiter(LineDelimiter.LF)
+
+  listOf(
+    crw.fieldSeparator(',').quoteCharacter(','),
+    crw.fieldSeparator(',').commentCharacter(','),
+    crw.quoteCharacter(',').commentCharacter(',')
+  ).forEachIndexed { index, csvWriterBuilder ->
+    test("[$index] configWriter for $csvWriterBuilder") {
+      val e = assertFailsWith(IllegalArgumentException::class) { csvWriterBuilder.build(DataWriter.writer()) }
+      assertTrue(e.message!!.contains("Control characters must differ"))
+    }
+  }
+
+}) {
   
   private val crw = CsvWriter.builder()
     .lineDelimiter(LineDelimiter.LF)
-
-  @Test
-  fun configBuilder_CarriageReturn() {
-    configBuilder('\r')
-  }
-
-  @Test
-  fun configBuilder_NewLine() {
-    configBuilder('\n')
-  }
-
-  private fun configBuilder(c: Char) {
-    val e = assertFailsWith(IllegalArgumentException::class) { CsvWriter.builder().fieldSeparator(c).build(DataWriter.writer()) }
-    assertEquals("fieldSeparator must not be a newline char", e.message)
-    val e2 = assertFailsWith(IllegalArgumentException::class) { CsvWriter.builder().quoteCharacter(c).build(DataWriter.writer()) }
-    assertEquals("quoteCharacter must not be a newline char", e2.message)
-    val e3 = assertFailsWith(IllegalArgumentException::class) { CsvWriter.builder().commentCharacter(c).build(DataWriter.writer()) }
-    assertEquals("commentCharacter must not be a newline char", e3.message)
-  }
-
-  @Test
-  fun configWriter() {
-    val e = assertFailsWith(IllegalArgumentException::class) { crw.fieldSeparator(',').quoteCharacter(',').build(DataWriter.writer()) }
-    assertTrue(e.message!!.contains("Control characters must differ"))
-    val e2 = assertFailsWith(IllegalArgumentException::class) { crw.fieldSeparator(',').commentCharacter(',').build(DataWriter.writer()) }
-    assertTrue(e2.message!!.contains("Control characters must differ"))
-    val e3 = assertFailsWith(IllegalArgumentException::class) { crw.quoteCharacter(',').commentCharacter(',').build(DataWriter.writer()) }
-    assertTrue(e3.message!!.contains("Control characters must differ"))
-  }
 
   @Test
   fun nullQuote() {

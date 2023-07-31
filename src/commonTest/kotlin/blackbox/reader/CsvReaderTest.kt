@@ -1,5 +1,6 @@
 package blackbox.reader
 
+import io.kotest.core.spec.style.FunSpec
 import net.codinux.csv.kcsv.UncheckedIOException
 import net.codinux.csv.kcsv.reader.*
 import net.codinux.csv.kcsv.reader.datareader.DataReader
@@ -8,48 +9,33 @@ import net.codinux.csv.kcsv.use
 import test.assertElementsEqual
 import kotlin.test.*
 
-class CsvReaderTest {
+class CsvReaderTest : FunSpec({
+
+  listOf('\r', '\n').forEachIndexed { index, char ->
+    test("[$index] configBuilder for '$char'") {
+      val e = assertFailsWith(IllegalArgumentException::class) { CsvReader("foo", fieldSeparator = char) }
+      assertEquals("fieldSeparator must not be a newline char", e.message)
+      val e2 = assertFailsWith(IllegalArgumentException::class) { CsvReader("foo", quoteCharacter = char) }
+      assertEquals("quoteCharacter must not be a newline char", e2.message)
+      val e3 = assertFailsWith(IllegalArgumentException::class) { CsvReader("foo", commentCharacter = char) }
+      assertEquals("commentCharacter must not be a newline char", e3.message)
+    }
+  }
+
+  listOf(
+    CsvReader.builder().quoteCharacter(','),
+    CsvReader.builder().commentCharacter(','),
+    CsvReader.builder().quoteCharacter('#').commentCharacter('#')
+  ).forEachIndexed { index, csvReaderBuilder ->
+    test("[$index] configReader for $csvReaderBuilder") {
+      val e = assertFailsWith(IllegalArgumentException::class) { csvReaderBuilder.build("foo") }
+      assertTrue(e.message!!.contains("Control characters must differ"))
+    }
+  }
+
+}) {
   
   private val crb = CsvReader.builder()
-
-  @Test
-  fun configBuilder_CarriageReturn() {
-    configBuilder('\r')
-  }
-
-  @Test
-  fun configBuilder_NewLine() {
-    configBuilder('\n')
-  }
-
-  private fun configBuilder(c: Char) {
-    val e = assertFailsWith(IllegalArgumentException::class) { CsvReader("foo", fieldSeparator = c) }
-    assertEquals("fieldSeparator must not be a newline char", e.message)
-    val e2 = assertFailsWith(IllegalArgumentException::class) { CsvReader("foo", quoteCharacter = c) }
-    assertEquals("quoteCharacter must not be a newline char", e2.message)
-    val e3 = assertFailsWith(IllegalArgumentException::class) { CsvReader("foo", commentCharacter = c) }
-    assertEquals("commentCharacter must not be a newline char", e3.message)
-  }
-
-  @Test
-  fun configReader_QuoteCharacter() {
-    configReader(CsvReader.builder().quoteCharacter(','))
-  }
-
-  @Test
-  fun configReader_CommentCharacter() {
-    configReader(CsvReader.builder().commentCharacter(','))
-  }
-
-  @Test
-  fun configReader_QuoteAndCommentCharacter() {
-    configReader(CsvReader.builder().quoteCharacter('#').commentCharacter('#'))
-  }
-
-  private fun configReader(builder: CsvReader.CsvReaderBuilder) {
-    val e = assertFailsWith(IllegalArgumentException::class) { builder.build("foo") }
-    assertTrue(e.message!!.contains("Control characters must differ"))
-  }
 
   @Test
   fun empty() {
