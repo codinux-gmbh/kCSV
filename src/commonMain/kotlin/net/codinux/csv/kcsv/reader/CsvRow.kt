@@ -16,7 +16,12 @@ class CsvRow private constructor(
    */
   val originalLineNumber: Long,
 
-  private val fields: ImmutableList<String>,
+  /**
+   * Gets all fields of this row as an unmodifiable list.
+   *
+   * @return all fields of this row, never `null`
+   */
+  val fields: List<String>,
   /**
    * Provides the information if the row is a commented row.
    *
@@ -25,13 +30,28 @@ class CsvRow private constructor(
    */
   val isComment: Boolean,
 
-  private val isEmpty: Boolean = fields === EMPTY
+  /**
+   * Provides the information if the row is an empty row.
+   *
+   * @return `true` if the row is an empty row
+   * @see CsvReader.CsvReaderBuilder.skipEmptyRows
+   */
+  val isEmpty: Boolean
 ) {
 
   internal constructor(originalLineNumber: Long, fields: Array<String>, comment: Boolean)
           : this(originalLineNumber, ImmutableList(fields.asList()), comment, false)
 
   internal constructor(originalLineNumber: Long, comment: Boolean) : this(originalLineNumber, EMPTY, comment, true)
+
+
+  /**
+   * Gets the number of fields of this row.
+   *
+   * @return the number of fields of this row
+   * @see CsvReader.CsvReaderBuilder.errorOnDifferentFieldCount
+   */
+  val fieldCount: Int = fields.size
 
   operator fun get(index: Int) = getField(index)
 
@@ -49,31 +69,6 @@ class CsvRow private constructor(
 
     return fields[index]
   }
-
-  /**
-   * Gets all fields of this row as an unmodifiable list.
-   *
-   * @return all fields of this row, never `null`
-   */
-  fun getFields(): List<String> = fields
-
-  /**
-   * Gets the number of fields of this row.
-   *
-   * @return the number of fields of this row
-   * @see CsvReader.CsvReaderBuilder.errorOnDifferentFieldCount
-   */
-  fun getFieldCount(): Int {
-    return fields.size
-  }
-
-  /**
-   * Provides the information if the row is an empty row.
-   *
-   * @return `true` if the row is an empty row
-   * @see CsvReader.CsvReaderBuilder.skipEmptyRows
-   */
-  fun isEmpty(): Boolean = isEmpty
 
   fun getString(fieldIndex: Int): String =
     this.getField(fieldIndex)

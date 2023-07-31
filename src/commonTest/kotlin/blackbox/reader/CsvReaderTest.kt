@@ -46,7 +46,7 @@ class CsvReaderTest : FunSpec({
 
   @Test
   fun immutableResponse() {
-    val fields = CsvReader("foo").iterator().next().getFields()
+    val fields = CsvReader("foo").iterator().next().fields
     assertFailsWith(ClassCastException::class) { (fields as MutableList).add("bar") }
   }
 
@@ -71,20 +71,22 @@ class CsvReaderTest : FunSpec({
     val reader = CsvReader("\n\na", skipEmptyRows = false)
     val it: Iterator<CsvRow> = reader.iterator()
     var row = it.next()
-    assertTrue(row.isEmpty())
-    assertEquals(1, row.getFieldCount())
+    assertTrue(row.isEmpty)
+    assertEquals(1, row.fieldCount)
     assertEquals(1, row.originalLineNumber)
-    assertElementsEqual(listOf(""), row.getFields())
+    assertElementsEqual(listOf(""), row.fields)
+
     row = it.next()
-    assertTrue(row.isEmpty())
-    assertEquals(1, row.getFieldCount())
+    assertTrue(row.isEmpty)
+    assertEquals(1, row.fieldCount)
     assertEquals(2, row.originalLineNumber)
-    assertElementsEqual(listOf(""), row.getFields())
+    assertElementsEqual(listOf(""), row.fields)
+
     row = it.next()
-    assertFalse(row.isEmpty())
-    assertEquals(1, row.getFieldCount())
+    assertFalse(row.isEmpty)
+    assertEquals(1, row.fieldCount)
     assertEquals(3, row.originalLineNumber)
-    assertElementsEqual(listOf("a"), row.getFields())
+    assertElementsEqual(listOf("a"), row.fields)
     assertFalse(it.hasNext())
   }
 
@@ -95,10 +97,10 @@ class CsvReaderTest : FunSpec({
     val it = csv.iterator()
     var row = it.next()
     assertEquals(3, row.originalLineNumber)
-    assertElementsEqual(listOf("foo"), row.getFields())
+    assertElementsEqual(listOf("foo"), row.fields)
     row = it.next()
     assertEquals(5, row.originalLineNumber)
-    assertElementsEqual(listOf("bar"), row.getFields())
+    assertElementsEqual(listOf("bar"), row.fields)
   }
 
   // different field count
@@ -209,19 +211,19 @@ class CsvReaderTest : FunSpec({
         "line 9"
     val it: Iterator<CsvRow> = CsvReader(data, commentStrategy = CommentStrategy.SKIP).iterator()
     var row = it.next()
-    assertElementsEqual(listOf("line 1"), row.getFields())
+    assertElementsEqual(listOf("line 1"), row.fields)
     assertEquals(1, row.originalLineNumber)
     row = it.next()
-    assertElementsEqual(listOf("line 2"), row.getFields())
+    assertElementsEqual(listOf("line 2"), row.fields)
     assertEquals(2, row.originalLineNumber)
     row = it.next()
-    assertElementsEqual(listOf("line 3"), row.getFields())
+    assertElementsEqual(listOf("line 3"), row.fields)
     assertEquals(3, row.originalLineNumber)
     row = it.next()
-    assertElementsEqual(listOf("line 4\rwith\r\nand\n"), row.getFields())
+    assertElementsEqual(listOf("line 4\rwith\r\nand\n"), row.fields)
     assertEquals(4, row.originalLineNumber)
     row = it.next()
-    assertElementsEqual(listOf("line 9"), row.getFields())
+    assertElementsEqual(listOf("line 9"), row.fields)
     assertEquals(9, row.originalLineNumber)
     assertFalse(it.hasNext())
   }
@@ -233,11 +235,11 @@ class CsvReaderTest : FunSpec({
     var row = it.next()
     assertTrue(row.isComment)
     assertEquals(1, row.originalLineNumber)
-    assertElementsEqual(listOf("comment \"1\""), row.getFields())
+    assertElementsEqual(listOf("comment \"1\""), row.fields)
     row = it.next()
     assertFalse(row.isComment)
     assertEquals(2, row.originalLineNumber)
-    assertElementsEqual(listOf("a", "#b", "c"), row.getFields())
+    assertElementsEqual(listOf("a", "#b", "c"), row.fields)
   }
 
   // to string
@@ -259,7 +261,7 @@ class CsvReaderTest : FunSpec({
     extra.copyInto(buf, 8190, 0, extra.size)
 
     val row = csvReader(buf).iterator().next()
-    assertEquals(4, row.getFieldCount())
+    assertEquals(4, row.fieldCount)
     assertEquals("a\"b\"c", row.getField(1))
     assertEquals("d", row.getField(2))
     assertEquals("XX", row.getField(3))

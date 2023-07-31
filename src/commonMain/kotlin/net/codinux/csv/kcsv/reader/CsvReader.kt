@@ -89,8 +89,8 @@ class CsvReader(
       emptySet()
     } else {
       val firstRow = csvRowIterator.next()
-      val headerSet: MutableSet<String> = LinkedHashSet(firstRow.getFieldCount())
-      for (field in firstRow.getFields()) {
+      val headerSet: MutableSet<String> = LinkedHashSet(firstRow.fieldCount)
+      for (field in firstRow.fields) {
         check(headerSet.add(field)) { "Duplicate header field '$field' found" }
       }
       headerSet.toSet()

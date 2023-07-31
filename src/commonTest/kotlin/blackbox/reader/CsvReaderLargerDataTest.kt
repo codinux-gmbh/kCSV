@@ -12,7 +12,7 @@ class CsvReaderLargerDataTest {
     val reader = CsvReader(createSampleCSV())
     var i = 0
     for (row in reader) {
-      assertEquals(6, row.getFieldCount())
+      assertEquals(6, row.fieldCount)
       assertEquals(TEXTS[0], row.getField(0))
       assertEquals(TEXTS[1], row.getField(1))
       assertEquals(TEXTS[2], row.getField(2))

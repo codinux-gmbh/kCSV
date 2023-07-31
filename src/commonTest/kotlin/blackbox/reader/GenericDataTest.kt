@@ -36,7 +36,7 @@ class GenericDataTest : FunSpec({
         .commentCharacter(';')
         .commentStrategy(commentStrategy!!)
         .build(data!!)
-        .map { it.getFields() }
+        .map { it.fields }
     }
 
   }

@@ -59,12 +59,12 @@ class CsvRowIterator(
       }
 
       // skip empty rows
-      if (csvRow.isEmpty()) {
+      if (csvRow.isEmpty) {
         if (skipEmptyRows) {
           continue
         }
       } else if (errorOnDifferentFieldCount) {
-        val fieldCount = csvRow.getFieldCount()
+        val fieldCount = csvRow.fieldCount
 
         // check the field count consistency on every row
         if (firstLineFieldCount == -1) {
