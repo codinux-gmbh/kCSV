@@ -1,7 +1,0 @@
-<!-- This file is only used to use the Dependency graph feature of GitHub. It is not intended to build this project! -->
-<project>
-  <modelVersion>4.0.0</modelVersion>
-  <groupId>net.codinux.csv</groupId>
-  <artifactId>kcsv</artifactId>
-  <version>1.0.0-SNAPSHOT</version>
-</project>

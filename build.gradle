@@ -5,28 +5,21 @@ buildscript {
 }
 
 plugins {
-    id 'java-library'
+    id 'org.jetbrains.kotlin.multiplatform' version "$kotlinVersion"
     id 'maven-publish'
     id 'signing'
     id 'checkstyle'
     id 'pmd'
     id 'jacoco'
-    id 'com.github.spotbugs' version '4.5.0'
+//    id 'com.github.spotbugs' version '4.5.0'
     id 'me.champeau.jmh' version '0.7.0'
     id 'info.solidsoft.pitest' version '1.5.2'
-    id 'org.jetbrains.kotlin.jvm' version "$kotlinVersion"
 }
+
 
 group = "net.codinux.csv"
 version = "1.0.0-SNAPSHOT"
 
-java {
-    toolchain {
-        languageVersion = JavaLanguageVersion.of(8)
-    }
-    withJavadocJar()
-    withSourcesJar()
-}
 
 repositories {
     mavenCentral()
@@ -36,85 +29,177 @@ sourceSets {
     example
 }
 
-dependencies {
-    compileOnly("org.jetbrains.kotlinx:kotlinx-datetime:0.4.0")
 
-    testImplementation(platform('org.junit:junit-bom:5.7.0'))
-    testImplementation('org.junit.jupiter:junit-jupiter')
+kotlin {
+    // Enable the default target hierarchy:
+    targetHierarchy.default()
 
-    exampleImplementation sourceSets.main.output
+    jvm {
+        jvmToolchain(8)
+        withJava() // not allowed if android { } is present
 
-    pitest 'org.pitest:pitest-junit5-plugin:0.12'
-}
+        testRuns["test"].executionTask.configure {
+            useJUnitPlatform()
+//            finalizedBy jacocoTestReport
 
-tasks.withType(JavaCompile) {
-    options.encoding = 'UTF-8'
-}
-
-tasks.matching { task -> task.name.startsWith('spotbugs') }.forEach {
-    it.reports {
-        html.enabled = true
-        xml.enabled = false
-    }
-}
-
-test {
-    useJUnitPlatform()
-    finalizedBy jacocoTestReport
-}
-
-pitest {
-    testPlugin = 'junit5'
-    targetClasses = ['blackbox.*', 'de.siegmar.*']
-    timestampedReports = false
-}
-
-pmd {
-    consoleOutput = true
-    ruleSets = []
-    ruleSetFiles = files("config/pmd/config.xml")
-}
-
-jacocoTestReport {
-    reports {
-        xml.enabled true
-    }
-}
-
-jacocoTestCoverageVerification {
-    violationRules {
-        rule {
-            limit {
-                counter = 'BRANCH'
-                value = 'COVEREDRATIO'
-                minimum = 1.0
+            testLogging {     // This is for logging and can be removed.
+                events("passed", "skipped", "failed")
             }
+        }
+    }
+
+    js(IR) {
+//        binaries.executable()
+
+        browser {
+            testTask {
+                useKarma {
+                    useChromeHeadless()
+                    useFirefoxHeadless()
+                }
+            }
+        }
+
+        nodejs()
+    }
+
+//    android {
+//        publishLibraryVariants("release", "debug")
+//    }
+
+
+    linuxX64()
+    mingwX64()
+
+    ios {
+        binaries {
+            framework {
+                baseName = "kCSV"
+            }
+        }
+    }
+    iosSimulatorArm64()
+    macosX64()
+    macosArm64()
+    watchos()
+    watchosSimulatorArm64()
+    tvos()
+    tvosSimulatorArm64()
+
+
+    sourceSets {
+        commonMain {
+            dependencies {
+                implementation kotlin("reflect")
+
+                compileOnly("org.jetbrains.kotlinx:kotlinx-datetime:0.4.0")
+            }
+        }
+        commonTest {
+            dependencies {
+                implementation kotlin("test")
+            }
+        }
+
+
+        jvmMain.dependencies {
+
+//            exampleImplementation sourceSets.jvmMain.output
+        }
+
+        jvmTest.dependencies {
+            implementation('org.junit.jupiter:junit-jupiter')
+
+            implementation "org.assertj:assertj-core:$assertJVersion"
+
+            implementation("org.slf4j:slf4j-simple:1.7.30")
+
+//            pitest 'org.pitest:pitest-junit5-plugin:0.12'
+        }
+
+        jsMain.dependencies {
+
+        }
+
+//        androidMain {
+//            dependsOn jvmMain
+//        }
+
+        iosMain.dependencies {
+
+        }
+
+        nativeMain.dependencies {
+
         }
     }
 }
 
-check.dependsOn jacocoTestCoverageVerification
+//tasks.withType(JavaCompile) {
+//    options.encoding = 'UTF-8'
+//}
 
-jmh {
-    warmupIterations = 2
-    iterations = 5
-    benchmarkMode = ['thrpt']
-    fork = 2
-    operationsPerInvocation = 1
-}
-
-task proguardCheck(type: proguard.gradle.ProGuardTask, dependsOn: jar) {
-    injars project.jar.archivePath
-    libraryjars files(String.format("%s/platforms/android-%s/android.jar",
-            System.getenv("ANDROID_HOME"), System.getenv("API_LEVEL")))
-    libraryjars files(configurations.implementation)
-    // Don't really try to do anything, we just want this tool for it's bytecode lint
-    dontshrink
-    dontobfuscate
-    dontoptimize
-    // Don't fail if LambdaMetafactory is missing - it would be handled by Retrolambda / Jack
-    dontwarn 'java.lang.invoke.LambdaMetafactory'
-}
+//tasks.matching { task -> task.name.startsWith('spotbugs') }.forEach {
+//    it.reports {
+//        html.enabled = true
+//        xml.enabled = false
+//    }
+//}
+//
+//pitest {
+//    testPlugin = 'junit5'
+//    targetClasses = ['blackbox.*', 'de.siegmar.*']
+//    timestampedReports = false
+//}
+//
+//pmd {
+//    consoleOutput = true
+//    ruleSets = []
+//    ruleSetFiles = files("config/pmd/config.xml")
+//}
+//
+//jacocoTestReport {
+//    reports {
+//        xml.enabled true
+//    }
+//}
+//
+//jacocoTestCoverageVerification {
+//    violationRules {
+//        rule {
+//            limit {
+//                counter = 'BRANCH'
+//                value = 'COVEREDRATIO'
+//                minimum = 1.0
+//            }
+//        }
+//    }
+//}
+//
+//check.dependsOn jacocoTestCoverageVerification
+//
+//jmh {
+//    warmupIterations = 2
+//    iterations = 5
+//    benchmarkMode = ['thrpt']
+//    fork = 2
+//    operationsPerInvocation = 1
+//
+//    humanOutputFile = project.file("${project.buildDir}/reports/jmh/human.txt") // human-readable output file
+//}
+//
+//task proguardCheck(type: proguard.gradle.ProGuardTask, dependsOn: jar) {
+//    injars project.jar.archivePath
+//    libraryjars files(String.format("%s/platforms/android-%s/android.jar",
+//            System.getenv("ANDROID_HOME"), System.getenv("API_LEVEL")))
+//    libraryjars files(configurations.implementation)
+//    // Don't really try to do anything, we just want this tool for it's bytecode lint
+//    dontshrink
+//    dontobfuscate
+//    dontoptimize
+//    // Don't fail if LambdaMetafactory is missing - it would be handled by Retrolambda / Jack
+//    dontwarn 'java.lang.invoke.LambdaMetafactory'
+//}
 
 tasks.named('jar') {
     manifest {
