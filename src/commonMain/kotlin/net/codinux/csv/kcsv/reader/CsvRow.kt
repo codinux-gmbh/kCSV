@@ -75,51 +75,51 @@ class CsvRow internal constructor(
   fun getString(fieldIndex: Int): String =
     this.getField(fieldIndex)
 
-  fun getNullableString(fieldIndex: Int): String? =
+  fun getStringOrNull(fieldIndex: Int): String? =
     this.getField(fieldIndex)
       .ifEmpty { null }
 
   fun getBoolean(fieldIndex: Int): Boolean =
     this.getString(fieldIndex).toBoolean()
 
-  fun getNullableBoolean(fieldIndex: Int): Boolean? =
-    this.getNullableString(fieldIndex)?.toBoolean()
+  fun getBooleanOrNull(fieldIndex: Int): Boolean? =
+    this.getStringOrNull(fieldIndex)?.toBoolean()
 
   fun getInt(fieldIndex: Int): Int =
     this.getString(fieldIndex).toInt()
 
-  fun getNullableInt(fieldIndex: Int): Int? =
-    this.getNullableString(fieldIndex)?.toIntOrNull()
+  fun getIntOrNull(fieldIndex: Int): Int? =
+    this.getStringOrNull(fieldIndex)?.toIntOrNull()
 
   fun getLong(fieldIndex: Int): Long =
     this.getString(fieldIndex).toLong()
 
-  fun getNullableLong(fieldIndex: Int): Long? =
-    this.getNullableString(fieldIndex)?.toLongOrNull()
+  fun getLongOrNull(fieldIndex: Int): Long? =
+    this.getStringOrNull(fieldIndex)?.toLongOrNull()
 
   fun getFloat(fieldIndex: Int): Float =
     this.getString(fieldIndex).toFloat()
 
-  fun getNullableFloat(fieldIndex: Int): Float? =
-    this.getNullableString(fieldIndex)?.toFloatOrNull()
+  fun getFloatOrNull(fieldIndex: Int): Float? =
+    this.getStringOrNull(fieldIndex)?.toFloatOrNull()
 
   fun getDouble(fieldIndex: Int): Double =
     this.getString(fieldIndex).toDouble()
 
-  fun getNullableDouble(fieldIndex: Int): Double? =
-    this.getNullableString(fieldIndex)?.toDoubleOrNull()
+  fun getDoubleOrNull(fieldIndex: Int): Double? =
+    this.getStringOrNull(fieldIndex)?.toDoubleOrNull()
 
   fun getInstant(fieldIndex: Int): Instant =
     Instant.parse(this.getString(fieldIndex))
 
-  fun getNullableInstant(fieldIndex: Int): Instant? =
-    this.getNullableString(fieldIndex)?.let { Instant.parse(it) }
+  fun getInstantOrNull(fieldIndex: Int): Instant? =
+    this.getStringOrNull(fieldIndex)?.let { Instant.parse(it) }
 
   fun getLocalDateTime(fieldIndex: Int): LocalDateTime =
     LocalDateTime.parse(this.getString(fieldIndex))
 
-  fun getNullableLocalDateTime(fieldIndex: Int): LocalDateTime? =
-    this.getNullableString(fieldIndex)?.let { LocalDateTime.parse(it) }
+  fun getLocalDateTimeOrNull(fieldIndex: Int): LocalDateTime? =
+    this.getStringOrNull(fieldIndex)?.let { LocalDateTime.parse(it) }
 
   override fun toString(): String {
     return CsvRow::class.simpleName + "[" +

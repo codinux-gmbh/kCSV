@@ -74,14 +74,14 @@ fun <T : Reader> T.dataReader() = DataReader.reader(this)
 fun CsvRow.getBigDecimal(fieldIndex: Int): BigDecimal =
   this.getString(fieldIndex).toBigDecimal()
 
-fun CsvRow.getNullableBigDecimal(fieldIndex: Int): BigDecimal? =
-  this.getNullableString(fieldIndex)?.toBigDecimalOrNull()
+fun CsvRow.getBigDecimalOrNull(fieldIndex: Int): BigDecimal? =
+  this.getStringOrNull(fieldIndex)?.toBigDecimalOrNull()
 
 fun NamedCsvRow.getBigDecimal(name: String): BigDecimal =
   this.getString(name).toBigDecimal()
 
-fun NamedCsvRow.getNullableBigDecimal(name: String): BigDecimal? =
-  this.getNullableString(name)?.toBigDecimalOrNull()
+fun NamedCsvRow.getBigDecimalOrNull(name: String): BigDecimal? =
+  this.getStringOrNull(name)?.toBigDecimalOrNull()
 
 
 
