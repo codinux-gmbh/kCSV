@@ -2,8 +2,6 @@ package net.codinux.csv.kcsv.reader
 
 import kotlinx.datetime.Instant
 import kotlinx.datetime.LocalDateTime
-import kotlin.NoSuchElementException
-import kotlin.jvm.JvmField
 
 /**
  * Name (header) based CSV-row.
@@ -18,7 +16,10 @@ class NamedCsvRow internal constructor(header: Set<String>, row: CsvRow) {
    */
   val originalLineNumber: Long = row.originalLineNumber
 
-  private val fieldMap: Map<String, String> = header.mapIndexed { index, header -> header to row.getString(index) }.toMap()
+  private val fieldMap: Map<String, String> = header
+      .mapIndexed { index, header -> header to row.getString(index) }
+      .toMap()
+      .toImmutableMap()
 
   /**
    * Gets an unmodifiable map of header names and field values of this row.
@@ -29,7 +30,9 @@ class NamedCsvRow internal constructor(header: Set<String>, row: CsvRow) {
    * @return an unmodifiable map of header names and field values of this row
    */
   val fields: Map<String, String>
-    get() = fieldMap.toMap()
+    get() = fieldMap
+
+  operator fun get(name: String): String = getField(name)
 
   /**
    * Gets a field value by its name.
@@ -40,10 +43,7 @@ class NamedCsvRow internal constructor(header: Set<String>, row: CsvRow) {
    */
   fun getField(name: String): String {
     return fieldMap[name]
-      ?: throw NoSuchElementException(
-        "No element with name '" + name + "' found. "
-          + "Valid names are: " + fieldMap.keys
-      )
+      ?: throw NoSuchElementException("No element with name '$name' found. Valid names are: ${fieldMap.keys}")
   }
 
   fun getString(name: String): String =

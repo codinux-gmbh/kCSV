@@ -6,7 +6,7 @@ import kotlinx.datetime.LocalDateTime
 /**
  * Index based CSV-row.
  */
-class CsvRow internal constructor(
+class CsvRow private constructor(
   /**
    * Returns the original line number (starting with 1). On multi-line rows this is the starting
    * line number.
@@ -16,7 +16,7 @@ class CsvRow internal constructor(
    */
   val originalLineNumber: Long,
 
-  private val fields: Array<String>,
+  private val fields: ImmutableList<String>,
   /**
    * Provides the information if the row is a commented row.
    *
@@ -24,9 +24,16 @@ class CsvRow internal constructor(
    * @see CsvReader.CsvReaderBuilder.commentStrategy
    */
   val isComment: Boolean,
+
+  private val isEmpty: Boolean = fields === EMPTY
 ) {
 
-  internal constructor(originalLineNumber: Long, comment: Boolean) : this(originalLineNumber, EMPTY, comment)
+  internal constructor(originalLineNumber: Long, fields: Array<String>, comment: Boolean)
+          : this(originalLineNumber, ImmutableList(fields.asList()), comment, false)
+
+  internal constructor(originalLineNumber: Long, comment: Boolean) : this(originalLineNumber, EMPTY, comment, true)
+
+  operator fun get(index: Int) = getField(index)
 
   /**
    * Gets a field value by its index (starting with 0).
@@ -48,9 +55,7 @@ class CsvRow internal constructor(
    *
    * @return all fields of this row, never `null`
    */
-  fun getFields(): List<String> {
-    return ImmutableList(fields.asList())
-  }
+  fun getFields(): List<String> = fields
 
   /**
    * Gets the number of fields of this row.
@@ -68,9 +73,7 @@ class CsvRow internal constructor(
    * @return `true` if the row is an empty row
    * @see CsvReader.CsvReaderBuilder.skipEmptyRows
    */
-  fun isEmpty(): Boolean {
-    return fields == EMPTY
-  }
+  fun isEmpty(): Boolean = isEmpty
 
   fun getString(fieldIndex: Int): String =
     this.getField(fieldIndex)
@@ -124,12 +127,12 @@ class CsvRow internal constructor(
   override fun toString(): String {
     return CsvRow::class.simpleName + "[" +
       "originalLineNumber=$originalLineNumber, " +
-      "fields=${fields.contentToString()}, " +
+      "fields=$fields, " +
       "comment=$isComment" +
       "]"
   }
 
   companion object {
-    private val EMPTY = arrayOf("")
+    private val EMPTY = ImmutableList("")
   }
 }
