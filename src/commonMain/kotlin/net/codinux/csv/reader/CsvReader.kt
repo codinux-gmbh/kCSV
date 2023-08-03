@@ -1,6 +1,7 @@
 package net.codinux.csv.reader
 
 import net.codinux.csv.Closeable
+import net.codinux.csv.Config
 import net.codinux.csv.reader.datareader.DataReader
 import net.codinux.csv.reader.datareader.DataReader.Companion.reader
 import kotlin.jvm.JvmStatic

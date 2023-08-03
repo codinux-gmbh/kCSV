@@ -3,7 +3,7 @@ package net.codinux.csv.writer
 import net.codinux.csv.Closeable
 import net.codinux.csv.IOException
 import net.codinux.csv.UncheckedIOException
-import net.codinux.csv.reader.Config
+import net.codinux.csv.Config
 import net.codinux.csv.writer.datawriter.DataWriter
 import kotlin.jvm.JvmStatic
 

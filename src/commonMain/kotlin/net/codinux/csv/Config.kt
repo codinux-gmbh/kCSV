@@ -1,5 +1,6 @@
-package net.codinux.csv.reader
+package net.codinux.csv
 
+import net.codinux.csv.reader.CommentStrategy
 import net.codinux.csv.writer.LineDelimiter
 import net.codinux.csv.writer.QuoteStrategy
 
