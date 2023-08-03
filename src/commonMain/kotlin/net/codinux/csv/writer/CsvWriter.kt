@@ -3,6 +3,7 @@ package net.codinux.csv.writer
 import net.codinux.csv.Closeable
 import net.codinux.csv.IOException
 import net.codinux.csv.UncheckedIOException
+import net.codinux.csv.reader.Config
 import net.codinux.csv.writer.datawriter.DataWriter
 import kotlin.jvm.JvmStatic
 
@@ -16,16 +17,31 @@ import kotlin.jvm.JvmStatic
  * }
 `</pre> *
  */
-class CsvWriter internal constructor(
-  writer: DataWriter, fieldSeparator: Char, quoteCharacter: Char,
-  commentCharacter: Char, quoteStrategy: QuoteStrategy, lineDelimiter: LineDelimiter,
-  syncWriter: Boolean
+class CsvWriter(
+  writer: DataWriter,
+  private val fieldSeparator: Char = Config.DefaultFieldSeparator,
+  private val quoteCharacter: Char = Config.DefaultQuoteCharacter,
+  private val commentCharacter: Char = Config.DefaultCommentCharacter,
+  private val quoteStrategy: QuoteStrategy = Config.DefaultQuoteStrategy,
+  lineDelimiter: LineDelimiter = Config.DefaultLineDelimiter,
+  bufferSize: Int = Config.DefaultBufferSize
 ) : Closeable {
+
+  /**
+   * For programing languages that don't support default parameters like Java, Swift, JavaScript, ...
+   *
+   * To set individual options better use [CsvWriter.builder].
+   */
+  constructor(writer: DataWriter) : this(writer, Config.DefaultFieldSeparator)
+
+  /**
+   * For programing languages that don't support default parameters like Java, Swift, JavaScript, ...
+   *
+   * To set individual options better use [CsvWriter.builder].
+   */
+  constructor(writer: DataWriter, fieldSeparator: Char) : this(writer, fieldSeparator, Config.DefaultQuoteCharacter)
+
   private val writer: DataWriter
-  private val fieldSeparator: Char
-  private val quoteCharacter: Char
-  private val commentCharacter: Char
-  private val quoteStrategy: QuoteStrategy
   private val lineDelimiter: String
   private val syncWriter: Boolean
 
@@ -37,13 +53,16 @@ class CsvWriter internal constructor(
         "Control characters must differ" +
           " (fieldSeparator=$fieldSeparator, quoteCharacter=$quoteCharacter, commentCharacter=$commentCharacter)"
     }
-    this.writer = writer
-    this.fieldSeparator = fieldSeparator
-    this.quoteCharacter = quoteCharacter
-    this.commentCharacter = commentCharacter
-    this.quoteStrategy = quoteStrategy
+
     this.lineDelimiter = lineDelimiter.toString()
-    this.syncWriter = syncWriter
+
+    if (bufferSize > 0) {
+      this.writer = FastBufferedWriter(writer, bufferSize)
+      this.syncWriter = true
+    } else {
+      this.writer = writer
+      this.syncWriter = false
+    }
   }
 
   private fun allDiffers(vararg chars: Char): Boolean {
@@ -255,12 +274,13 @@ class CsvWriter internal constructor(
    * configuration of this class complies with RFC 4180.
    */
   class CsvWriterBuilder internal constructor() {
-    private var fieldSeparator = ','
-    private var quoteCharacter = '"'
-    private var commentCharacter = '#'
-    private var quoteStrategy = QuoteStrategy.REQUIRED
-    private var lineDelimiter = LineDelimiter.CRLF
-    private var bufferSize = DEFAULT_BUFFER_SIZE
+
+    private var fieldSeparator = Config.DefaultFieldSeparator
+    private var quoteCharacter = Config.DefaultQuoteCharacter
+    private var commentCharacter = Config.DefaultCommentCharacter
+    private var quoteStrategy = Config.DefaultQuoteStrategy
+    private var lineDelimiter = Config.DefaultLineDelimiter
+    private var bufferSize = Config.DefaultBufferSize
 
     /**
      * Sets the character that is used to separate columns (default: ',' - comma).
@@ -353,20 +373,11 @@ class CsvWriter internal constructor(
      * @throws NullPointerException if writer is `null`
      */
     fun build(writer: DataWriter): CsvWriter {
-      return newWriter(writer, true)
+      return newWriter(writer)
     }
 
-    private fun newWriter(writer: DataWriter, syncWriter: Boolean): CsvWriter {
-      return if (bufferSize > 0) {
-        CsvWriter(
-          FastBufferedWriter(writer, bufferSize), fieldSeparator, quoteCharacter,
-          commentCharacter, quoteStrategy, lineDelimiter, syncWriter
-        )
-      } else CsvWriter(
-        writer, fieldSeparator, quoteCharacter, commentCharacter, quoteStrategy,
-        lineDelimiter, false
-      )
-    }
+    private fun newWriter(writer: DataWriter) =
+      CsvWriter(writer, fieldSeparator, quoteCharacter, commentCharacter, quoteStrategy, lineDelimiter, bufferSize)
 
     override fun toString(): String {
       return CsvWriterBuilder::class.simpleName + "[" +
@@ -377,10 +388,6 @@ class CsvWriter internal constructor(
         "lineDelimiter=$lineDelimiter, " +
         "bufferSize=$bufferSize" +
         "]"
-    }
-
-    companion object {
-      private const val DEFAULT_BUFFER_SIZE = 8192
     }
   }
 
