@@ -29,4 +29,7 @@ class ImmutableList<E>(private val wrapped: List<E>) : List<E> {
 
     override fun toString() = wrapped.toString()
 
+
+    fun toMutableList(): MutableList<E> = ArrayList(this)
+
 }

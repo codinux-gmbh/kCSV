@@ -24,6 +24,9 @@ class ImmutableMap<K, V>(private val wrapped: Map<K, V>) : Map<K, V> {
 
     override fun toString() = wrapped.toString()
 
+
+    fun toMutableMap(): MutableMap<K, V> = LinkedHashMap(this)
+
 }
 
 fun <K, V> Map<K, V>.toImmutableMap() = ImmutableMap(this)

@@ -17,4 +17,7 @@ class ImmutableSet<E>(private val wrapped: Set<E>) : Set<E> {
 
     override fun toString() = wrapped.toString()
 
+
+    fun toMutableSet(): MutableSet<E> = LinkedHashSet(this)
+
 }
