@@ -5,7 +5,7 @@ import net.codinux.csv.reader.CsvReader
 import net.codinux.csv.reader.CsvRow
 import net.codinux.csv.reader.datareader.DataReader
 import net.codinux.csv.reader.datareader.StringDataReader
-import net.codinux.csv.reader.spliterator
+import net.codinux.csv.reader.rowSpliterator
 import net.codinux.csv.reader.stream
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -26,7 +26,7 @@ class CsvReaderTestJvm {
   @Test
   fun spliterator() {
     val reader = CsvReader("a,b,c\n1,2,3")
-    val spliterator = reader.spliterator()
+    val spliterator = reader.rowSpliterator()
     Assertions.assertNull(spliterator.trySplit())
     assertEquals(Long.MAX_VALUE, spliterator.estimateSize())
     assertEquals(

@@ -5,7 +5,7 @@ import net.codinux.csv.reader.NamedCsvReader
 import net.codinux.csv.reader.NamedCsvRow
 import net.codinux.csv.reader.datareader.DataReader
 import net.codinux.csv.reader.datareader.StringDataReader
-import net.codinux.csv.reader.spliterator
+import net.codinux.csv.reader.rowSpliterator
 import net.codinux.csv.reader.stream
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
@@ -23,7 +23,7 @@ class NamedCsvReaderTestJvm {
 
   @Test
   fun spliterator() {
-    val spliterator = NamedCsvReader("a,b,c\n1,2,3\n4,5,6").spliterator()
+    val spliterator = NamedCsvReader("a,b,c\n1,2,3\n4,5,6").rowSpliterator()
     Assertions.assertNull(spliterator.trySplit())
     Assertions.assertEquals(Long.MAX_VALUE, spliterator.estimateSize())
     val rows = AtomicInteger()

@@ -85,7 +85,7 @@ fun NamedCsvRow.getBigDecimalOrNull(name: String): BigDecimal? =
 
 
 
-fun CsvReader.spliterator(): Spliterator<CsvRow> {
+fun CsvReader.rowSpliterator(): Spliterator<CsvRow> {
   return CsvRowSpliterator(iterator())
 }
 
@@ -99,7 +99,7 @@ fun CsvReader.spliterator(): Spliterator<CsvRow> {
  * @return a new sequential `Stream`.
  */
 fun CsvReader.stream(): Stream<CsvRow> {
-  return StreamSupport.stream(spliterator(), false)
+  return StreamSupport.stream(rowSpliterator(), false)
     .onClose {
       try {
         close()
@@ -109,7 +109,7 @@ fun CsvReader.stream(): Stream<CsvRow> {
     }
 }
 
-fun NamedCsvReader.spliterator(): Spliterator<NamedCsvRow> {
+fun NamedCsvReader.rowSpliterator(): Spliterator<NamedCsvRow> {
   return CsvRowSpliterator(iterator())
 }
 
@@ -123,7 +123,7 @@ fun NamedCsvReader.spliterator(): Spliterator<NamedCsvRow> {
  * @return a new sequential `Stream`.
  */
 fun NamedCsvReader.stream(): Stream<NamedCsvRow> {
-  return StreamSupport.stream(spliterator(), false).onClose {
+  return StreamSupport.stream(rowSpliterator(), false).onClose {
     try {
       close()
     } catch (e: net.codinux.csv.IOException) {
