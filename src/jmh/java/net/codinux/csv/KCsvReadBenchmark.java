@@ -12,7 +12,7 @@ import org.openjdk.jmh.annotations.TearDown;
 
 import java.io.IOException;
 
-public class FastCsvReadBenchmark {
+public class KCsvReadBenchmark {
 
     @Benchmark
     public CsvRow read(final ReadState state) {

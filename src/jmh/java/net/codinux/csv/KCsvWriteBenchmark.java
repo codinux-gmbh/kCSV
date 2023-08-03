@@ -11,7 +11,7 @@ import org.openjdk.jmh.infra.Blackhole;
 
 import java.io.IOException;
 
-public class FastCsvWriteBenchmark {
+public class KCsvWriteBenchmark {
 
     @Benchmark
     public void write(final WriteState state) {
