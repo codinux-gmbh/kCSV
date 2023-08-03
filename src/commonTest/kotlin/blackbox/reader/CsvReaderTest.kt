@@ -170,7 +170,7 @@ class CsvReaderTest : FunSpec({
   fun hasHeader() {
     val reader = CsvReader("h1,h2,h3\n1,2,3", hasHeader = true)
 
-    assertTrue(reader.header == setOf("h1", "h2", "h3"))
+    assertElementsEqual(reader.header, setOf("h1", "h2", "h3"))
   }
 
   @Test

@@ -87,14 +87,15 @@ class CsvReader(
 
   private fun readHeader() =
     if (hasHeader == false || csvRowIterator.hasNext() == false) {
-      emptySet()
+      CsvHasNoHeader
     } else {
       val firstRow = csvRowIterator.next()
       val headerSet: MutableSet<String> = LinkedHashSet(firstRow.fieldCount)
       for (field in firstRow.fields) {
         check(headerSet.add(field)) { "Duplicate header field '$field' found" }
       }
-      headerSet.toSet()
+
+      ImmutableSet(headerSet)
     }
 
   override fun iterator(): CloseableIterator<CsvRow> {
@@ -275,8 +276,11 @@ class CsvReader(
   }
 
   companion object {
+
     private const val CR = '\r'
     private const val LF = '\n'
+
+    private val CsvHasNoHeader = ImmutableSet(emptySet<String>())
 
     /**
      * Constructs a [CsvReaderBuilder] to configure and build instances of this class.
