@@ -1,11 +1,14 @@
 package blackbox.reader
 
 import io.kotest.core.spec.style.FunSpec
-import net.codinux.csv.kcsv.UncheckedIOException
-import net.codinux.csv.kcsv.reader.*
-import net.codinux.csv.kcsv.reader.datareader.DataReader
-import net.codinux.csv.kcsv.reader.datareader.StringDataReader
-import net.codinux.csv.kcsv.use
+import net.codinux.csv.UncheckedIOException
+import net.codinux.csv.reader.datareader.DataReader
+import net.codinux.csv.reader.datareader.StringDataReader
+import net.codinux.csv.reader.CommentStrategy
+import net.codinux.csv.reader.CsvReader
+import net.codinux.csv.reader.CsvRow
+import net.codinux.csv.reader.MalformedCsvException
+import net.codinux.csv.use
 import test.assertElementsEqual
 import kotlin.test.*
 

@@ -1,7 +1,7 @@
 package blackbox.reader
 
-import net.codinux.csv.kcsv.reader.NamedCsvReader
-import net.codinux.csv.kcsv.reader.NamedCsvRow
+import net.codinux.csv.reader.NamedCsvReader
+import net.codinux.csv.reader.NamedCsvRow
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith

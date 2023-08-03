@@ -1,0 +1,28 @@
+package net.codinux.csv.reader
+
+/**
+ * The default configuration that complies with RFC 4180.
+ */
+object Config {
+
+  const val DefaultFieldSeparator = ','
+
+  const val DefaultQuoteCharacter = '"'
+
+  const val DefaultCommentCharacter = '#'
+
+  const val DefaultSkipEmptyRows = true
+
+  val DefaultCommentStrategy = CommentStrategy.NONE
+
+  const val DefaultErrorOnDifferentFieldCount = false
+
+  const val DefaultHasHeader = false
+
+  const val DefaultIgnoreInvalidQuoteChars = false
+
+  const val NamedCsvReaderDefaultErrorOnDifferentFieldCount = true
+
+  const val NamedCsvReaderDefaultSkipComments = false
+
+}

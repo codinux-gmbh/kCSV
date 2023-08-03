@@ -1,6 +1,8 @@
 package blackbox.reader
 
-import net.codinux.csv.kcsv.reader.*
+import net.codinux.csv.reader.CommentStrategy
+import net.codinux.csv.reader.CsvReader
+import net.codinux.csv.reader.CsvRow
 import test.assertElementsEqual
 import kotlin.test.Test
 import kotlin.test.assertEquals

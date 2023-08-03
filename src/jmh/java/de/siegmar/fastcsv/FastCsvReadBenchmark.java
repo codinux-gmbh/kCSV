@@ -1,9 +1,9 @@
 package de.siegmar.fastcsv;
 
-import net.codinux.csv.kcsv.reader.CloseableIterator;
-import net.codinux.csv.kcsv.reader.CsvReader;
-import net.codinux.csv.kcsv.reader.CsvRow;
-import net.codinux.csv.kcsv.reader.JvmExtensionsKt;
+import net.codinux.csv.reader.CloseableIterator;
+import net.codinux.csv.reader.CsvReader;
+import net.codinux.csv.reader.CsvRow;
+import net.codinux.csv.reader.JvmExtensionsKt;
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.Scope;
 import org.openjdk.jmh.annotations.Setup;

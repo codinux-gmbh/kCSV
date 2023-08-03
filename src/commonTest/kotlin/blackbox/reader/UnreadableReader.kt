@@ -1,7 +1,7 @@
 package blackbox.reader
 
-import net.codinux.csv.kcsv.IOException
-import net.codinux.csv.kcsv.reader.datareader.DataReader
+import net.codinux.csv.IOException
+import net.codinux.csv.reader.datareader.DataReader
 
 internal class UnreadableReader : DataReader {
 

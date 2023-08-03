@@ -1,13 +1,11 @@
 package blackbox.writer
 
-import net.codinux.csv.kcsv.use
-import net.codinux.csv.kcsv.writer.CsvWriter
-import net.codinux.csv.kcsv.writer.build
+import net.codinux.csv.use
+import net.codinux.csv.writer.CsvWriter
+import net.codinux.csv.writer.build
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
-import org.junit.jupiter.params.ParameterizedTest
-import org.junit.jupiter.params.provider.ValueSource
 import java.io.StringWriter
 import java.nio.charset.StandardCharsets
 import java.nio.file.Files

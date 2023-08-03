@@ -1,9 +1,9 @@
 //package example
 //
-//import net.codinux.csv.kcsv.reader.NamedCsvReader
-//import net.codinux.csv.kcsv.writer.CsvWriter
-//import net.codinux.csv.kcsv.writer.LineDelimiter
-//import net.codinux.csv.kcsv.writer.QuoteStrategy
+//import net.codinux.csv.reader.NamedCsvReader
+//import net.codinux.csv.writer.CsvWriter
+//import net.codinux.csv.writer.LineDelimiter
+//import net.codinux.csv.writer.QuoteStrategy
 //import java.io.StringWriter
 //import java.nio.file.Files
 //

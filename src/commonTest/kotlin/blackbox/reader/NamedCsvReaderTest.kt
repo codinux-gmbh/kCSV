@@ -2,10 +2,11 @@ package blackbox.reader
 
 import test.assertElementsEqual
 import blackbox.Util
-import net.codinux.csv.kcsv.reader.*
-import net.codinux.csv.kcsv.reader.datareader.DataReader
-import net.codinux.csv.kcsv.reader.datareader.StringDataReader
-import net.codinux.csv.kcsv.use
+import net.codinux.csv.reader.datareader.DataReader
+import net.codinux.csv.reader.datareader.StringDataReader
+import net.codinux.csv.reader.NamedCsvReader
+import net.codinux.csv.reader.NamedCsvRow
+import net.codinux.csv.use
 import kotlin.test.*
 
 class NamedCsvReaderTest {

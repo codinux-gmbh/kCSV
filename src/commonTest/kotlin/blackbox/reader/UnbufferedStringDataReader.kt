@@ -1,6 +1,6 @@
 package blackbox.reader
 
-import net.codinux.csv.kcsv.reader.datareader.DataReader
+import net.codinux.csv.reader.datareader.DataReader
 
 /**
  * Just for test reasons, a version of [net.codinux.csv.kcsv.reader.datareader.StringDataReader] that returns false

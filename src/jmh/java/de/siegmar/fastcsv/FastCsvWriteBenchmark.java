@@ -1,7 +1,7 @@
 package de.siegmar.fastcsv;
 
-import net.codinux.csv.kcsv.writer.CsvWriter;
-import net.codinux.csv.kcsv.writer.LineDelimiter;
+import net.codinux.csv.writer.CsvWriter;
+import net.codinux.csv.writer.LineDelimiter;
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.Scope;
 import org.openjdk.jmh.annotations.Setup;

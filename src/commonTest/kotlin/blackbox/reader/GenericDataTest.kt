@@ -2,8 +2,8 @@ package blackbox.reader
 
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
-import net.codinux.csv.kcsv.reader.CommentStrategy
-import net.codinux.csv.kcsv.reader.CsvReader
+import net.codinux.csv.reader.CommentStrategy
+import net.codinux.csv.reader.CsvReader
 
 class GenericDataTest : FunSpec({
 

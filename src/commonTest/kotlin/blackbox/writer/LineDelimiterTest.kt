@@ -1,7 +1,7 @@
 package blackbox.writer
 
-import net.codinux.csv.kcsv.writer.LineDelimiter
-import net.codinux.csv.kcsv.writer.LineDelimiter.Companion.of
+import net.codinux.csv.writer.LineDelimiter
+import net.codinux.csv.writer.LineDelimiter.Companion.of
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith

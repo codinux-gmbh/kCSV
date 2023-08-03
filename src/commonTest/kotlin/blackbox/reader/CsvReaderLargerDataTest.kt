@@ -1,8 +1,8 @@
 package blackbox.reader
 
-import net.codinux.csv.kcsv.reader.CsvReader
-import net.codinux.csv.kcsv.writer.CsvWriter
-import net.codinux.csv.kcsv.writer.datawriter.StringBuilderDataWriter
+import net.codinux.csv.reader.CsvReader
+import net.codinux.csv.writer.CsvWriter
+import net.codinux.csv.writer.datawriter.StringBuilderDataWriter
 import kotlin.test.Test
 import kotlin.test.assertEquals
 

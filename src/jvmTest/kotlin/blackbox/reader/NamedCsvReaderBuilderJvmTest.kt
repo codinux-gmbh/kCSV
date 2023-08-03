@@ -1,15 +1,13 @@
 package blackbox.reader
 
-import net.codinux.csv.kcsv.reader.NamedCsvReader
-import net.codinux.csv.kcsv.reader.NamedCsvRow
-import net.codinux.csv.kcsv.reader.datareader.DataReader
-import net.codinux.csv.kcsv.reader.reader
-import net.codinux.csv.kcsv.reader.stream
+import net.codinux.csv.reader.NamedCsvReader
+import net.codinux.csv.reader.NamedCsvRow
+import net.codinux.csv.reader.datareader.DataReader
+import net.codinux.csv.reader.reader
+import net.codinux.csv.reader.stream
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
-import org.junit.jupiter.params.ParameterizedTest
-import org.junit.jupiter.params.provider.NullSource
 import java.nio.charset.StandardCharsets
 import java.nio.file.Files
 import java.nio.file.Path
