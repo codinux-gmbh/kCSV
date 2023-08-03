@@ -9,7 +9,7 @@ Please keep in mind that the objectives of this project needs to be kept:
 - No third party libraries
 - Small footprint
 
-If unsure, start a [discussion](https://github.com/osiegmar/FastCSV/discussions).
+If unsure, start a [discussion](https://github.com/codinux-gmbh/kCSV/discussions).
 
 ## Steps to take
 

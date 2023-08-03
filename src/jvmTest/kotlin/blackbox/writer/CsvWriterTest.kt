@@ -16,7 +16,7 @@ class CsvWriterTest {
 
   @Test
   fun path(@TempDir tempDir: Path) {
-    val file = tempDir.resolve("fastcsv.csv")
+    val file = tempDir.resolve("kcsv.csv")
     CsvWriter.builder().build(file).use { csv -> csv.writeRow("value1", "value2") }
     Assertions.assertEquals(
       "value1,value2\r\n",

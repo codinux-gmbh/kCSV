@@ -18,7 +18,7 @@ class CsvReaderBuilderJvmTest {
 
   @Test
   fun path(@TempDir tempDir: Path) {
-    val file = tempDir.resolve("fastcsv.csv")
+    val file = tempDir.resolve("kcsv.csv")
     Files.write(file, DATA.toByteArray(StandardCharsets.UTF_8))
     val list: List<CsvRow>
     crb.build(file).stream().use { stream -> list = stream.collect(Collectors.toList()) }
