@@ -26,7 +26,7 @@ class CsvReader(
   private val commentCharacter: Char = Config.DefaultCommentCharacter,
   private val skipEmptyRows: Boolean = Config.DefaultSkipEmptyRows,
   private val errorOnDifferentFieldCount: Boolean = Config.DefaultErrorOnDifferentFieldCount,
-  private val hasHeader: Boolean = Config.DefaultHasHeader,
+  private val hasHeaderRow: Boolean = Config.DefaultHasHeaderRow,
   private val ignoreInvalidQuoteChars: Boolean = Config.DefaultIgnoreInvalidQuoteChars
 ) : Iterable<CsvRow>, Closeable {
 
@@ -52,9 +52,9 @@ class CsvReader(
     commentCharacter: Char = Config.DefaultCommentCharacter,
     skipEmptyRows: Boolean = Config.DefaultSkipEmptyRows,
     errorOnDifferentFieldCount: Boolean = Config.DefaultErrorOnDifferentFieldCount,
-    hasHeader: Boolean = Config.DefaultHasHeader,
+    hasHeaderRow: Boolean = Config.DefaultHasHeaderRow,
     ignoreInvalidQuoteChars: Boolean = Config.DefaultIgnoreInvalidQuoteChars
-  ) : this(reader(data), fieldSeparator, quoteCharacter, commentStrategy, commentCharacter, skipEmptyRows, errorOnDifferentFieldCount, hasHeader, ignoreInvalidQuoteChars)
+  ) : this(reader(data), fieldSeparator, quoteCharacter, commentStrategy, commentCharacter, skipEmptyRows, errorOnDifferentFieldCount, hasHeaderRow, ignoreInvalidQuoteChars)
 
 
   private val rowReader: RowReader
@@ -86,7 +86,7 @@ class CsvReader(
   }
 
   private fun readHeader() =
-    if (hasHeader == false || csvRowIterator.hasNext() == false) {
+    if (hasHeaderRow == false || csvRowIterator.hasNext() == false) {
       CsvHasNoHeader
     } else {
       val firstRow = csvRowIterator.next()
@@ -129,7 +129,7 @@ class CsvReader(
     private var commentCharacter = Config.DefaultCommentCharacter
     private var skipEmptyRows = Config.DefaultSkipEmptyRows
     private var errorOnDifferentFieldCount = Config.DefaultErrorOnDifferentFieldCount
-    private var hasHeader = Config.DefaultHasHeader
+    private var hasHeaderRow = Config.DefaultHasHeaderRow
     private var ignoreInvalidQuoteChars = Config.DefaultIgnoreInvalidQuoteChars
 
     /**
@@ -206,8 +206,8 @@ class CsvReader(
       return this
     }
 
-    fun hasHeader(hasHeader: Boolean) = this.apply {
-      this.hasHeader = hasHeader
+    fun hasHeaderRow(hasHeaderRow: Boolean) = this.apply {
+      this.hasHeaderRow = hasHeaderRow
     }
 
     /**
@@ -250,7 +250,7 @@ class CsvReader(
       return CsvReader(
         reader, fieldSeparator, quoteCharacter, commentStrategy,
         commentCharacter, skipEmptyRows, errorOnDifferentFieldCount,
-        hasHeader, ignoreInvalidQuoteChars
+        hasHeaderRow, ignoreInvalidQuoteChars
       )
     }
 
@@ -258,7 +258,7 @@ class CsvReader(
       return CsvReader(
         data, fieldSeparator, quoteCharacter, commentStrategy,
         commentCharacter, skipEmptyRows, errorOnDifferentFieldCount,
-        hasHeader, ignoreInvalidQuoteChars
+        hasHeaderRow, ignoreInvalidQuoteChars
       )
     }
 
@@ -270,7 +270,7 @@ class CsvReader(
         "commentCharacter=$commentCharacter, " +
         "skipEmptyRows=$skipEmptyRows, " +
         "errorOnDifferentFieldCount=$errorOnDifferentFieldCount, " +
-        "hasHeader=$hasHeader" +
+        "hasHeaderRow=$hasHeaderRow" +
         "]"
     }
   }

@@ -25,7 +25,7 @@ object Config {
 
   const val DefaultErrorOnDifferentFieldCount = false
 
-  const val DefaultHasHeader = false
+  const val DefaultHasHeaderRow = false
 
   const val DefaultIgnoreInvalidQuoteChars = false
 

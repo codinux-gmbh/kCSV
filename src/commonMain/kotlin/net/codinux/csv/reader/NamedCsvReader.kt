@@ -51,7 +51,7 @@ class NamedCsvReader private constructor(private val csvReader: CsvReader) : Ite
     commentCharacter: Char = Config.DefaultCommentCharacter
   ) : this(
     CsvReader(reader, fieldSeparator, quoteCharacter, if (skipComments) CommentStrategy.SKIP else CommentStrategy.NONE, commentCharacter,
-    errorOnDifferentFieldCount = Config.NamedCsvReaderDefaultErrorOnDifferentFieldCount, hasHeader = true)
+    errorOnDifferentFieldCount = Config.NamedCsvReaderDefaultErrorOnDifferentFieldCount, hasHeaderRow = true)
   )
 
   /**
@@ -183,7 +183,7 @@ class NamedCsvReader private constructor(private val csvReader: CsvReader) : Ite
         .commentCharacter(commentCharacter)
         .commentStrategy(if (skipComments) CommentStrategy.SKIP else CommentStrategy.NONE)
         .errorOnDifferentFieldCount(true)
-        .hasHeader(true)
+        .hasHeaderRow(true)
         .ignoreInvalidQuoteChars(ignoreInvalidQuoteChars)
     }
 
