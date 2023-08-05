@@ -14,42 +14,6 @@ import kotlin.test.*
 
 class CsvReaderTest : FunSpec({
 
-  // buffer exceed - these methods take too long for Mocha's timeout therefor i use Kotest runner so that they have enough time to complete
-
-  test("bufferExceed") {
-    val buf = CharArray(8 * 1024 * 1024)
-    buf.fill('X')
-    buf[buf.size - 1] = ','
-    csvReader(buf).iterator().next()
-    buf[buf.size - 1] = Char('X'.code.toByte().toUShort())
-    val exception = assertFailsWith(UncheckedIOException::class) { csvReader(UnbufferedStringDataReader(buf)).iterator().next() }
-    assertEquals("IOException when reading first record", exception.message)
-    assertEquals(
-      "Maximum buffer size 8388608 is not enough to read data of a single field. "
-              + "Typically, this happens if quotation started but did not end within this buffer's "
-              + "maximum boundary.",
-      exception.cause!!.message
-    )
-  }
-
-  test("bufferExceedSubsequentRecord") {
-    val buf = CharArray(8 * 1024 * 1024)
-    buf.fill('X')
-    val s = "a,b,c\n\""
-    s.toCharArray().copyInto(buf, 0, 0, s.length)
-
-    val iterator = csvReader(UnbufferedStringDataReader(buf)).iterator()
-    iterator.next()
-    val exception = assertFailsWith(UncheckedIOException::class) { iterator.next() }
-    assertEquals("IOException when reading record that started in line 2", exception.message)
-    assertEquals(
-      "Maximum buffer size 8388608 is not enough to read data of a single field. "
-              + "Typically, this happens if quotation started but did not end within this buffer's "
-              + "maximum boundary.",
-      exception.cause!!.message
-    )
-  }
-
   // parameterized tests
 
   listOf('\r', '\n').forEachIndexed { index, char ->
@@ -306,6 +270,43 @@ class CsvReaderTest : FunSpec({
     assertEquals("a\"b\"c", row.getField(1))
     assertEquals("d", row.getField(2))
     assertEquals("XX", row.getField(3))
+  }
+
+  // buffer exceed
+  @Test
+  fun bufferExceed() {
+    val buf = CharArray(8 * 1024 * 1024)
+    buf.fill('X')
+    buf[buf.size - 1] = ','
+    csvReader(buf).iterator().next()
+    buf[buf.size - 1] = Char('X'.code.toByte().toUShort())
+    val exception = assertFailsWith(UncheckedIOException::class) { csvReader(UnbufferedStringDataReader(buf)).iterator().next() }
+    assertEquals("IOException when reading first record", exception.message)
+    assertEquals(
+      "Maximum buffer size 8388608 is not enough to read data of a single field. "
+              + "Typically, this happens if quotation started but did not end within this buffer's "
+              + "maximum boundary.",
+      exception.cause!!.message
+    )
+  }
+
+  @Test
+  fun bufferExceedSubsequentRecord() {
+    val buf = CharArray(8 * 1024 * 1024)
+    buf.fill('X')
+    val s = "a,b,c\n\""
+    s.toCharArray().copyInto(buf, 0, 0, s.length)
+
+    val iterator = csvReader(UnbufferedStringDataReader(buf)).iterator()
+    iterator.next()
+    val exception = assertFailsWith(UncheckedIOException::class) { iterator.next() }
+    assertEquals("IOException when reading record that started in line 2", exception.message)
+    assertEquals(
+      "Maximum buffer size 8388608 is not enough to read data of a single field. "
+              + "Typically, this happens if quotation started but did not end within this buffer's "
+              + "maximum boundary.",
+      exception.cause!!.message
+    )
   }
 
   // API
