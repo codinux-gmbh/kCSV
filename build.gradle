@@ -48,7 +48,8 @@ kotlin {
     }
 
     js(IR) {
-//        binaries.executable()
+        moduleName = "kCSV"
+        binaries.executable()
 
         browser {
             testTask {
