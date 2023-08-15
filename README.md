@@ -1,7 +1,7 @@
 # kCSV
 
 [![Maven Central](https://img.shields.io/maven-central/v/net.codinux.csv/kcsv.svg?label=Maven%20Central)](https://search.maven.org/search?q=g:%22net.codinux.csv%22%20AND%20a:%22kcsv%22)
-[![GitHub license](https://img.shields.io/badge/license-MIT%20License-blue.svg?style=flat)](http://www.apache.org/licenses/LICENSE-2.0)
+[![GitHub license](https://img.shields.io/badge/license-MIT%20License-blue.svg?style=flat)](https://mit-license.org/)
 
 
 kCSV is a port of the great [FastCSV](https://github.com/osiegmar/FastCSV) CSV library for Kotlin Multiplatform supporting all KMP targets: Java, iOS, macOS, watchOS, tvOS, Linux, Windows, Node.js and JS Browser (Android *should* work with Android 8.0 (API level 26), but we haven't tested it).
@@ -18,6 +18,7 @@ For all features see [https://github.com/osiegmar/FastCSV#features](https://gith
 ## Setup
 
 ### Gradle:
+
 ```
 dependencies {
   implementation "net.codinux.csv:kcsv:1.0.1"
@@ -25,7 +26,9 @@ dependencies {
 ```
 
 ### Maven:
+
 Maven does not support automatic platform resolution as Gradle does, therefore the specific platform must be specified here:
+
 ```
 <dependency>
    <groupId>net.codinux.csv</groupId>
