@@ -2,6 +2,7 @@ package net.codinux.csv.reader
 
 import kotlinx.datetime.Instant
 import kotlinx.datetime.LocalDateTime
+import net.codinux.csv.reader.FieldMapper.fieldIsNotNull
 import net.codinux.csv.reader.FieldMapper.mapToBoolean
 import net.codinux.csv.reader.FieldMapper.mapToDouble
 import net.codinux.csv.reader.FieldMapper.mapToFloat
@@ -100,8 +101,6 @@ class NamedCsvRow internal constructor(header: Set<String>, row: CsvRow) {
   fun getLocalDateTimeOrNull(name: String): LocalDateTime? =
     this.getStringOrNull(name)?.let { LocalDateTime.parse(it) }
 
-  private fun fieldIsNotNull(field: String): Boolean =
-    field.isNotBlank() && field.equals("null", ignoreCase = true) == false
 
   override fun toString(): String {
     return NamedCsvRow::class.simpleName + "[" +
