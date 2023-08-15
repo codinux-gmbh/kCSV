@@ -1,6 +1,6 @@
 # kCSV
 
-[![Maven Central](https://img.shields.io/maven-central/v/net.codinux.csv/kCSV.svg?label=Maven%20Central)](https://search.maven.org/search?q=g:%22net.codinux.csv%22%20AND%20a:%22kCSV%22)
+[![Maven Central](https://img.shields.io/maven-central/v/net.codinux.csv/kcsv.svg?label=Maven%20Central)](https://search.maven.org/search?q=g:%22net.codinux.csv%22%20AND%20a:%22kcsv%22)
 [![GitHub license](https://img.shields.io/badge/license-MIT%20License-blue.svg?style=flat)](http://www.apache.org/licenses/LICENSE-2.0)
 
 
