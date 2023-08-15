@@ -210,6 +210,8 @@ kotlin {
 ext["customArtifactId"] = "kcsv"
 ext["projectDescription"] = "Port of FastCSV, an ultra fast and simple RFC 4180 compliant CSV library, for Kotlin Multiplatform"
 ext["sourceCodeRepositoryBaseUrl"] = "github.com/codinux-gmbh/kCSV"
+ext["licenseName"] = "MIT License"
+ext["licenseUrl"] = "https://mit-license.org/"
 
 def publishingScript = new File(new File(project.gradle.gradleUserHomeDir, "scripts"), "publish-codinux.gradle.kts")
 if (publishingScript.exists()) {
