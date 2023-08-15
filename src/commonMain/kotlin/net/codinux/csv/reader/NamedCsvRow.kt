@@ -2,6 +2,11 @@ package net.codinux.csv.reader
 
 import kotlinx.datetime.Instant
 import kotlinx.datetime.LocalDateTime
+import net.codinux.csv.reader.FieldMapper.mapToBoolean
+import net.codinux.csv.reader.FieldMapper.mapToDouble
+import net.codinux.csv.reader.FieldMapper.mapToFloat
+import net.codinux.csv.reader.FieldMapper.mapToInt
+import net.codinux.csv.reader.FieldMapper.mapToLong
 
 /**
  * Name (header) based CSV-row.
@@ -54,34 +59,34 @@ class NamedCsvRow internal constructor(header: Set<String>, row: CsvRow) {
       .takeIf { field -> fieldIsNotNull(field) }
 
   fun getBoolean(name: String): Boolean =
-    this.getString(name).toBoolean()
+    this.getString(name).mapToBoolean()
 
   fun getBooleanOrNull(name: String): Boolean? =
-    this.getStringOrNull(name)?.toBoolean()
+    this.getStringOrNull(name)?.mapToBoolean()
 
   fun getInt(name: String): Int =
-    this.getString(name).toInt()
+    this.getString(name).mapToInt()
 
   fun getIntOrNull(name: String): Int? =
-    this.getStringOrNull(name)?.toIntOrNull()
+    this.getStringOrNull(name)?.mapToInt()
 
   fun getLong(name: String): Long =
-    this.getString(name).toLong()
+    this.getString(name).mapToLong()
 
   fun getLongOrNull(name: String): Long? =
-    this.getStringOrNull(name)?.toLongOrNull()
+    this.getStringOrNull(name)?.mapToLong()
 
   fun getFloat(name: String): Float =
-    this.getString(name).toFloat()
+    this.getString(name).mapToFloat()
 
   fun getFloatOrNull(name: String): Float? =
-    this.getStringOrNull(name)?.toFloatOrNull()
+    this.getStringOrNull(name)?.mapToFloat()
 
   fun getDouble(name: String): Double =
-    this.getString(name).toDouble()
+    this.getString(name).mapToDouble()
 
   fun getDoubleOrNull(name: String): Double? =
-    this.getStringOrNull(name)?.toDoubleOrNull()
+    this.getStringOrNull(name)?.mapToDouble()
 
   fun getInstant(name: String): Instant =
     Instant.parse(this.getString(name))
