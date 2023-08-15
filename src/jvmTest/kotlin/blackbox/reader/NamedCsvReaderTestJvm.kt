@@ -23,7 +23,7 @@ class NamedCsvReaderTestJvm {
 
   @Test
   fun spliterator() {
-    val spliterator = NamedCsvReader("a,b,c\n1,2,3\n4,5,6").rowSpliterator()
+    val spliterator = NamedCsvReader().read("a,b,c\n1,2,3\n4,5,6").rowSpliterator()
     Assertions.assertNull(spliterator.trySplit())
     Assertions.assertEquals(Long.MAX_VALUE, spliterator.estimateSize())
     val rows = AtomicInteger()
@@ -46,14 +46,6 @@ class NamedCsvReaderTestJvm {
   }
 
 
-  private fun namedCsvReader(reader: DataReader) = NamedCsvReader(reader)
+  private fun namedCsvReader(reader: DataReader) = NamedCsvReader().read(reader)
 
-  // test helpers
-  private fun parse(data: String): NamedCsvReader {
-    return NamedCsvReader(data)
-  }
-
-  private fun readAll(data: String): List<NamedCsvRow> {
-    return parse(data).toList()
-  }
 }

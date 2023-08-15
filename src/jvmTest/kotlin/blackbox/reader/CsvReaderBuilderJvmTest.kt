@@ -1,9 +1,6 @@
 package blackbox.reader
 
-import net.codinux.csv.reader.CsvReader
-import net.codinux.csv.reader.CsvRow
-import net.codinux.csv.reader.build
-import net.codinux.csv.reader.stream
+import net.codinux.csv.reader.*
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
@@ -21,7 +18,7 @@ class CsvReaderBuilderJvmTest {
     val file = tempDir.resolve("kcsv.csv")
     Files.write(file, DATA.toByteArray(StandardCharsets.UTF_8))
     val list: List<CsvRow>
-    crb.build(file).stream().use { stream -> list = stream.collect(Collectors.toList()) }
+    crb.build().read(file).stream().use { stream -> list = stream.collect(Collectors.toList()) }
     Assertions.assertEquals(EXPECTED, list[0].fields)
   }
 

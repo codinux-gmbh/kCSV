@@ -1,9 +1,7 @@
 package net.codinux.csv.reader
 
-import net.codinux.csv.Closeable
 import net.codinux.csv.Config
 import net.codinux.csv.reader.datareader.DataReader
-import net.codinux.csv.reader.datareader.DataReader.Companion.reader
 import kotlin.jvm.JvmStatic
 
 /**
@@ -19,7 +17,6 @@ import kotlin.jvm.JvmStatic
 `</pre> *
  */
 class CsvReader(
-  private val reader: DataReader,
   private val fieldSeparator: Char = Config.DefaultFieldSeparator,
   private val quoteCharacter: Char = Config.DefaultQuoteCharacter,
   private val commentStrategy: CommentStrategy = Config.DefaultCommentStrategy,
@@ -28,54 +25,24 @@ class CsvReader(
   private val errorOnDifferentFieldCount: Boolean = Config.DefaultErrorOnDifferentFieldCount,
   private val hasHeaderRow: Boolean = Config.DefaultHasHeaderRow,
   private val ignoreInvalidQuoteChars: Boolean = Config.DefaultIgnoreInvalidQuoteChars
-) : Iterable<CsvRow>, Closeable {
+) {
 
   /**
    * For programing languages that don't support default parameters like Java, Swift, JavaScript, ...
    *
    * To set individual options better use [CsvReader.builder].
    */
-  constructor(reader: DataReader) : this(reader, fieldSeparator = Config.DefaultFieldSeparator)
+  constructor() : this(Config.DefaultFieldSeparator)
 
   /**
    * For programing languages that don't support default parameters like Java, Swift, JavaScript, ...
    *
    * To set individual options better use [CsvReader.builder].
    */
-  constructor(data: String) : this(data, fieldSeparator = Config.DefaultFieldSeparator)
+  constructor(fieldSeparator: Char = Config.DefaultFieldSeparator) : this(fieldSeparator, quoteCharacter = Config.DefaultQuoteCharacter)
 
-  constructor(
-    data: String,
-    fieldSeparator: Char = Config.DefaultFieldSeparator,
-    quoteCharacter: Char = Config.DefaultQuoteCharacter,
-    commentStrategy: CommentStrategy = Config.DefaultCommentStrategy,
-    commentCharacter: Char = Config.DefaultCommentCharacter,
-    skipEmptyRows: Boolean = Config.DefaultSkipEmptyRows,
-    errorOnDifferentFieldCount: Boolean = Config.DefaultErrorOnDifferentFieldCount,
-    hasHeaderRow: Boolean = Config.DefaultHasHeaderRow,
-    ignoreInvalidQuoteChars: Boolean = Config.DefaultIgnoreInvalidQuoteChars
-  ) : this(reader(data), fieldSeparator, quoteCharacter, commentStrategy, commentCharacter, skipEmptyRows, errorOnDifferentFieldCount, hasHeaderRow, ignoreInvalidQuoteChars)
-
-
-  private val rowReader: RowReader
-  private val csvRowIterator: CloseableIterator<CsvRow>
-
-  val header: Set<String>
 
   init {
-    assertFields(fieldSeparator, quoteCharacter, commentCharacter)
-
-    rowReader = RowReader(
-      reader, fieldSeparator, quoteCharacter, commentStrategy,
-      commentCharacter, ignoreInvalidQuoteChars
-    )
-
-    csvRowIterator = CsvRowIterator(rowReader, commentStrategy, skipEmptyRows, errorOnDifferentFieldCount)
-
-    header = readHeader()
-  }
-
-  private fun assertFields(fieldSeparator: Char, quoteCharacter: Char, commentCharacter: Char) {
     require(!(fieldSeparator == CR || fieldSeparator == LF)) { "fieldSeparator must not be a newline char" }
     require(!(quoteCharacter == CR || quoteCharacter == LF)) { "quoteCharacter must not be a newline char" }
     require(!(commentCharacter == CR || commentCharacter == LF)) { "commentCharacter must not be a newline char" }
@@ -85,26 +52,12 @@ class CsvReader(
     }
   }
 
-  private fun readHeader() =
-    if (hasHeaderRow == false || csvRowIterator.hasNext() == false) {
-      CsvHasNoHeader
-    } else {
-      val firstRow = csvRowIterator.next()
-      val headerSet: MutableSet<String> = LinkedHashSet(firstRow.fieldCount)
-      for (field in firstRow.fields) {
-        check(headerSet.add(field)) { "Duplicate header field '$field' found" }
-      }
 
-      ImmutableSet(headerSet)
-    }
+  fun read(data: String) = read(DataReader.reader(data))
 
-  override fun iterator(): CloseableIterator<CsvRow> {
-    return csvRowIterator
-  }
+  fun read(reader: DataReader): CsvRowIterator =
+    CsvRowIterator(reader, fieldSeparator, quoteCharacter, commentStrategy, commentCharacter, skipEmptyRows, errorOnDifferentFieldCount, hasHeaderRow, ignoreInvalidQuoteChars)
 
-  override fun close() {
-    csvRowIterator.close()
-  }
 
   override fun toString(): String {
     return CsvReader::class.simpleName + "[" +
@@ -223,16 +176,6 @@ class CsvReader(
     /**
      * Constructs a new [CsvReader] for the specified arguments.
      *
-     * @param data    the data to read.
-     * @return a new CsvReader - never `null`.
-     */
-    fun build(data: String): CsvReader {
-      return newReader(data)
-    }
-
-    /**
-     * Constructs a new [CsvReader] for the specified arguments.
-     *
      *
      * This library uses built-in buffering, so you do not need to pass in a buffered Reader
      * implementation such as [java.io.BufferedReader]. Performance may be even likely
@@ -242,21 +185,12 @@ class CsvReader(
      * Use [.build] for optimal performance when
      * reading files and [.build] when reading Strings.
      *
-     * @param reader the data source to read from.
      * @return a new CsvReader - never `null`.
      * @throws NullPointerException if reader is `null`
      */
-    fun build(reader: DataReader): CsvReader {
+    fun build(): CsvReader {
       return CsvReader(
-        reader, fieldSeparator, quoteCharacter, commentStrategy,
-        commentCharacter, skipEmptyRows, errorOnDifferentFieldCount,
-        hasHeaderRow, ignoreInvalidQuoteChars
-      )
-    }
-
-    private fun newReader(data: String): CsvReader {
-      return CsvReader(
-        data, fieldSeparator, quoteCharacter, commentStrategy,
+        fieldSeparator, quoteCharacter, commentStrategy,
         commentCharacter, skipEmptyRows, errorOnDifferentFieldCount,
         hasHeaderRow, ignoreInvalidQuoteChars
       )
@@ -279,8 +213,6 @@ class CsvReader(
 
     private const val CR = '\r'
     private const val LF = '\n'
-
-    private val CsvHasNoHeader = ImmutableSet(emptySet<String>())
 
     /**
      * Constructs a [CsvReaderBuilder] to configure and build instances of this class.

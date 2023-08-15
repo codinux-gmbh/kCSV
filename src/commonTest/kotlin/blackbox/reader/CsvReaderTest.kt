@@ -18,11 +18,11 @@ class CsvReaderTest : FunSpec({
 
   listOf('\r', '\n').forEachIndexed { index, char ->
     test("[$index] configBuilder for '$char'") {
-      val e = assertFailsWith(IllegalArgumentException::class) { CsvReader("foo", fieldSeparator = char) }
+      val e = assertFailsWith(IllegalArgumentException::class) { CsvReader(fieldSeparator = char) }
       assertEquals("fieldSeparator must not be a newline char", e.message)
-      val e2 = assertFailsWith(IllegalArgumentException::class) { CsvReader("foo", quoteCharacter = char) }
+      val e2 = assertFailsWith(IllegalArgumentException::class) { CsvReader(quoteCharacter = char) }
       assertEquals("quoteCharacter must not be a newline char", e2.message)
-      val e3 = assertFailsWith(IllegalArgumentException::class) { CsvReader("foo", commentCharacter = char) }
+      val e3 = assertFailsWith(IllegalArgumentException::class) { CsvReader(commentCharacter = char) }
       assertEquals("commentCharacter must not be a newline char", e3.message)
     }
   }
@@ -33,7 +33,7 @@ class CsvReaderTest : FunSpec({
     CsvReader.builder().quoteCharacter('#').commentCharacter('#')
   ).forEachIndexed { index, csvReaderBuilder ->
     test("[$index] configReader for $csvReaderBuilder") {
-      val e = assertFailsWith(IllegalArgumentException::class) { csvReaderBuilder.build("foo") }
+      val e = assertFailsWith(IllegalArgumentException::class) { csvReaderBuilder.build() }
       assertTrue(e.message!!.contains("Control characters must differ"))
     }
   }
@@ -44,14 +44,14 @@ class CsvReaderTest : FunSpec({
 
   @Test
   fun empty() {
-    val it: Iterator<CsvRow> = CsvReader("").iterator()
+    val it: Iterator<CsvRow> = CsvReader().read("").iterator()
     assertFalse(it.hasNext())
     assertFailsWith(NoSuchElementException::class) { it.next() }
   }
 
   @Test
   fun immutableResponse() {
-    val fields = CsvReader("foo").iterator().next().fields
+    val fields = CsvReader().read("foo").iterator().next().fields
     assertFailsWith(ClassCastException::class) { (fields as MutableList).add("bar") }
   }
 
@@ -60,20 +60,20 @@ class CsvReaderTest : FunSpec({
   fun readerToString() {
     assertEquals(
       "CsvReader[commentStrategy=NONE, skipEmptyRows=true, "
-        + "errorOnDifferentFieldCount=false]", CsvReader("").toString()
+        + "errorOnDifferentFieldCount=false]", CsvReader().toString()
     )
   }
 
   // skipped rows
   @Test
   fun singleRowNoSkipEmpty() {
-    val reader = CsvReader("", skipEmptyRows = false)
+    val reader = CsvReader(skipEmptyRows = false).read("")
     assertFalse(reader.iterator().hasNext())
   }
 
   @Test
   fun multipleRowsNoSkipEmpty() {
-    val reader = CsvReader("\n\na", skipEmptyRows = false)
+    val reader = CsvReader(skipEmptyRows = false).read("\n\na")
     val it: Iterator<CsvRow> = reader.iterator()
     var row = it.next()
     assertTrue(row.isEmpty)
@@ -123,7 +123,7 @@ class CsvReaderTest : FunSpec({
 
   @Test
   fun differentFieldCountFail() {
-    val reader = CsvReader("foo\nbar,\"baz\nbax\"", errorOnDifferentFieldCount = true)
+    val reader = CsvReader(errorOnDifferentFieldCount = true).read("foo\nbar,\"baz\nbax\"")
     val e = assertFailsWith(MalformedCsvException::class) {
       reader.toList()
     }
@@ -132,16 +132,17 @@ class CsvReaderTest : FunSpec({
 
   @Test
   fun hasHeader() {
-    val reader = CsvReader("h1,h2,h3\n1,2,3", hasHeaderRow = true)
+    val reader = CsvReader(hasHeaderRow = true).read("h1,h2,h3\n1,2,3")
 
     assertElementsEqual(reader.header, setOf("h1", "h2", "h3"))
   }
 
   @Test
   fun ignoreInvalidQuoteChars() {
-    val reader: CsvReader = crb
+    val reader = crb
       .ignoreInvalidQuoteChars(true)
-      .build("\"de:14628:1148:1\",\"Ri. \"Am Windberg\"\",\"51,002455\"\n")
+      .build()
+      .read("\"de:14628:1148:1\",\"Ri. \"Am Windberg\"\",\"51,002455\"\n")
     val row = reader.iterator().next()
     assertEquals("Ri. \"Am Windberg\"", row.getField(1))
     assertEquals("de:14628:1148:1", row.getField(0))
@@ -162,9 +163,10 @@ class CsvReaderTest : FunSpec({
       .append("Some more data") // append some more data
       .append('"') // append the correct quote char
       .append('\n') // and end line / data set
-    val reader: CsvReader = crb
+    val reader = crb
       .ignoreInvalidQuoteChars(true)
-      .build(csvData.toString())
+      .build()
+      .read(csvData.toString())
     val row = reader.iterator().next()
     val cell = row.getField(0)
     assertTrue(cell.length > bufferSize)
@@ -183,9 +185,10 @@ class CsvReaderTest : FunSpec({
     csvData.append('"') // now append the valid quote char at end of buffer
       .append(",\"Some more data in next cell\"") // append another cell
       .append('\n') // and end line / data set
-    val reader: CsvReader = crb
+    val reader = crb
       .ignoreInvalidQuoteChars(true)
-      .build(csvData.toString())
+      .build()
+      .read(csvData.toString())
     val row = reader.iterator().next()
     val cell = row.getField(0)
     assertEquals(bufferSize - 2, cell.length)
@@ -214,7 +217,7 @@ class CsvReaderTest : FunSpec({
         "\"line 4\rwith\r\nand\n\"\n" +
         "#line 8\n" +
         "line 9"
-    val it: Iterator<CsvRow> = CsvReader(data, commentStrategy = CommentStrategy.SKIP).iterator()
+    val it: Iterator<CsvRow> = CsvReader(commentStrategy = CommentStrategy.SKIP).read(data).iterator()
     var row = it.next()
     assertElementsEqual(listOf("line 1"), row.fields)
     assertEquals(1, row.originalLineNumber)
@@ -236,7 +239,7 @@ class CsvReaderTest : FunSpec({
   // comment
   @Test
   fun comment() {
-    val it: Iterator<CsvRow> = CsvReader("#comment \"1\"\na,#b,c", commentStrategy = CommentStrategy.READ).iterator()
+    val it: Iterator<CsvRow> = CsvReader(commentStrategy = CommentStrategy.READ).read("#comment \"1\"\na,#b,c").iterator()
     var row = it.next()
     assertTrue(row.isComment)
     assertEquals(1, row.originalLineNumber)
@@ -326,7 +329,7 @@ class CsvReaderTest : FunSpec({
 
   @Test
   fun closeStringNoException() {
-    CsvReader("foo").close()
+    CsvReader().read("foo").close()
   }
 
   @Test
@@ -344,14 +347,14 @@ class CsvReaderTest : FunSpec({
   }
 
   private fun readAll(data: String): List<CsvRow> {
-    return CsvReader(data).toList()
+    return CsvReader().read(data).toList()
   }
 
 
   companion object {
-    private fun csvReader(data: CharArray) = CsvReader(data.concatToString())
+    private fun csvReader(data: CharArray) = CsvReader().read(data.concatToString())
 
-    private fun csvReader(reader: DataReader) = CsvReader(reader)
+    private fun csvReader(reader: DataReader) = CsvReader().read(reader)
   }
 
 }

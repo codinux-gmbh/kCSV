@@ -24,9 +24,9 @@ class NamedCsvReaderTest {
   @Test
   fun readerToString() {
     assertEquals(
-      "NamedCsvReader[header=[h1], csvReader=CsvReader["
+      "NamedCsvReader[csvReader=CsvReader["
         + "commentStrategy=NONE, skipEmptyRows=true, errorOnDifferentFieldCount=true]]",
-      NamedCsvReader("h1\nd1").toString()
+      NamedCsvReader().toString()
     )
   }
 
@@ -123,7 +123,7 @@ class NamedCsvReaderTest {
   // line numbering
   @Test
   fun lineNumbering() {
-    val it: Iterator<NamedCsvRow> = NamedCsvReader(
+    val it: Iterator<NamedCsvRow> = NamedCsvReader().read(
         """
             h1,h2
             a,line 2
@@ -176,12 +176,11 @@ class NamedCsvReaderTest {
   }
 
 
-  private fun namedCsvReader(reader: DataReader) = NamedCsvReader(reader)
+  private fun namedCsvReader(reader: DataReader) = NamedCsvReader().read(reader)
 
   // test helpers
-  private fun parse(data: String): NamedCsvReader {
-    return NamedCsvReader(data)
-  }
+  private fun parse(data: String) =
+    NamedCsvReader().read(data)
 
   private fun readAll(data: String): List<NamedCsvRow> {
     return parse(data).toList()

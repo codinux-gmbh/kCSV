@@ -35,7 +35,8 @@ class GenericDataTest : FunSpec({
         .skipEmptyRows(skipEmptyLines)
         .commentCharacter(';')
         .commentStrategy(commentStrategy!!)
-        .build(data!!)
+        .build()
+        .read(data!!)
         .map { it.fields }
     }
 

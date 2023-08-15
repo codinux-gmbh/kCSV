@@ -25,7 +25,7 @@ class CsvReaderTestJvm {
 
   @Test
   fun spliterator() {
-    val reader = CsvReader("a,b,c\n1,2,3")
+    val reader = CsvReader().read("a,b,c\n1,2,3")
     val spliterator = reader.rowSpliterator()
     Assertions.assertNull(spliterator.trySplit())
     assertEquals(Long.MAX_VALUE, spliterator.estimateSize())
@@ -44,7 +44,7 @@ class CsvReaderTestJvm {
 
   @Test
   fun parallelDistinct() {
-    assertEquals(2, CsvReader("foo\nfoo").stream().parallel().distinct().count())
+    assertEquals(2, CsvReader().read("foo\nfoo").stream().parallel().distinct().count())
   }
 
   // Coverage
@@ -58,6 +58,6 @@ class CsvReaderTestJvm {
   }
 
 
-  private fun csvReader(reader: DataReader) = CsvReader(reader)
+  private fun csvReader(reader: DataReader) = CsvReader().read(reader)
 
 }

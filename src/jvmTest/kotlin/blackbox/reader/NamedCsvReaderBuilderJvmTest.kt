@@ -22,7 +22,7 @@ class NamedCsvReaderBuilderJvmTest {
     val file = tempDir.resolve("kcsv.csv")
     Files.write(file, DATA.toByteArray(StandardCharsets.UTF_8))
     val list: List<NamedCsvRow>
-    crb.build(DataReader.reader(file)).stream().use { stream -> list = stream.collect(Collectors.toList()) }
+    crb.build().read(DataReader.reader(file)).stream().use { stream -> list = stream.collect(Collectors.toList()) }
     Assertions.assertEquals(EXPECTED, list[0].fields.toString())
   }
 

@@ -17,28 +17,28 @@ class CsvReaderBuilderTest {
   fun nullInput() {
     val text: String? = null
     assertFailsWith(NullPointerException::class) {
-      crb.build(text!!)
+      crb.build().read(text!!)
     }
   }
 
   @Test
   fun fieldSeparator() {
     val it: Iterator<CsvRow> = crb.fieldSeparator(';')
-      .build("foo,bar;baz").iterator()
+      .build().read("foo,bar;baz").iterator()
     assertElementsEqual(listOf("foo,bar", "baz"), it.next().fields)
   }
 
   @Test
   fun quoteCharacter() {
     val it: Iterator<CsvRow> = crb.quoteCharacter('_')
-      .build("_foo \", __ bar_,foo \" bar").iterator()
+      .build().read("_foo \", __ bar_,foo \" bar").iterator()
     assertElementsEqual(listOf("foo \", _ bar", "foo \" bar"), it.next().fields)
   }
 
   @Test
   fun commentSkip() {
     val it: Iterator<CsvRow> = crb.commentCharacter(';').commentStrategy(CommentStrategy.SKIP)
-      .build("#foo\n;bar\nbaz").iterator()
+      .build().read("#foo\n;bar\nbaz").iterator()
     assertElementsEqual(listOf("#foo"), it.next().fields)
     assertElementsEqual(listOf("baz"), it.next().fields)
   }
@@ -54,14 +54,14 @@ class CsvReaderBuilderTest {
 
   @Test
   fun reader() {
-    val list = crb.build(DATA).toList()
+    val list = crb.build().read(DATA).toList()
 
     assertElementsEqual(EXPECTED, list[0].fields)
   }
 
   @Test
   fun string() {
-    val list = crb.build(DATA).toList()
+    val list = crb.build().read(DATA).toList()
 
     assertElementsEqual(EXPECTED, list[0].fields)
   }
@@ -75,7 +75,8 @@ class CsvReaderBuilderTest {
       .commentCharacter('#')
       .skipEmptyRows(true)
       .errorOnDifferentFieldCount(false)
-      .build("foo")
+      .build()
+      .read("foo")
 
     assertNotNull(reader)
   }

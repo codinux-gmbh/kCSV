@@ -9,7 +9,7 @@ import kotlin.test.assertEquals
 class CsvReaderLargerDataTest {
   @Test
   fun largerData() {
-    val reader = CsvReader(createSampleCSV())
+    val reader = CsvReader().read(createSampleCSV())
     var i = 0
     for (row in reader) {
       assertEquals(6, row.fieldCount)

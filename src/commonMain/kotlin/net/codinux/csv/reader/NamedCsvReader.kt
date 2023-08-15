@@ -1,10 +1,8 @@
 package net.codinux.csv.reader
 
-import net.codinux.csv.Closeable
 import net.codinux.csv.Config
 import net.codinux.csv.reader.CsvReader.CsvReaderBuilder
 import net.codinux.csv.reader.datareader.DataReader
-import net.codinux.csv.reader.datareader.DataReader.Companion.reader
 import kotlin.jvm.JvmStatic
 
 /**
@@ -19,60 +17,40 @@ import kotlin.jvm.JvmStatic
  * }
 `</pre> *
  */
-class NamedCsvReader private constructor(private val csvReader: CsvReader) : Iterable<NamedCsvRow>, Closeable {
+class NamedCsvReader private constructor(private val csvReader: CsvReader) {
 
   /**
    * For programing languages that don't support default parameters like Java, Swift, JavaScript, ...
    *
    * To set individual options better use [NamedCsvReader.builder].
    */
-  constructor(data: String) : this(data, skipComments = Config.NamedCsvReaderDefaultSkipComments)
+  constructor() : this(Config.DefaultFieldSeparator)
 
   /**
    * For programing languages that don't support default parameters like Java, Swift, JavaScript, ...
    *
    * To set individual options better use [NamedCsvReader.builder].
    */
-  constructor(reader: DataReader) : this(reader, skipComments = Config.NamedCsvReaderDefaultSkipComments)
+  constructor(fieldSeparator: Char) : this(fieldSeparator, Config.DefaultQuoteCharacter)
 
   constructor(
-    data: String,
-    fieldSeparator: Char = Config.DefaultFieldSeparator,
-    quoteCharacter: Char = Config.DefaultQuoteCharacter,
-    skipComments: Boolean = Config.NamedCsvReaderDefaultSkipComments,
-    commentCharacter: Char = Config.DefaultCommentCharacter
-  ) : this(reader(data), fieldSeparator, quoteCharacter, skipComments, commentCharacter)
-
-  constructor(
-    reader: DataReader,
     fieldSeparator: Char = Config.DefaultFieldSeparator,
     quoteCharacter: Char = Config.DefaultQuoteCharacter,
     skipComments: Boolean = Config.NamedCsvReaderDefaultSkipComments,
     commentCharacter: Char = Config.DefaultCommentCharacter
   ) : this(
-    CsvReader(reader, fieldSeparator, quoteCharacter, if (skipComments) CommentStrategy.SKIP else CommentStrategy.NONE, commentCharacter,
+    CsvReader(fieldSeparator, quoteCharacter, if (skipComments) CommentStrategy.SKIP else CommentStrategy.NONE, commentCharacter,
     errorOnDifferentFieldCount = Config.NamedCsvReaderDefaultErrorOnDifferentFieldCount, hasHeaderRow = true)
   )
 
-  /**
-   * Returns the header columns. Can be called at any time.
-   *
-   * @return the header columns
-   */
-  val header: Set<String> = csvReader.header
 
-  private val csvIterator: CloseableIterator<CsvRow> = csvReader.iterator()
-  private val namedCsvIterator: CloseableIterator<NamedCsvRow> = NamedCsvRowIterator(csvIterator, header)
+  fun read(data: String) = read(DataReader.reader(data))
 
-  override fun iterator(): CloseableIterator<NamedCsvRow> = namedCsvIterator
-
-  override fun close() {
-    csvReader.close()
-  }
+  fun read(reader: DataReader): NamedCsvRowIterator =
+    NamedCsvRowIterator(csvReader.read(reader))
 
   override fun toString(): String {
     return NamedCsvReader::class.simpleName + "[" +
-      "header=$header, " +
       "csvReader=$csvReader" +
       "]"
   }
@@ -158,22 +136,11 @@ class NamedCsvReader private constructor(private val csvReader: CsvReader) : Ite
      * Use [.build] for optimal performance when
      * reading files and [.build] when reading Strings.
      *
-     * @param reader the data source to read from.
      * @return a new NamedCsvReader - never `null`.
      * @throws NullPointerException if reader is `null`
      */
-    fun build(reader: DataReader): NamedCsvReader {
-      return NamedCsvReader(csvReaderBuilder().build(reader))
-    }
-
-    /**
-     * Constructs a new [NamedCsvReader] for the specified arguments.
-     *
-     * @param data    the data to read.
-     * @return a new NamedCsvReader - never `null`.
-     */
-    fun build(data: String): NamedCsvReader {
-      return NamedCsvReader(csvReaderBuilder().build(data))
+    fun build(): NamedCsvReader {
+      return NamedCsvReader(csvReaderBuilder().build())
     }
 
     private fun csvReaderBuilder(): CsvReaderBuilder {

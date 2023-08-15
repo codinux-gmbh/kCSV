@@ -1,8 +1,6 @@
 package net.codinux.csv.reader
 
 import net.codinux.csv.UncheckedIOException
-import net.codinux.csv.reader.CsvReader
-import net.codinux.csv.reader.NamedCsvReader
 import net.codinux.csv.reader.datareader.DataReader
 import net.codinux.csv.reader.datareader.JavaIoReaderDataReader
 //import net.codinux.csv.reader.datareader.JavaIoReaderDataReader
@@ -19,11 +17,11 @@ import java.util.stream.Stream
 import java.util.stream.StreamSupport
 
 /**
- * Constructs a new [CsvReader] for the specified arguments.
+ * Constructs a new [CsvRowIterator] for the specified arguments.
  *
  * @param path    the file to read data from.
  * @param charset the character set to use.
- * @return a new CsvReader - never `null`. Don't forget to close it!
+ * @return a new CsvRowIterator - never `null`. Don't forget to close it!
  * @throws IOException if an I/O error occurs.
  * @throws NullPointerException if path or charset is `null`
  */
@@ -36,32 +34,22 @@ import java.util.stream.StreamSupport
  * @throws NullPointerException if path or charset is `null`
  */
 @JvmOverloads
-fun CsvReader.CsvReaderBuilder.build(path: Path, charset: Charset = StandardCharsets.UTF_8): CsvReader {
-  return build(DataReader.reader(path, charset))
-}
+fun CsvReader.read(path: Path, charset: Charset = StandardCharsets.UTF_8) =
+  this.read(DataReader.reader(path, charset))
 
 
 /**
- * Constructs a new [NamedCsvReader] for the specified arguments.
+ * Constructs a new [NamedCsvRowIterator] for the specified arguments.
  *
  * @param path    the file to read data from.
  * @param charset the character set to use.
- * @return a new NamedCsvReader - never `null`. Don't forget to close it!
- * @throws IOException if an I/O error occurs.
- * @throws NullPointerException if path or charset is `null`
- */
-/**
- * Constructs a new [NamedCsvReader] for the specified path using UTF-8 as the character set.
- *
- * @param path    the file to read data from.
- * @return a new NamedCsvReader - never `null`. Don't forget to close it!
+ * @return a new NamedCsvRowIterator - never `null`. Don't forget to close it!
  * @throws IOException if an I/O error occurs.
  * @throws NullPointerException if path or charset is `null`
  */
 @JvmOverloads
-fun NamedCsvReader.NamedCsvReaderBuilder.build(path: Path, charset: Charset = StandardCharsets.UTF_8): NamedCsvReader {
-  return build(DataReader.reader(path, charset))
-}
+fun NamedCsvReader.read(path: Path, charset: Charset = StandardCharsets.UTF_8) =
+  this.read(DataReader.reader(path, charset))
 
 fun DataReader.Companion.reader(path: Path, charset: Charset = StandardCharsets.UTF_8) =
   JavaIoReaderDataReader(InputStreamReader(Files.newInputStream(path), charset))
@@ -85,7 +73,7 @@ fun NamedCsvRow.getBigDecimalOrNull(name: String): BigDecimal? =
 
 
 
-fun CsvReader.rowSpliterator(): Spliterator<CsvRow> {
+fun CsvRowIterator.rowSpliterator(): Spliterator<CsvRow> {
   return CsvRowSpliterator(iterator())
 }
 
@@ -98,7 +86,7 @@ fun CsvReader.rowSpliterator(): Spliterator<CsvRow> {
  *
  * @return a new sequential `Stream`.
  */
-fun CsvReader.stream(): Stream<CsvRow> {
+fun CsvRowIterator.stream(): Stream<CsvRow> {
   return StreamSupport.stream(rowSpliterator(), false)
     .onClose {
       try {
@@ -109,7 +97,7 @@ fun CsvReader.stream(): Stream<CsvRow> {
     }
 }
 
-fun NamedCsvReader.rowSpliterator(): Spliterator<NamedCsvRow> {
+fun NamedCsvRowIterator.rowSpliterator(): Spliterator<NamedCsvRow> {
   return CsvRowSpliterator(iterator())
 }
 
@@ -122,7 +110,7 @@ fun NamedCsvReader.rowSpliterator(): Spliterator<NamedCsvRow> {
  *
  * @return a new sequential `Stream`.
  */
-fun NamedCsvReader.stream(): Stream<NamedCsvRow> {
+fun NamedCsvRowIterator.stream(): Stream<NamedCsvRow> {
   return StreamSupport.stream(rowSpliterator(), false).onClose {
     try {
       close()

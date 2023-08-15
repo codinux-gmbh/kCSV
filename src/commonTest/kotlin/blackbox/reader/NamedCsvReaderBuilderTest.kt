@@ -16,28 +16,28 @@ class NamedCsvReaderBuilderTest {
     val text: String? = null
 
     assertFailsWith(NullPointerException::class) {
-      crb.build(text!!)
+      crb.build().read(text!!)
     }
   }
 
   @Test
   fun fieldSeparator() {
     val it: Iterator<NamedCsvRow> = crb.fieldSeparator(';')
-      .build("h1;h2\nfoo,bar;baz").iterator()
+      .build().read("h1;h2\nfoo,bar;baz").iterator()
     assertEquals("{h1=foo,bar, h2=baz}", it.next().fields.toString())
   }
 
   @Test
   fun quoteCharacter() {
     val it: Iterator<NamedCsvRow> = crb.quoteCharacter('_')
-      .build("h1,h2\n_foo \", __ bar_,foo \" bar").iterator()
+      .build().read("h1,h2\n_foo \", __ bar_,foo \" bar").iterator()
     assertEquals("{h1=foo \", _ bar, h2=foo \" bar}", it.next().fields.toString())
   }
 
   @Test
   fun commentSkip() {
     val it: Iterator<NamedCsvRow> = crb.commentCharacter(';').skipComments(true)
-      .build("h1\n#foo\n;bar\nbaz").iterator()
+      .build().read("h1\n#foo\n;bar\nbaz").iterator()
     assertEquals("{h1=#foo}", it.next().fields.toString())
     assertEquals("{h1=baz}", it.next().fields.toString())
   }
@@ -52,14 +52,14 @@ class NamedCsvReaderBuilderTest {
 
   @Test
   fun reader() {
-    val list = crb.build(DATA).toList()
+    val list = crb.build().read(DATA).toList()
 
     assertEquals(EXPECTED, list[0].fields.toString())
   }
 
   @Test
   fun string() {
-    val list = crb.build(DATA).toList()
+    val list = crb.build().read(DATA).toList()
 
     assertEquals(EXPECTED, list[0].fields.toString())
   }
@@ -71,9 +71,9 @@ class NamedCsvReaderBuilderTest {
       .quoteCharacter('"')
       .commentCharacter('#')
       .skipComments(false)
-      .build("foo")
+      .build()
 
-    assertNotNull(reader)
+    assertNotNull(reader.read("foo"))
   }
 
   companion object {
