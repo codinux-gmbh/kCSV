@@ -23,10 +23,10 @@ jobs:
     - uses: gradle/gradle-build-action@v2
     - name: Build with Gradle
       run: ./gradlew build
-    - name: Upload coverage to Codecov
-      uses: codecov/codecov-action@v3
-      with:
-        file: ./build/reports/jacoco/test/jacocoTestReport.xml
+#    - name: Upload coverage to Codecov
+#      uses: codecov/codecov-action@v3
+#      with:
+#        file: ./build/reports/jacoco/test/jacocoTestReport.xml
 
     # Android check
     - name: Setup Android SDK
