@@ -51,7 +51,7 @@ class NamedCsvRow internal constructor(header: Set<String>, row: CsvRow) {
 
   fun getStringOrNull(name: String): String? =
     this.getField(name)
-      .ifEmpty { null }
+      .takeIf { field -> fieldIsNotNull(field) }
 
   fun getBoolean(name: String): Boolean =
     this.getString(name).toBoolean()
@@ -94,6 +94,9 @@ class NamedCsvRow internal constructor(header: Set<String>, row: CsvRow) {
 
   fun getLocalDateTimeOrNull(name: String): LocalDateTime? =
     this.getStringOrNull(name)?.let { LocalDateTime.parse(it) }
+
+  private fun fieldIsNotNull(field: String): Boolean =
+    field.isNotBlank() && field.equals("null", ignoreCase = true) == false
 
   override fun toString(): String {
     return NamedCsvRow::class.simpleName + "[" +
