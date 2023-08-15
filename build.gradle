@@ -63,9 +63,7 @@ kotlin {
         nodejs()
     }
 
-//    android {
-//        publishLibraryVariants("release", "debug")
-//    }
+    // wasm()
 
 
     linuxX64()
