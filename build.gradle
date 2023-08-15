@@ -217,7 +217,4 @@ ext["sourceCodeRepositoryBaseUrl"] = "github.com/codinux-gmbh/kCSV"
 ext["licenseName"] = "MIT License"
 ext["licenseUrl"] = "https://mit-license.org/"
 
-def publishingScript = new File(new File(project.gradle.gradleUserHomeDir, "scripts"), "publish-codinux.gradle.kts")
-if (publishingScript.exists()) {
-    apply(from: publishingScript)
-}
+apply(from: new File("./gradle/scripts/publish-codinux.gradle.kts"))
