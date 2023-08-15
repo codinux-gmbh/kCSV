@@ -207,6 +207,7 @@ kotlin {
 //}
 
 
+ext["customArtifactId"] = "kcsv"
 ext["projectDescription"] = "Port of FastCSV, an ultra fast and simple RFC 4180 compliant CSV library, for Kotlin Multiplatform"
 ext["sourceCodeRepositoryBaseUrl"] = "github.com/codinux-gmbh/kCSV"
 
