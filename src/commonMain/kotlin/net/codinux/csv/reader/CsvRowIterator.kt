@@ -2,18 +2,13 @@ package net.codinux.csv.reader
 
 import net.codinux.csv.IOException
 import net.codinux.csv.UncheckedIOException
-import net.codinux.csv.reader.datareader.DataReader
 
 class CsvRowIterator(
-  reader: DataReader,
-  fieldSeparator: Char,
-  quoteCharacter: Char,
+  private val rowReader: RowReader,
   private val commentStrategy: CommentStrategy,
-  commentCharacter: Char,
   private val skipEmptyRows: Boolean,
   private val errorOnDifferentFieldCount: Boolean,
-  hasHeaderRow: Boolean,
-  ignoreInvalidQuoteChars: Boolean
+  hasHeaderRow: Boolean
 ) : CloseableIterator<CsvRow>, Iterable<CsvRow> {
 
   companion object {
@@ -24,11 +19,6 @@ class CsvRowIterator(
   private var fetchedRow: CsvRow? = null
   private var fetched = false
   private var firstLineFieldCount = -1
-
-  private val rowReader = RowReader(
-    reader, fieldSeparator, quoteCharacter, commentStrategy,
-    commentCharacter, ignoreInvalidQuoteChars
-  )
 
   val header: Set<String> = readHeader(hasHeaderRow).also {
     rowReader.setHeader(it)
