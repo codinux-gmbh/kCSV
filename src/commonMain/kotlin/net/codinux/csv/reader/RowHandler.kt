@@ -1,6 +1,11 @@
 package net.codinux.csv.reader
 
 internal class RowHandler(private var len: Int) {
+
+  companion object {
+    private val EMPTY = ImmutableList("")
+  }
+
   private var row: Array<String> = Array(len) { "" }
   private var idx = 0
   private var lines = 1
@@ -30,11 +35,14 @@ internal class RowHandler(private var len: Int) {
   }
 
   private fun build(): CsvRow {
-    if (idx > 1 || row[0].isNotEmpty()) {
-      val ret = Array(idx) { index -> row[index] }
-      return CsvRow(originalLineNumber, ret, isCommentMode)
+    val isNotEmpty = idx > 1 || row[0].isNotEmpty()
+    val fields = if (isNotEmpty) {
+      ImmutableList((0 until idx).map { index -> row[index] })
+    } else {
+      EMPTY
     }
-    return CsvRow(originalLineNumber, isCommentMode)
+
+    return CsvRow(originalLineNumber, fields, isCommentMode, !!!isNotEmpty)
   }
 
   fun enableCommentMode() {

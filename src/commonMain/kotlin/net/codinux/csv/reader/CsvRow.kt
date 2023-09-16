@@ -12,7 +12,7 @@ import net.codinux.csv.reader.FieldMapper.mapToLong
 /**
  * Index based CSV-row.
  */
-class CsvRow private constructor(
+class CsvRow internal constructor(
   /**
    * Returns the original line number (starting with 1). On multi-line rows this is the starting
    * line number.
@@ -22,12 +22,7 @@ class CsvRow private constructor(
    */
   val originalLineNumber: Long,
 
-  /**
-   * Gets all fields of this row as an unmodifiable list.
-   *
-   * @return all fields of this row, never `null`
-   */
-  val fields: List<String>,
+  fields: List<String>,
   /**
    * Provides the information if the row is a commented row.
    *
@@ -45,11 +40,6 @@ class CsvRow private constructor(
   val isEmpty: Boolean
 ) {
 
-  internal constructor(originalLineNumber: Long, fields: Array<String>, comment: Boolean)
-          : this(originalLineNumber, ImmutableList(fields.asList()), comment, false)
-
-  internal constructor(originalLineNumber: Long, comment: Boolean) : this(originalLineNumber, EMPTY, comment, true)
-
 
   /**
    * Gets the number of fields of this row.
@@ -58,6 +48,13 @@ class CsvRow private constructor(
    * @see CsvReader.CsvReaderBuilder.errorOnDifferentFieldCount
    */
   val fieldCount: Int = fields.size
+
+  /**
+   * Gets all fields of this row as an unmodifiable list.
+   *
+   * @return all fields of this row, never `null`
+   */
+  val fields: List<String> = ImmutableList(fields)
 
   operator fun get(index: Int) = getField(index)
 
@@ -131,9 +128,5 @@ class CsvRow private constructor(
       "fields=$fields, " +
       "comment=$isComment" +
       "]"
-  }
-
-  companion object {
-    private val EMPTY = ImmutableList("")
   }
 }
