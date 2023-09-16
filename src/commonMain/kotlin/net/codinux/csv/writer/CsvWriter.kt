@@ -4,6 +4,8 @@ import net.codinux.csv.Closeable
 import net.codinux.csv.IOException
 import net.codinux.csv.UncheckedIOException
 import net.codinux.csv.Config
+import net.codinux.csv.Constants.CR
+import net.codinux.csv.Constants.LF
 import net.codinux.csv.writer.datawriter.DataWriter
 
 /**
@@ -316,10 +318,5 @@ class CsvWriter internal constructor(
       flush()
       writer.close()
     }
-  }
-
-  companion object {
-    private const val CR = '\r'
-    private const val LF = '\n'
   }
 }

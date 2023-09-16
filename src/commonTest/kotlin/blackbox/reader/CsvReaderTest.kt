@@ -2,6 +2,8 @@ package blackbox.reader
 
 import blackbox.Util
 import io.kotest.core.spec.style.FunSpec
+import net.codinux.csv.Constants.CR
+import net.codinux.csv.Constants.LF
 import net.codinux.csv.UncheckedIOException
 import net.codinux.csv.reader.*
 import net.codinux.csv.reader.datareader.DataReader
@@ -14,7 +16,7 @@ class CsvReaderTest : FunSpec({
 
   // parameterized tests
 
-  listOf('\r', '\n').forEachIndexed { index, char ->
+  listOf(CR, LF).forEachIndexed { index, char ->
     test("[$index] configBuilder for '$char'") {
       val e = assertFailsWith(IllegalArgumentException::class) { CsvReader(fieldSeparator = char) }
       assertEquals("fieldSeparator must not be a newline char", e.message)

@@ -1,5 +1,6 @@
 package net.codinux.csv.writer
 
+import net.codinux.csv.Constants
 import kotlin.jvm.JvmStatic
 
 /**
@@ -9,17 +10,17 @@ enum class LineDelimiter(private val str: String) {
   /**
    * Line Feed - (UNIX).
    */
-  LF("\n"),
+  LF(Constants.LF.toString()),
 
   /**
    * Carriage Return - (Mac classic).
    */
-  CR("\r"),
+  CR(Constants.CR.toString()),
 
   /**
    * Carriage Return and Line Feed (Windows).
    */
-  CRLF("\r\n"),
+  CRLF("${Constants.CR}${Constants.LF}"),
 
 //  /**
 //   * Use current platform default ([System.lineSeparator].

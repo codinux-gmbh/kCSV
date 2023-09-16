@@ -1,6 +1,8 @@
 package net.codinux.csv.reader
 
 import net.codinux.csv.Config
+import net.codinux.csv.Constants.CR
+import net.codinux.csv.Constants.LF
 import net.codinux.csv.reader.datareader.DataReader
 import kotlin.jvm.JvmStatic
 
@@ -219,10 +221,6 @@ class CsvReader(
   }
 
   companion object {
-
-    private const val CR = '\r'
-    private const val LF = '\n'
-
     /**
      * Constructs a [CsvReaderBuilder] to configure and build instances of this class.
      * @return a new [CsvReaderBuilder] instance.

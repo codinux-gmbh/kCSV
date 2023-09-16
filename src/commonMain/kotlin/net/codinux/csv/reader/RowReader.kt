@@ -1,6 +1,8 @@
 package net.codinux.csv.reader
 
 import net.codinux.csv.Closeable
+import net.codinux.csv.Constants.CR
+import net.codinux.csv.Constants.LF
 import net.codinux.csv.IOException
 import net.codinux.csv.reader.datareader.DataReader
 
@@ -329,8 +331,6 @@ class RowReader internal constructor(
   }
 
   companion object {
-    private const val LF = '\n'
-    private const val CR = '\r'
     private const val STATUS_LAST_CHAR_WAS_CR = 32
     private const val STATUS_COMMENTED_ROW = 16
     private const val STATUS_NEW_FIELD = 8
