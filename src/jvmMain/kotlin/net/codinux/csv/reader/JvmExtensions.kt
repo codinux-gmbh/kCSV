@@ -29,6 +29,27 @@ import java.util.stream.StreamSupport
 fun CsvReader.read(path: Path, charset: Charset = StandardCharsets.UTF_8) =
   this.read(DataReader.reader(path, charset))
 
+@JvmOverloads
+fun CsvReader.read(file: File, charset: Charset = StandardCharsets.UTF_8) =
+  this.read(DataReader.reader(file, charset))
+
+@JvmOverloads
+fun CsvReader.read(inputStream: InputStream, charset: Charset = StandardCharsets.UTF_8) =
+  this.read(DataReader.reader(inputStream, charset))
+
+fun CsvReader.read(reader: Reader) =
+  this.read(DataReader.reader(reader))
+
+
+fun DataReader.Companion.reader(path: Path, charset: Charset = StandardCharsets.UTF_8) =
+  DataReader.reader(Files.newInputStream(path), charset)
+
+fun DataReader.Companion.reader(file: File, charset: Charset = StandardCharsets.UTF_8) =
+  DataReader.reader(file.inputStream(), charset)
+
+fun DataReader.Companion.reader(inputStream: InputStream, charset: Charset = StandardCharsets.UTF_8) =
+  DataReader.reader(InputStreamReader(inputStream, charset))
+
 fun DataReader.Companion.reader(reader: Reader) = JavaIoReaderDataReader(reader)
 
 fun <T : Reader> T.dataReader() = DataReader.reader(this)
