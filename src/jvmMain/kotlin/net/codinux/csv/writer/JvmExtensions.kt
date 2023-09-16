@@ -1,11 +1,13 @@
 package net.codinux.csv.writer
 
 import net.codinux.csv.writer.datawriter.DataWriter
+import net.codinux.csv.writer.datawriter.JavaAppendableDataWriter
 import net.codinux.csv.writer.datawriter.JavaIoWriterDataWriter
 import java.io.File
 import java.io.OutputStream
 import java.io.OutputStreamWriter
 import java.io.Writer
+import java.lang.Appendable
 import java.nio.charset.Charset
 import java.nio.charset.StandardCharsets
 import java.nio.file.Files
@@ -13,7 +15,7 @@ import java.nio.file.OpenOption
 import java.nio.file.Path
 import kotlin.io.path.writer
 
-fun CsvFormat.writer(builder: StringBuilder) =
+fun CsvFormat.writer(builder: Appendable) =
   writer(DataWriter.writer(builder))
 
 fun CsvFormat.writer(writer: Writer) =
@@ -41,6 +43,8 @@ fun DataWriter.Companion.writer(path: Path, charset: Charset = StandardCharsets.
   JavaIoWriterDataWriter(OutputStreamWriter(Files.newOutputStream(path, *openOptions), charset))
 
 fun DataWriter.Companion.writer(writer: Writer) = JavaIoWriterDataWriter(writer)
+
+fun DataWriter.Companion.writer(appendable: Appendable) = JavaAppendableDataWriter(appendable)
 
 fun <T : Writer> T.dataWriter() = DataWriter.writer(this)
 

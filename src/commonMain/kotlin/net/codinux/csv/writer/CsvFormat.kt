@@ -95,6 +95,8 @@ class CsvFormat(
         this.bufferSize = bufferSize
     }
 
+    fun writer(builder: StringBuilder) = writer(DataWriter.writer(builder))
+
     /**
      * Constructs a [CsvWriter] for the specified Writer.
      *
