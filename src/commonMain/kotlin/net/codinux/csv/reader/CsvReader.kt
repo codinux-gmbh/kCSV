@@ -24,6 +24,7 @@ class CsvReader(
   private val skipEmptyRows: Boolean = Config.DefaultSkipEmptyRows,
   private val errorOnDifferentFieldCount: Boolean = Config.DefaultErrorOnDifferentFieldCount,
   private val hasHeaderRow: Boolean = Config.DefaultHasHeaderRow,
+  private val reuseRowInstance: Boolean = Config.DefaultReuseRowInstance,
   private val ignoreInvalidQuoteChars: Boolean = Config.DefaultIgnoreInvalidQuoteChars
 ) {
 
@@ -56,7 +57,7 @@ class CsvReader(
   fun read(data: String) = read(DataReader.reader(data))
 
   fun read(reader: DataReader): CsvRowIterator {
-    val rowReader = RowReader(reader, fieldSeparator, quoteCharacter, commentStrategy, commentCharacter, ignoreInvalidQuoteChars)
+    val rowReader = RowReader(reader, fieldSeparator, quoteCharacter, commentStrategy, commentCharacter, reuseRowInstance, ignoreInvalidQuoteChars)
 
     return CsvRowIterator(rowReader, commentStrategy, skipEmptyRows, errorOnDifferentFieldCount, hasHeaderRow)
   }
@@ -86,6 +87,7 @@ class CsvReader(
     private var skipEmptyRows = Config.DefaultSkipEmptyRows
     private var errorOnDifferentFieldCount = Config.DefaultErrorOnDifferentFieldCount
     private var hasHeaderRow = Config.DefaultHasHeaderRow
+    private var reuseRowInstance = Config.DefaultReuseRowInstance
     private var ignoreInvalidQuoteChars = Config.DefaultIgnoreInvalidQuoteChars
 
     /**
@@ -166,6 +168,10 @@ class CsvReader(
       this.hasHeaderRow = hasHeaderRow
     }
 
+    fun reuseRowInstance(reuseRowInstance: Boolean) = this.apply {
+      this.reuseRowInstance = reuseRowInstance
+    }
+
     /**
      * Defines if invalid placed quote chars like "\"Contains \" in cell content\"" should be ignored.
      *
@@ -195,7 +201,7 @@ class CsvReader(
       return CsvReader(
         fieldSeparator, quoteCharacter, commentStrategy,
         commentCharacter, skipEmptyRows, errorOnDifferentFieldCount,
-        hasHeaderRow, ignoreInvalidQuoteChars
+        hasHeaderRow, reuseRowInstance, ignoreInvalidQuoteChars
       )
     }
 

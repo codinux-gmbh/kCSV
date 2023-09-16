@@ -1,6 +1,9 @@
 package net.codinux.csv.reader
 
-internal class RowHandler(private var len: Int) {
+internal class RowHandler(
+  private var len: Int,
+  private val reuseRowInstance: Boolean
+) {
 
   companion object {
     private val EMPTY = ImmutableList("")
@@ -14,6 +17,12 @@ internal class RowHandler(private var len: Int) {
   private var originalLineNumber: Long = 1
 
   internal var header: Set<String> = ImmutableSet(emptySet())
+    set(value) {
+      field = value
+      reusedCsvRowInstance = CsvRow(value, emptyList(), originalLineNumber, isCommentMode, true)
+    }
+
+  private var reusedCsvRowInstance = CsvRow(header, emptyList(), originalLineNumber, isCommentMode, true)
 
   fun add(value: String) {
     if (idx == len) {
@@ -37,14 +46,19 @@ internal class RowHandler(private var len: Int) {
   }
 
   private fun build(): CsvRow {
-    val isNotEmpty = idx > 1 || row[0].isNotEmpty()
-    val fields = if (isNotEmpty) {
-      ImmutableList((0 until idx).map { index -> row[index] })
-    } else {
+    val isEmpty = !!!(idx > 1 || row[0].isNotEmpty())
+    val fields = if (isEmpty) {
       EMPTY
+    } else {
+      (0 until idx).map { index -> row[index] }
     }
 
-    return CsvRow(originalLineNumber, header, fields, isCommentMode, !!!isNotEmpty)
+    return if (reuseRowInstance) {
+      reusedCsvRowInstance.updateRow(fields, originalLineNumber, isCommentMode, isEmpty)
+      reusedCsvRowInstance
+    } else {
+      CsvRow(header, fields, originalLineNumber, isCommentMode, isEmpty)
+    }
   }
 
   fun enableCommentMode() {

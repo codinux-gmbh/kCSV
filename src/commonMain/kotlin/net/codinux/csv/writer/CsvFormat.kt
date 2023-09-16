@@ -3,6 +3,8 @@ package net.codinux.csv.writer
 import net.codinux.csv.Config
 import net.codinux.csv.writer.datawriter.DataWriter
 
+// may rename to CsvWriterFormat
+
 /**
  * This builder is used to create configured instances of [CsvWriter]. The default
  * configuration of this class complies with RFC 4180.

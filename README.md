@@ -61,7 +61,7 @@ NamedCsvReader("header 1,header 2\nfield 1,field 2").forEach { row ->
 #### Custom settings
 
 ```kotlin
-CsvReader(
+CsvReader().read(
     "foo1;'bar1'\r\n#foo2,bar2",
     fieldSeparator = ';',
     quoteCharacter = '\'',
@@ -79,16 +79,18 @@ CsvReader(
 #### Field mappings
 
 ```kotlin
-NamedCsvReader("Int,Double,Boolean,NullableLong,Instant\n42,3.14,true,,2023-06-05T22:19:44.475Z").forEach { row ->
-    // of course works also with CsvReader and row indices
-    println("Int: ${row.getInt("Int")}")
-    println("Double: ${row.getDouble("Double")}")
-    println("Boolean: ${row.getBoolean("Boolean")}")
-    // all methods also have a 'OrNull()' variant for nullable values
-    println("Nullable Long: ${row.getLongOrNull("NullableLong")}")
-    // add "org.jetbrains.kotlinx:kotlinx-datetime" dependency to classpath to use this function
-    println("Instant: ${row.getInstant("Instant")}")
-}
+CsvReader(hasHeaderRow = true)
+    .read("Int,Double,Boolean,NullableLong,Instant\n42,3.14,true,,2023-06-05T22:19:44.475Z")
+    .forEach { row ->
+        // of course works also with CsvReader and row indices
+        println("Int: ${row.getInt("Int")}")
+        println("Double: ${row.getDouble("Double")}")
+        println("Boolean: ${row.getBoolean("Boolean")}")
+        // all methods also have a 'OrNull()' variant for nullable values
+        println("Nullable Long: ${row.getLongOrNull("NullableLong")}")
+        // add "org.jetbrains.kotlinx:kotlinx-datetime" dependency to classpath to use this function
+        println("Instant: ${row.getInstant("Instant")}")
+    }
 ```
 
 #### CSV data from file

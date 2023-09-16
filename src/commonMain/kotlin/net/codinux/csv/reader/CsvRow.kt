@@ -13,35 +13,14 @@ import net.codinux.csv.reader.FieldMapper.mapToLong
  * Index based CSV-row.
  */
 class CsvRow internal constructor(
-  /**
-   * Returns the original line number (starting with 1). On multi-line rows this is the starting
-   * line number.
-   * Empty lines could be skipped via [CsvReader.CsvReaderBuilder.skipEmptyRows].
-   *
-   * @return the original line number
-   */
-  val originalLineNumber: Long,
-
   private val header: Set<String>,
-
   fields: List<String>,
-  /**
-   * Provides the information if the row is a commented row.
-   *
-   * @return `true` if the row is a commented row
-   * @see CsvReader.CsvReaderBuilder.commentStrategy
-   */
-  val isComment: Boolean,
-
-  /**
-   * Provides the information if the row is an empty row.
-   *
-   * @return `true` if the row is an empty row
-   * @see CsvReader.CsvReaderBuilder.skipEmptyRows
-   */
-  val isEmpty: Boolean
+  originalLineNumber: Long,
+  isComment: Boolean,
+  isEmpty: Boolean
 ) {
 
+  private val headerIndices = header.mapIndexed { index, header -> header to index }.toMap().toImmutableMap()
 
   /**
    * Gets the number of fields of this row.
@@ -49,16 +28,53 @@ class CsvRow internal constructor(
    * @return the number of fields of this row
    * @see CsvReader.CsvReaderBuilder.errorOnDifferentFieldCount
    */
-  val fieldCount: Int = fields.size
+  var fieldCount: Int = fields.size
+    private set
 
   /**
    * Gets all fields of this row as an unmodifiable list.
    *
    * @return all fields of this row, never `null`
    */
-  val fields: List<String> = ImmutableList(fields)
+  var fields: List<String> = ImmutableList(fields)
+    private set
 
-  private val headerIndices = header.mapIndexed { index, header -> header to index }.toMap().toImmutableMap()
+  /**
+   * Returns the original line number (starting with 1). On multi-line rows this is the starting
+   * line number.
+   * Empty lines could be skipped via [CsvReader.CsvReaderBuilder.skipEmptyRows].
+   *
+   * @return the original line number
+   */
+  var originalLineNumber: Long = originalLineNumber
+    private set
+
+  /**
+   * Provides the information if the row is a commented row.
+   *
+   * @return `true` if the row is a commented row
+   * @see CsvReader.CsvReaderBuilder.commentStrategy
+   */
+  var isComment: Boolean = isComment
+    private set
+
+  /**
+   * Provides the information if the row is an empty row.
+   *
+   * @return `true` if the row is an empty row
+   * @see CsvReader.CsvReaderBuilder.skipEmptyRows
+   */
+  var isEmpty: Boolean = isEmpty
+    private set
+
+  internal fun updateRow(fields: List<String>, originalLineNumber: Long, isComment: Boolean, isEmpty: Boolean) {
+    this.fieldCount = fields.size
+    this.fields = ImmutableList(fields)
+    this.originalLineNumber = originalLineNumber
+    this.isComment = isComment
+    this.isEmpty = isEmpty
+  }
+
 
   operator fun get(index: Int) = getField(index)
 

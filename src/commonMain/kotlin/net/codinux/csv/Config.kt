@@ -27,13 +27,9 @@ object Config {
 
   const val DefaultHasHeaderRow = false
 
+  const val DefaultReuseRowInstance = false
+
   const val DefaultIgnoreInvalidQuoteChars = false
-
-  // NamedCsvReader config
-
-  const val NamedCsvReaderDefaultErrorOnDifferentFieldCount = true
-
-  const val NamedCsvReaderDefaultSkipComments = false
 
   // CsvWriter config
 

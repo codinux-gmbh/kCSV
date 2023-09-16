@@ -13,12 +13,13 @@ class RowReader(
   private val quoteCharacter: Char,
   private val commentStrategy: CommentStrategy,
   private val commentCharacter: Char,
+  private val reuseRowInstance: Boolean,
   private val ignoreInvalidQuoteChars: Boolean
 ) : Closeable {
 
   private val buffer: Buffer = Buffer(reader)
 
-  private val rowHandler = RowHandler(32)
+  private val rowHandler = RowHandler(32, reuseRowInstance)
 
   private var status = 0
 

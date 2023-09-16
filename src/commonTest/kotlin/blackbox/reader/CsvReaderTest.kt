@@ -136,6 +136,50 @@ class CsvReaderTest : FunSpec({
   }
 
   @Test
+  fun reuseRowInstanceTrue() {
+    val reader = CsvReader.builder().hasHeaderRow(true).reuseRowInstance(true).build().read("h1,h2\n1,2\n3,4\n5,6")
+    var firstRowCsvRowInstance: CsvRow = CsvRow(emptySet(), emptyList(), -1, true, true)
+
+    reader.forEachIndexed { index, csvRow ->
+      if (index == 0) {
+        firstRowCsvRowInstance = csvRow
+        assertEquals(1, csvRow.getInt("h1"))
+        assertEquals(2, csvRow.getInt("h2"))
+      } else if (index == 1) {
+        assertEquals(firstRowCsvRowInstance, csvRow)
+        assertEquals(3, csvRow.getInt("h1"))
+        assertEquals(4, csvRow.getInt("h2"))
+      } else  {
+        assertEquals(firstRowCsvRowInstance, csvRow)
+        assertEquals(5, csvRow.getInt("h1"))
+        assertEquals(6, csvRow.getInt("h2"))
+      }
+    }
+  }
+
+  @Test
+  fun reuseRowInstanceFalse() {
+    val reader = CsvReader.builder().hasHeaderRow(true).reuseRowInstance(false).build().read("h1,h2\n1,2\n3,4\n5,6")
+    var firstRowCsvRowInstance: CsvRow = CsvRow(emptySet(), emptyList(), -1, true, true)
+
+    reader.forEachIndexed { index, csvRow ->
+      if (index == 0) {
+        firstRowCsvRowInstance = csvRow
+        assertEquals(1, csvRow.getInt("h1"))
+        assertEquals(2, csvRow.getInt("h2"))
+      } else if (index == 1) {
+        assertNotEquals(firstRowCsvRowInstance, csvRow)
+        assertEquals(3, csvRow.getInt("h1"))
+        assertEquals(4, csvRow.getInt("h2"))
+      } else  {
+        assertNotEquals(firstRowCsvRowInstance, csvRow)
+        assertEquals(5, csvRow.getInt("h1"))
+        assertEquals(6, csvRow.getInt("h2"))
+      }
+    }
+  }
+
+  @Test
   fun ignoreInvalidQuoteChars() {
     val reader = crb
       .ignoreInvalidQuoteChars(true)
