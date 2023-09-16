@@ -2,7 +2,7 @@ package net.codinux.csv.reader.datareader
 
 import net.codinux.csv.Closeable
 
-interface DataReader : Closeable {
+internal interface DataReader : Closeable {
 
   companion object {
 

@@ -2,7 +2,7 @@ package net.codinux.csv.writer.datawriter
 
 import java.lang.Appendable
 
-class JavaAppendableDataWriter(private val appendable: Appendable) : DataWriter {
+internal class JavaAppendableDataWriter(private val appendable: Appendable) : DataWriter {
 
   override fun write(char: Char) {
     appendable.append(char)

@@ -1,6 +1,6 @@
 package net.codinux.csv.reader.datareader
 
-class StringDataReader(private val data: CharArray) : DataReader {
+internal class StringDataReader(private val data: CharArray) : DataReader {
 
   constructor(data: String) : this(data.toCharArray())
 

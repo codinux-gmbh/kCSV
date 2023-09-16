@@ -114,7 +114,7 @@ class CsvFormat(
      * @return a new CsvWriter instance - never `null`.
      * @throws NullPointerException if writer is `null`
      */
-    fun writer(writer: DataWriter): CsvWriter =
+    internal fun writer(writer: DataWriter): CsvWriter =
         CsvWriter(writer, fieldSeparator, quoteCharacter, commentCharacter, quoteStrategy, lineDelimiter, bufferSize)
 
     override fun toString(): String {

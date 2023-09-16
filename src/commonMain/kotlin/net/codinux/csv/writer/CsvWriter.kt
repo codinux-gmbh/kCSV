@@ -5,7 +5,6 @@ import net.codinux.csv.IOException
 import net.codinux.csv.UncheckedIOException
 import net.codinux.csv.Config
 import net.codinux.csv.writer.datawriter.DataWriter
-import kotlin.jvm.JvmStatic
 
 /**
  * This is the main class for writing CSV data.
@@ -17,7 +16,7 @@ import kotlin.jvm.JvmStatic
  * }
 `</pre> *
  */
-class CsvWriter(
+class CsvWriter internal constructor(
   writer: DataWriter,
   private val fieldSeparator: Char = Config.DefaultFieldSeparator,
   private val quoteCharacter: Char = Config.DefaultQuoteCharacter,
@@ -32,14 +31,14 @@ class CsvWriter(
    *
    * To set individual options better use [CsvWriter.builder].
    */
-  constructor(writer: DataWriter) : this(writer, Config.DefaultFieldSeparator)
+  internal constructor(writer: DataWriter) : this(writer, Config.DefaultFieldSeparator)
 
   /**
    * For programing languages that don't support default parameters like Java, Swift, JavaScript, ...
    *
    * To set individual options better use [CsvWriter.builder].
    */
-  constructor(writer: DataWriter, fieldSeparator: Char) : this(writer, fieldSeparator, Config.DefaultQuoteCharacter)
+  internal constructor(writer: DataWriter, fieldSeparator: Char) : this(writer, fieldSeparator, Config.DefaultQuoteCharacter)
 
   private val writer: DataWriter
   private val lineDelimiter: String

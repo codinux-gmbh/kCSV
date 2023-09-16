@@ -2,7 +2,7 @@ package net.codinux.csv.writer.datawriter
 
 import java.io.Writer
 
-class JavaIoWriterDataWriter(private val writer: Writer) : DataWriter {
+internal class JavaIoWriterDataWriter(private val writer: Writer) : DataWriter {
 
   override fun write(char: Char) {
     writer.write(char.code)

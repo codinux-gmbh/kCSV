@@ -2,7 +2,7 @@ package net.codinux.csv.reader.datareader
 
 import java.io.Reader
 
-class JavaIoReaderDataReader(private val reader: Reader) : DataReader {
+internal class JavaIoReaderDataReader(private val reader: Reader) : DataReader {
 
   override val areAllDataBuffered: Boolean = false
 

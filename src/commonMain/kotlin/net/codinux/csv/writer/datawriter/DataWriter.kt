@@ -2,7 +2,7 @@ package net.codinux.csv.writer.datawriter
 
 import net.codinux.csv.Closeable
 
-interface DataWriter : Closeable {
+internal interface DataWriter : Closeable {
 
   companion object {
 

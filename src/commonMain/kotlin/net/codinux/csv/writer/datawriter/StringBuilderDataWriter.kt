@@ -1,6 +1,6 @@
 package net.codinux.csv.writer.datawriter
 
-class StringBuilderDataWriter(private val builder: StringBuilder) : DataWriter {
+internal class StringBuilderDataWriter(private val builder: StringBuilder) : DataWriter {
 
   override fun write(char: Char) {
     builder.append(char)

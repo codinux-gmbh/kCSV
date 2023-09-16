@@ -10,9 +10,9 @@ import java.nio.file.Files
 import java.nio.file.OpenOption
 import java.nio.file.Path
 
-fun DataWriter.Companion.writer(path: Path, charset: Charset = StandardCharsets.UTF_8, vararg openOptions: OpenOption) =
+internal fun DataWriter.Companion.writer(path: Path, charset: Charset = StandardCharsets.UTF_8, vararg openOptions: OpenOption) =
   JavaIoWriterDataWriter(OutputStreamWriter(Files.newOutputStream(path, *openOptions), charset))
 
-fun DataWriter.Companion.writer(writer: Writer) = JavaIoWriterDataWriter(writer)
+internal fun DataWriter.Companion.writer(writer: Writer) = JavaIoWriterDataWriter(writer)
 
-fun DataWriter.Companion.writer(appendable: Appendable) = JavaAppendableDataWriter(appendable)
+internal fun DataWriter.Companion.writer(appendable: Appendable) = JavaAppendableDataWriter(appendable)

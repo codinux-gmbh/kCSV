@@ -7,13 +7,13 @@ import net.codinux.csv.reader.datareader.DataReader
 /*
  * This class contains ugly, performance optimized code - be warned!
  */
-class RowReader(
+class RowReader internal constructor(
   private val reader: DataReader,
   private val fieldSeparator: Char,
   private val quoteCharacter: Char,
   private val commentStrategy: CommentStrategy,
   private val commentCharacter: Char,
-  private val reuseRowInstance: Boolean,
+  reuseRowInstance: Boolean,
   private val ignoreInvalidQuoteChars: Boolean
 ) : Closeable {
 
@@ -251,14 +251,14 @@ class RowReader(
     return shift
   }
 
-  private class Buffer {
+  private class Buffer(reader: DataReader) {
     var buf: CharArray
     var len = 0
     var begin = 0
     var pos = 0
     private val reader: DataReader?
 
-    constructor(reader: DataReader) {
+    init {
       if (reader.areAllDataBuffered) {
         this.reader = null
         buf = reader.getBufferedData()!!
