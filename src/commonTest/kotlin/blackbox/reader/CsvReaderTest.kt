@@ -1,13 +1,11 @@
 package blackbox.reader
 
+import blackbox.Util
 import io.kotest.core.spec.style.FunSpec
 import net.codinux.csv.UncheckedIOException
+import net.codinux.csv.reader.*
 import net.codinux.csv.reader.datareader.DataReader
 import net.codinux.csv.reader.datareader.StringDataReader
-import net.codinux.csv.reader.CommentStrategy
-import net.codinux.csv.reader.CsvReader
-import net.codinux.csv.reader.CsvRow
-import net.codinux.csv.reader.MalformedCsvException
 import net.codinux.csv.use
 import test.assertElementsEqual
 import kotlin.test.*
@@ -312,6 +310,131 @@ class CsvReaderTest : FunSpec({
     )
   }
 
+  // get fields by header name
+
+  @Test
+  fun duplicateHeader() {
+    val e = assertFailsWith(IllegalStateException::class) { parseWithHeader("a,b,a").header }
+    assertEquals("Duplicate header field 'a' found", e.message)
+  }
+
+  @Test
+  fun onlyHeader() {
+    val csv = parseWithHeader("foo,bar\n")
+    assertElementsEqual(Util.asArray("foo", "bar"), csv.header.toTypedArray())
+    assertFalse(csv.iterator().hasNext())
+    assertFailsWith(NoSuchElementException::class) { csv.iterator().next() }
+  }
+
+  @Test
+  fun onlyHeaderIterator() {
+    val csv = parseWithHeader("foo,bar\n")
+    assertElementsEqual(Util.asArray("foo", "bar"), csv.header.toTypedArray())
+    assertFalse(csv.iterator().hasNext())
+  }
+
+  @Test
+  fun fieldByName() {
+    assertEquals("bar", parseWithHeader("foo\nbar").iterator().next().getField("foo"))
+  }
+
+  @Test
+  fun header() {
+    assertElementsEqual(Util.asArray("foo"), parseWithHeader("foo\nbar").header.toTypedArray())
+    val reader = parseWithHeader("foo,bar\n1,2")
+    assertElementsEqual(Util.asArray("foo", "bar"), reader.header.toTypedArray())
+
+    // second call
+    assertElementsEqual(Util.asArray("foo", "bar"), reader.header.toTypedArray())
+  }
+
+  @Test
+  fun headerEmptyRows() {
+    val csv = parseWithHeader("foo,bar")
+    assertElementsEqual(Util.asArray("foo", "bar"), csv.header.toTypedArray())
+    val it = csv.iterator()
+    assertFalse(it.hasNext())
+    assertFailsWith(NoSuchElementException::class) { it.next() }
+  }
+
+  @Test
+  fun headerAfterSkippedRow() {
+    val csv = parseWithHeader("\nfoo,bar")
+    assertElementsEqual(Util.asArray("foo", "bar"), csv.header.toTypedArray())
+    val it = csv.iterator()
+    assertFalse(it.hasNext())
+  }
+
+  @Test
+  fun headerWithoutNextRowCall() {
+    assertElementsEqual(Util.asArray("foo"), parseWithHeader("foo\n").header.toTypedArray())
+  }
+
+  @Test
+  fun findNonExistingFieldByName() {
+    val e = assertFailsWith(NoSuchElementException::class) { parseWithHeader("foo\nfaz").iterator().next().getField("bar") }
+    assertEquals("No element with name 'bar' found. Valid names are: [foo]", e.message)
+  }
+
+  @Test
+  fun toStringWithHeader() {
+    val csvRow = parseWithHeader("headerA,headerB,headerC\nfieldA,fieldB,fieldC\n").iterator()
+    assertEquals(
+      "CsvRow[originalLineNumber=2, fields=[fieldA, fieldB, fieldC], comment=false]",
+      csvRow.next().toString()
+    )
+  }
+
+  @Test
+  fun fieldMap() {
+    val iterator = parseWithHeader(
+      """
+  headerA,headerB,headerC
+  fieldA,fieldB,fieldC
+  
+  """.trimIndent()
+    )
+      .iterator()
+    assertEquals(
+      "[fieldA, fieldB, fieldC]",
+      iterator.next().fields.toString()
+    )
+  }
+
+  // line numbering
+  @Test
+  fun lineNumberingByHeaderName() {
+    val iterator = parseWithHeader(
+      """
+            h1,h2
+            a,line 2
+            b,line 3
+            c,line 4
+            d,"line 5
+            with
+            and
+            "
+            e,line 9
+            """.trimIndent()
+    ).iterator()
+    var row = iterator.next()
+    assertEquals("a", row.getField("h1"))
+    assertEquals(2, row.originalLineNumber)
+    row = iterator.next()
+    assertEquals("b", row.getField("h1"))
+    assertEquals(3, row.originalLineNumber)
+    row = iterator.next()
+    assertEquals("c", row.getField("h1"))
+    assertEquals(4, row.originalLineNumber)
+    row = iterator.next()
+    assertEquals("d", row.getField("h1"))
+    assertEquals(5, row.originalLineNumber)
+    row = iterator.next()
+    assertEquals("e", row.getField("h1"))
+    assertEquals(9, row.originalLineNumber)
+    assertFalse(iterator.hasNext())
+  }
+
   // API
   @Test
   fun closeApi_Reader() {
@@ -345,6 +468,10 @@ class CsvReaderTest : FunSpec({
     assertEquals(1, lists.size)
     return lists[0]
   }
+
+  // test helpers
+  private fun parseWithHeader(data: String) =
+    CsvReader(hasHeaderRow = true).read(data)
 
   private fun readAll(data: String): List<CsvRow> {
     return CsvReader().read(data).toList()

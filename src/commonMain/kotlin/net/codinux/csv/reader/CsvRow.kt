@@ -22,6 +22,8 @@ class CsvRow internal constructor(
    */
   val originalLineNumber: Long,
 
+  private val header: Set<String>,
+
   fields: List<String>,
   /**
    * Provides the information if the row is a commented row.
@@ -56,6 +58,8 @@ class CsvRow internal constructor(
    */
   val fields: List<String> = ImmutableList(fields)
 
+  private val headerIndices = header.mapIndexed { index, header -> header to index }.toMap().toImmutableMap()
+
   operator fun get(index: Int) = getField(index)
 
   /**
@@ -77,7 +81,7 @@ class CsvRow internal constructor(
     this.getField(fieldIndex)
 
   fun getStringOrNull(fieldIndex: Int): String? =
-    this.getField(fieldIndex)
+    this.getString(fieldIndex)
       .takeIf { field -> fieldIsNotNull(field) }
 
   fun getBoolean(fieldIndex: Int): Boolean =
@@ -121,6 +125,71 @@ class CsvRow internal constructor(
 
   fun getLocalDateTimeOrNull(fieldIndex: Int): LocalDateTime? =
     this.getStringOrNull(fieldIndex)?.let { LocalDateTime.parse(it) }
+
+  private inline fun getFieldIndex(name: String): Int =
+    headerIndices[name]
+      ?: throw NoSuchElementException("No element with name '$name' found. Valid names are: $header")
+
+  operator fun get(name: String): String = getField(name)
+
+  /**
+   * Gets a field value by its name.
+   *
+   * @param name field name
+   * @return field value, never `null`
+   * @throws NoSuchElementException if this row has no such field
+   */
+  fun getField(name: String): String =
+    getString(getFieldIndex(name))
+
+  fun getString(name: String): String =
+    this.getField(name)
+
+  fun getStringOrNull(name: String): String? =
+    this.getString(name)
+      .takeIf { field -> fieldIsNotNull(field) }
+
+  fun getBoolean(name: String): Boolean =
+    this.getString(name).mapToBoolean()
+
+  fun getBooleanOrNull(name: String): Boolean? =
+    this.getStringOrNull(name)?.mapToBoolean()
+
+  fun getInt(name: String): Int =
+    this.getString(name).mapToInt()
+
+  fun getIntOrNull(name: String): Int? =
+    this.getStringOrNull(name)?.mapToInt()
+
+  fun getLong(name: String): Long =
+    this.getString(name).mapToLong()
+
+  fun getLongOrNull(name: String): Long? =
+    this.getStringOrNull(name)?.mapToLong()
+
+  fun getFloat(name: String): Float =
+    this.getString(name).mapToFloat()
+
+  fun getFloatOrNull(name: String): Float? =
+    this.getStringOrNull(name)?.mapToFloat()
+
+  fun getDouble(name: String): Double =
+    this.getString(name).mapToDouble()
+
+  fun getDoubleOrNull(name: String): Double? =
+    this.getStringOrNull(name)?.mapToDouble()
+
+  fun getInstant(name: String): Instant =
+    Instant.parse(this.getString(name))
+
+  fun getInstantOrNull(name: String): Instant? =
+    this.getStringOrNull(name)?.let { Instant.parse(it) }
+
+  fun getLocalDateTime(name: String): LocalDateTime =
+    LocalDateTime.parse(this.getString(name))
+
+  fun getLocalDateTimeOrNull(name: String): LocalDateTime? =
+    this.getStringOrNull(name)?.let { LocalDateTime.parse(it) }
 
   override fun toString(): String {
     return CsvRow::class.simpleName + "[" +

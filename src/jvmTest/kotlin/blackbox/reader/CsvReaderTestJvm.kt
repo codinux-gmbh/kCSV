@@ -1,12 +1,9 @@
 package blackbox.reader
 
 import net.codinux.csv.UncheckedIOException
-import net.codinux.csv.reader.CsvReader
-import net.codinux.csv.reader.CsvRow
+import net.codinux.csv.reader.*
 import net.codinux.csv.reader.datareader.DataReader
 import net.codinux.csv.reader.datareader.StringDataReader
-import net.codinux.csv.reader.rowSpliterator
-import net.codinux.csv.reader.stream
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
@@ -57,7 +54,41 @@ class CsvReaderTestJvm {
     assertEquals("net.codinux.csv.IOException: Cannot close", e.message)
   }
 
+  // API
+  @Test
+  fun closeApi_Stream_WithHeader() {
+    val dataReader = CloseStatusReader(StringDataReader("h1,h2\nfoo,bar"))
+    csvReaderWithHeader(dataReader).stream().use { stream -> stream.forEach { } }
+    Assertions.assertTrue(dataReader.isClosed)
+  }
+
+  @Test
+  fun spliterator_WithHeader() {
+    val spliterator = CsvReader(hasHeaderRow = true).read("a,b,c\n1,2,3\n4,5,6").rowSpliterator()
+    Assertions.assertNull(spliterator.trySplit())
+    assertEquals(Long.MAX_VALUE, spliterator.estimateSize())
+    val rows = AtomicInteger()
+    val rows2 = AtomicInteger()
+    while (spliterator.tryAdvance { rows.incrementAndGet() }) {
+      rows2.incrementAndGet()
+    }
+    assertEquals(2, rows.get())
+    assertEquals(2, rows2.get())
+  }
+
+  // Coverage
+  @Test
+  fun streamCloseException_WithHeader() {
+    val csvReader = csvReaderWithHeader(UncloseableReader(StringDataReader("foo")))
+    val e = Assertions.assertThrows(UncheckedIOException::class.java) {
+      csvReader.stream().close()
+    }
+    assertEquals("net.codinux.csv.IOException: Cannot close", e.message)
+  }
+
 
   private fun csvReader(reader: DataReader) = CsvReader().read(reader)
+
+  private fun csvReaderWithHeader(reader: DataReader) = CsvReader(hasHeaderRow = true).read(reader)
 
 }

@@ -24,6 +24,10 @@ class RowReader(
 
   private var finished = false
 
+  fun setHeader(header: Set<String>) {
+    rowHandler.header = header
+  }
+
   fun fetchAndRead(): CsvRow? {
     if (finished) {
       return null

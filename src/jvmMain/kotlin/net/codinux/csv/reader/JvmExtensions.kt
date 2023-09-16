@@ -3,8 +3,9 @@ package net.codinux.csv.reader
 import net.codinux.csv.UncheckedIOException
 import net.codinux.csv.reader.datareader.DataReader
 import net.codinux.csv.reader.datareader.JavaIoReaderDataReader
-//import net.codinux.csv.reader.datareader.JavaIoReaderDataReader
+import java.io.File
 import java.io.IOException
+import java.io.InputStream
 import java.io.InputStreamReader
 import java.io.Reader
 import java.math.BigDecimal
@@ -17,15 +18,6 @@ import java.util.stream.Stream
 import java.util.stream.StreamSupport
 
 /**
- * Constructs a new [CsvRowIterator] for the specified arguments.
- *
- * @param path    the file to read data from.
- * @param charset the character set to use.
- * @return a new CsvRowIterator - never `null`. Don't forget to close it!
- * @throws IOException if an I/O error occurs.
- * @throws NullPointerException if path or charset is `null`
- */
-/**
  * Constructs a new [CsvReader] for the specified path using UTF-8 as the character set.
  *
  * @param path    the file to read data from.
@@ -37,23 +29,6 @@ import java.util.stream.StreamSupport
 fun CsvReader.read(path: Path, charset: Charset = StandardCharsets.UTF_8) =
   this.read(DataReader.reader(path, charset))
 
-
-/**
- * Constructs a new [NamedCsvRowIterator] for the specified arguments.
- *
- * @param path    the file to read data from.
- * @param charset the character set to use.
- * @return a new NamedCsvRowIterator - never `null`. Don't forget to close it!
- * @throws IOException if an I/O error occurs.
- * @throws NullPointerException if path or charset is `null`
- */
-@JvmOverloads
-fun NamedCsvReader.read(path: Path, charset: Charset = StandardCharsets.UTF_8) =
-  this.read(DataReader.reader(path, charset))
-
-fun DataReader.Companion.reader(path: Path, charset: Charset = StandardCharsets.UTF_8) =
-  JavaIoReaderDataReader(InputStreamReader(Files.newInputStream(path), charset))
-
 fun DataReader.Companion.reader(reader: Reader) = JavaIoReaderDataReader(reader)
 
 fun <T : Reader> T.dataReader() = DataReader.reader(this)
@@ -64,12 +39,6 @@ fun CsvRow.getBigDecimal(fieldIndex: Int): BigDecimal =
 
 fun CsvRow.getBigDecimalOrNull(fieldIndex: Int): BigDecimal? =
   this.getStringOrNull(fieldIndex)?.toBigDecimalOrNull()
-
-fun NamedCsvRow.getBigDecimal(name: String): BigDecimal =
-  this.getString(name).toBigDecimal()
-
-fun NamedCsvRow.getBigDecimalOrNull(name: String): BigDecimal? =
-  this.getStringOrNull(name)?.toBigDecimalOrNull()
 
 
 
@@ -95,27 +64,4 @@ fun CsvRowIterator.stream(): Stream<CsvRow> {
         throw UncheckedIOException(e)
       }
     }
-}
-
-fun NamedCsvRowIterator.rowSpliterator(): Spliterator<NamedCsvRow> {
-  return CsvRowSpliterator(iterator())
-}
-
-/**
- * Creates a new sequential `Stream` from this instance.
- *
- *
- * A close handler is registered by this method in order to close the underlying resources.
- * Don't forget to close the returned stream when you're done.
- *
- * @return a new sequential `Stream`.
- */
-fun NamedCsvRowIterator.stream(): Stream<NamedCsvRow> {
-  return StreamSupport.stream(rowSpliterator(), false).onClose {
-    try {
-      close()
-    } catch (e: net.codinux.csv.IOException) {
-      throw UncheckedIOException(e)
-    }
-  }
 }

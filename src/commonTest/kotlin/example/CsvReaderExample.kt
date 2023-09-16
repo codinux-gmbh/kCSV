@@ -2,7 +2,6 @@ package example
 
 import net.codinux.csv.reader.CommentStrategy
 import net.codinux.csv.reader.CsvReader
-import net.codinux.csv.reader.NamedCsvReader
 import kotlin.test.Ignore
 import kotlin.test.Test
 
@@ -18,9 +17,9 @@ class CsvReaderExample {
 
     @Test
     fun withHeader() {
-        NamedCsvReader().read("header 1,header 2\nfield 1,field 2").forEach { row ->
-            println(row.getField("header 2"))
-        }
+        CsvReader(hasHeaderRow = true)
+            .read("header 1,header 2\nfield 1,field 2")
+            .forEach { row -> println(row.getField("header 2")) }
     }
 
     @Test
@@ -43,7 +42,7 @@ class CsvReaderExample {
 
     @Test
     fun fieldMapping() {
-        NamedCsvReader()
+        CsvReader(hasHeaderRow = true)
             .read("Int,Double,Boolean,NullableLong,Instant,LocalDateTime\n42,3.14,true,,2023-06-05T22:19:44.475Z,2023-06-07T08:47:23")
             .forEach { row ->
             // of course works also with CsvReader and row indices

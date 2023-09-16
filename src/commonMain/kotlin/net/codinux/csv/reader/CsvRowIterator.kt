@@ -30,7 +30,9 @@ class CsvRowIterator(
     commentCharacter, ignoreInvalidQuoteChars
   )
 
-  val header: Set<String> = readHeader(hasHeaderRow)
+  val header: Set<String> = readHeader(hasHeaderRow).also {
+    rowReader.setHeader(it)
+  }
 
   private fun readHeader(hasHeaderRow: Boolean) =
     if (hasHeaderRow == false || hasNext() == false) {

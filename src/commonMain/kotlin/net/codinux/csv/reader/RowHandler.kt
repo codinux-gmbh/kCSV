@@ -13,6 +13,8 @@ internal class RowHandler(private var len: Int) {
     private set
   private var originalLineNumber: Long = 1
 
+  internal var header: Set<String> = ImmutableSet(emptySet())
+
   fun add(value: String) {
     if (idx == len) {
       extendCapacity()
@@ -42,7 +44,7 @@ internal class RowHandler(private var len: Int) {
       EMPTY
     }
 
-    return CsvRow(originalLineNumber, fields, isCommentMode, !!!isNotEmpty)
+    return CsvRow(originalLineNumber, header, fields, isCommentMode, !!!isNotEmpty)
   }
 
   fun enableCommentMode() {

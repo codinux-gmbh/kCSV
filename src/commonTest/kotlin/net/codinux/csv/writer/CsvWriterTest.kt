@@ -210,7 +210,7 @@ class CsvWriterTest : FunSpec({
   fun builderToString() {
     assertEquals(
       """
-  CsvWriterBuilder[fieldSeparator=,, quoteCharacter=", commentCharacter=#, quoteStrategy=REQUIRED, lineDelimiter=
+  CsvFormat[fieldSeparator=,, quoteCharacter=", commentCharacter=#, quoteStrategy=REQUIRED, lineDelimiter=
   , bufferSize=8192]
   """.trimIndent(), format.toString()
     )
