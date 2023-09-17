@@ -1,11 +1,11 @@
 package net.codinux.csv.reader
 
 import io.kotest.assertions.throwables.shouldNotThrowAny
+import io.kotest.matchers.booleans.shouldBeTrue
 import io.kotest.matchers.collections.shouldBeIn
 import io.kotest.matchers.doubles.shouldNotBeNaN
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
-import io.kotest.matchers.string.shouldStartWith
 import net.codinux.csv.TestData
 import net.codinux.csv.containsNot
 import net.codinux.csv.countOccurrencesOf
@@ -52,7 +52,7 @@ class CsvReaderLargeFileTest {
   }
 
   private fun assertDhId(rowIndex: Int, dhId: String) {
-    dhId.shouldStartWith("de:") // ZHV contains only German DHID
+    dhId.startsWith("de:").shouldBeTrue() // ZHV contains only German DHID; dhId.shouldStartWith("de:") is very slow, takes 40 s for all calls!
     dhId.countOccurrencesOf(":").shouldBeIn(2, 3, 4) // a DHID has three to five segments separated by ';'
 
     val secondIndexOfColon = dhId.indexOf(':', 4)
