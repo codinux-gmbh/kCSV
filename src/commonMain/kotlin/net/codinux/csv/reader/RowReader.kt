@@ -219,10 +219,11 @@ class RowReader internal constructor(
     }
 
     // column with quotes
-    val shift = cleanDelimiters(
-      lBuf, lBegin + 1, lPos,
-      quoteCharacter
-    )
+    val shift = if (ignoreInvalidQuoteChars) {
+      1
+    } else {
+      cleanDelimiters(lBuf, lBegin + 1, lPos, quoteCharacter)
+    }
 
     return lBuf.concatToString(lBegin + 1, lPos - shift)
   }
@@ -236,7 +237,7 @@ class RowReader internal constructor(
 
     for (i in begin until pos) {
       val c = buf[i]
-      if (c == quoteCharacter && (ignoreInvalidQuoteChars == false || i >= pos - 1)) {
+      if (c == quoteCharacter) {
         if (!escape) {
           shift++
           escape = true
