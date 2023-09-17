@@ -145,17 +145,22 @@ class CsvWriter internal constructor(
     val length = value.length
     var needsQuotes = quoteStrategy == QuoteStrategy.ALWAYS
     var nextDelimPos = -1
-    for (i in 0 until length) {
-      val c = value[i]
+    var index = 0
+
+   while (index < length) {
+      val c = value[index]
       if (c == quoteCharacter) {
         needsQuotes = true
-        nextDelimPos = i
+        nextDelimPos = index
         break
       }
-      if (!needsQuotes && (c == fieldSeparator || c == LF || c == CR || firstField && i == 0 && c == commentCharacter)) {
+      if (!needsQuotes && (c == fieldSeparator || c == LF || c == CR || firstField && index == 0 && c == commentCharacter)) {
         needsQuotes = true
       }
+
+      index++
     }
+
     if (needsQuotes) {
       writer.write(quoteCharacter)
     }
