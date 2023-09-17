@@ -15,4 +15,7 @@ internal object FieldMapper {
 
     fun String.mapToDouble() = this.toDouble()
 
+    fun String.replaceDecimalSeparatorAndMapToDouble(decimalSeparator: Char) =
+        this.replace(decimalSeparator, '.').toDouble()
+
 }

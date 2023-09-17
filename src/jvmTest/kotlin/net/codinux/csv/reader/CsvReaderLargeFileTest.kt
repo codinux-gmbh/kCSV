@@ -47,8 +47,8 @@ class CsvReaderLargeFileTest {
     assertDhId(index, row.getString("DHID"))
     assertDhId(index, row.getString("Parent"))
 
-    row.getString("Latitude").replace(',', '.').toDoubleOrNull().shouldNotBeNull().shouldNotBeNaN()
-    row.getString("Longitude").replace(',', '.').toDoubleOrNull().shouldNotBeNull().shouldNotBeNaN()
+    row.getDouble("Latitude", ',').shouldNotBeNull().shouldNotBeNaN()
+    row.getDouble("Longitude", ',').shouldNotBeNull().shouldNotBeNaN()
   }
 
   private fun assertDhId(rowIndex: Int, dhId: String) {

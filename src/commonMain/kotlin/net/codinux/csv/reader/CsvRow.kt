@@ -8,6 +8,7 @@ import net.codinux.csv.reader.FieldMapper.mapToDouble
 import net.codinux.csv.reader.FieldMapper.mapToFloat
 import net.codinux.csv.reader.FieldMapper.mapToInt
 import net.codinux.csv.reader.FieldMapper.mapToLong
+import net.codinux.csv.reader.FieldMapper.replaceDecimalSeparatorAndMapToDouble
 
 /**
  * Index based CSV-row.
@@ -130,6 +131,12 @@ class CsvRow internal constructor(
   fun getDoubleOrNull(fieldIndex: Int): Double? =
     this.getStringOrNull(fieldIndex)?.mapToDouble()
 
+  fun getDouble(fieldIndex: Int, decimalSeparator: Char): Double =
+    this.getString(fieldIndex).replaceDecimalSeparatorAndMapToDouble(decimalSeparator)
+
+  fun getDoubleOrNull(fieldIndex: Int, decimalSeparator: Char): Double? =
+    this.getStringOrNull(fieldIndex)?.replaceDecimalSeparatorAndMapToDouble(decimalSeparator)
+
   fun getInstant(fieldIndex: Int): Instant =
     Instant.parse(this.getString(fieldIndex))
 
@@ -194,6 +201,12 @@ class CsvRow internal constructor(
 
   fun getDoubleOrNull(name: String): Double? =
     this.getStringOrNull(name)?.mapToDouble()
+
+  fun getDouble(name: String, decimalSeparator: Char): Double =
+    this.getString(name).replaceDecimalSeparatorAndMapToDouble(decimalSeparator)
+
+  fun getDoubleOrNull(name: String, decimalSeparator: Char): Double? =
+    this.getStringOrNull(name)?.replaceDecimalSeparatorAndMapToDouble(decimalSeparator)
 
   fun getInstant(name: String): Instant =
     Instant.parse(this.getString(name))
