@@ -9,7 +9,6 @@ import net.codinux.csv.use
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import java.io.File
-import java.io.Reader
 
 class CsvWriterLargeFileTest {
 

@@ -2,6 +2,7 @@ package net.codinux.csv.reader
 
 import kotlinx.datetime.Instant
 import kotlinx.datetime.LocalDateTime
+import net.codinux.csv.Platform
 import net.codinux.csv.reader.FieldMapper.fieldIsNotNull
 import net.codinux.csv.reader.FieldMapper.mapToBoolean
 import net.codinux.csv.reader.FieldMapper.mapToDouble
@@ -98,8 +99,10 @@ class CsvRow internal constructor(
    * @throws IndexOutOfBoundsException if index is out of range
    */
   fun getField(index: Int): String {
-    if (index !in _fields.indices) { // for JavaScript we need to throw exception manually
-      throw IndexOutOfBoundsException("Index $index is not within bound 0 - ${_fields.size - 1} (= getFieldCount()).")
+    if (Platform.isJavaScript) {
+      if (index !in _fields.indices) { // for JavaScript we need to throw exception manually
+        throw IndexOutOfBoundsException("Index $index is not within bound 0 - ${_fields.size - 1} (= getFieldCount()).")
+      }
     }
 
     return _fields[index]
