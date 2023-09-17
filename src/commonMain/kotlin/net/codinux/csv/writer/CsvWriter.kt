@@ -305,7 +305,12 @@ class CsvWriter internal constructor(
         }
       }
 
-      string.toCharArray(offset, offset + length).copyInto(buf, pos)
+      // str.getChars(off, off + len, buf, pos);
+      var index = 0
+      while (index < length) { // 254 ms / 122 ms / 264 ms
+        buf[pos + index] = string[offset + index]
+        index++
+      }
       pos += length
     }
 
