@@ -165,6 +165,7 @@ class RowReader(
               continue@mode_check
             } else {
               if (lStatus and STATUS_QUOTED_COLUMN == 0) {
+                // TODO: may implement to ignore byte order mark (\uFEFF) if it's the first character in stream
                 // normal unquoted data
                 lStatus = STATUS_DATA_COLUMN
 
@@ -284,7 +285,8 @@ class RowReader(
             buf = extendAndRelocate(buf, begin)
           } else {
             // relocate data in existing buffer
-            buf.copyInto(buf, begin, 0, lenToCopy)
+            // System.arraycopy(buf, begin, buf, 0, lenToCopy);
+            buf.copyInto(buf, 0, begin, begin + lenToCopy)
           }
           pos -= begin
           begin = 0
@@ -317,7 +319,8 @@ class RowReader(
           )
         }
         val newBuf = CharArray(newBufferSize)
-        buf.copyInto(newBuf, begin, 0, buf.size - begin)
+        // System.arraycopy(buf, begin, newBuf, 0, buf.length - begin);
+        buf.copyInto(newBuf, 0, begin, buf.size)
         return newBuf
       }
     }
