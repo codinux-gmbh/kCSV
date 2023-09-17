@@ -7,7 +7,7 @@ internal class StringBuilderDataWriter(private val builder: StringBuilder) : Dat
   }
 
   override fun write(charArray: CharArray, offset: Int, length: Int) {
-    builder.append(charArray.concatToString(offset, offset + length))
+    builder.appendRange(charArray, offset, offset + length)
   }
 
   fun write(string: String) {

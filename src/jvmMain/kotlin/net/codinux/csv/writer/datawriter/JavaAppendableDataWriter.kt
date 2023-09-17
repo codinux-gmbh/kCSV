@@ -2,6 +2,7 @@ package net.codinux.csv.writer.datawriter
 
 import java.io.Closeable
 import java.lang.Appendable
+import java.lang.StringBuilder
 
 internal class JavaAppendableDataWriter(private val appendable: Appendable) : DataWriter {
 
@@ -10,7 +11,11 @@ internal class JavaAppendableDataWriter(private val appendable: Appendable) : Da
   }
 
   override fun write(charArray: CharArray, offset: Int, length: Int) {
-    appendable.append(charArray.concatToString(offset, offset + length))
+    if (appendable is StringBuilder) {
+      appendable.appendRange(charArray, offset, offset + length)
+    } else {
+      appendable.append(charArray.concatToString(offset, offset + length))
+    }
   }
 
   fun write(string: String) {
