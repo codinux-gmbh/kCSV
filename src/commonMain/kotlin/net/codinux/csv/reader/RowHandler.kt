@@ -6,7 +6,7 @@ internal class RowHandler(
 ) {
 
   companion object {
-    private val EMPTY = ImmutableList("")
+    private val EMPTY = arrayOf("")
   }
 
   private var row: Array<String> = Array(len) { "" }
@@ -50,7 +50,7 @@ internal class RowHandler(
     val fields = if (isEmpty) {
       EMPTY
     } else {
-      (0 until idx).map { index -> row[index] }
+      Array(idx) { index -> row[index] }
     }
 
     return if (reuseRowInstance) {

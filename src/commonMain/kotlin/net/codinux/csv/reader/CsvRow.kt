@@ -15,13 +15,13 @@ import net.codinux.csv.reader.FieldMapper.replaceDecimalSeparatorAndMapToDouble
  */
 class CsvRow internal constructor(
   private val header: Set<String>,
-  fields: List<String>,
+  private var _fields: Array<String>,
   originalLineNumber: Long,
   isComment: Boolean,
   isEmpty: Boolean
 ) {
 
-  private val headerIndices = header.mapIndexed { index, header -> header to index }.toMap().toImmutableMap()
+  private val headerIndices = header.mapIndexed { index, header -> header to index }.toMap()
 
   /**
    * Gets the number of fields of this row.
@@ -29,7 +29,7 @@ class CsvRow internal constructor(
    * @return the number of fields of this row
    * @see CsvReader.CsvReaderBuilder.errorOnDifferentFieldCount
    */
-  var fieldCount: Int = fields.size
+  var fieldCount: Int = _fields.size
     private set
 
   /**
@@ -37,8 +37,8 @@ class CsvRow internal constructor(
    *
    * @return all fields of this row, never `null`
    */
-  var fields: List<String> = ImmutableList(fields)
-    private set
+  val fields: List<String>
+    get() = ImmutableList(_fields)
 
   /**
    * Returns the original line number (starting with 1). On multi-line rows this is the starting
@@ -68,9 +68,9 @@ class CsvRow internal constructor(
   var isEmpty: Boolean = isEmpty
     private set
 
-  internal fun updateRow(fields: List<String>, originalLineNumber: Long, isComment: Boolean, isEmpty: Boolean) {
+  internal fun updateRow(fields: Array<String>, originalLineNumber: Long, isComment: Boolean, isEmpty: Boolean) {
     this.fieldCount = fields.size
-    this.fields = ImmutableList(fields)
+    this._fields = fields
     this.originalLineNumber = originalLineNumber
     this.isComment = isComment
     this.isEmpty = isEmpty
@@ -87,11 +87,11 @@ class CsvRow internal constructor(
    * @throws IndexOutOfBoundsException if index is out of range
    */
   fun getField(index: Int): String {
-    if (index !in fields.indices) { // for JavaScript we need to throw exception manually
-      throw IndexOutOfBoundsException("Index $index is not within bound 0 - ${fields.size - 1} (= getFieldCount()).")
+    if (index !in _fields.indices) { // for JavaScript we need to throw exception manually
+      throw IndexOutOfBoundsException("Index $index is not within bound 0 - ${_fields.size - 1} (= getFieldCount()).")
     }
 
-    return fields[index]
+    return _fields[index]
   }
 
   fun getString(fieldIndex: Int): String =

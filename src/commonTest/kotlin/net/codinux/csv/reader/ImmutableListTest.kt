@@ -8,7 +8,7 @@ class ImmutableListTest {
 
     @Test
     fun isImmutable() {
-        val underTest = ImmutableList("one", "two")
+        val underTest = ImmutableList(arrayOf("one", "two"))
 
         shouldThrowAny {
             underTest as MutableList<String>
@@ -17,7 +17,7 @@ class ImmutableListTest {
 
     @Test
     fun toMutableList() {
-        val underTest = ImmutableList("one", "two")
+        val underTest = ImmutableList(arrayOf("one", "two"))
 
         val result = underTest.toMutableList()
         result.add("three")

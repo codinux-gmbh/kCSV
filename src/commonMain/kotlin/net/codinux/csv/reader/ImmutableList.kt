@@ -1,15 +1,15 @@
 package net.codinux.csv.reader
 
-class ImmutableList<E>(private val wrapped: List<E>) : List<E> {
+class ImmutableList<E>(private val wrapped: Array<E>) : List<E> {
 
-    constructor(vararg elements: E) : this(elements.asList())
+    private val wrappedAsList by lazy { wrapped.asList() }
 
 
     override val size = wrapped.size
 
     override fun isEmpty() = wrapped.isEmpty()
 
-    override fun get(index: Int) = wrapped.get(index)
+    override fun get(index: Int) = wrapped[index]
 
     override fun indexOf(element: E) = wrapped.indexOf(element)
 
@@ -17,17 +17,17 @@ class ImmutableList<E>(private val wrapped: List<E>) : List<E> {
 
     override fun contains(element: E) = wrapped.contains(element)
 
-    override fun containsAll(elements: Collection<E>) = wrapped.containsAll(elements)
+    override fun containsAll(elements: Collection<E>) = wrappedAsList.containsAll(elements)
 
     override fun iterator() = wrapped.iterator()
 
-    override fun listIterator() = wrapped.listIterator()
+    override fun listIterator() = wrappedAsList.listIterator()
 
-    override fun listIterator(index: Int) = wrapped.listIterator(index)
+    override fun listIterator(index: Int) = wrappedAsList.listIterator(index)
 
-    override fun subList(fromIndex: Int, toIndex: Int) = wrapped.subList(fromIndex, toIndex)
+    override fun subList(fromIndex: Int, toIndex: Int) = wrappedAsList.subList(fromIndex, toIndex)
 
-    override fun toString() = wrapped.toString()
+    override fun toString() = wrappedAsList.toString()
 
 
     fun toMutableList(): MutableList<E> = ArrayList(this)

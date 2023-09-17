@@ -140,7 +140,7 @@ class CsvReaderTest : FunSpec({
   @Test
   fun reuseRowInstanceTrue() {
     val reader = CsvReader.builder().hasHeaderRow(true).reuseRowInstance(true).build().read("h1,h2\n1,2\n3,4\n5,6")
-    var firstRowCsvRowInstance: CsvRow = CsvRow(emptySet(), emptyList(), -1, true, true)
+    var firstRowCsvRowInstance: CsvRow = CsvRow(emptySet(), emptyArray(), -1, true, true)
 
     reader.forEachIndexed { index, csvRow ->
       if (index == 0) {
@@ -162,7 +162,7 @@ class CsvReaderTest : FunSpec({
   @Test
   fun reuseRowInstanceFalse() {
     val reader = CsvReader.builder().hasHeaderRow(true).reuseRowInstance(false).build().read("h1,h2\n1,2\n3,4\n5,6")
-    var firstRowCsvRowInstance: CsvRow = CsvRow(emptySet(), emptyList(), -1, true, true)
+    var firstRowCsvRowInstance: CsvRow = CsvRow(emptySet(), emptyArray(), -1, true, true)
 
     reader.forEachIndexed { index, csvRow ->
       if (index == 0) {
