@@ -19,10 +19,10 @@ internal class RowHandler(
   internal var header: Set<String> = ImmutableSet(emptySet())
     set(value) {
       field = value
-      reusedCsvRowInstance = CsvRow(value, emptyList(), originalLineNumber, isCommentMode, true)
+      reusedCsvRowInstance = CsvRow(value, EMPTY, originalLineNumber, isCommentMode, true)
     }
 
-  private var reusedCsvRowInstance = CsvRow(header, emptyList(), originalLineNumber, isCommentMode, true)
+  private var reusedCsvRowInstance = CsvRow(header, EMPTY, originalLineNumber, isCommentMode, true)
 
   fun add(value: String) {
     if (idx == len) {
