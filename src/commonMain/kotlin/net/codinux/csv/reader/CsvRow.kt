@@ -77,10 +77,10 @@ class CsvRow internal constructor(
     private set
 
   internal fun updateEmptyRow(originalLineNumber: Long, isComment: Boolean) =
-    updateRow(1, EMPTY, originalLineNumber, isComment, true)
+    updateRow(EMPTY, originalLineNumber, isComment, true)
 
-  internal fun updateRow(fieldCount: Int, fields: Array<String>, originalLineNumber: Long, isComment: Boolean, isEmpty: Boolean) {
-    this.fieldCount = fieldCount
+  internal fun updateRow(fields: Array<String>, originalLineNumber: Long, isComment: Boolean, isEmpty: Boolean) {
+    this.fieldCount = fields.size
     this._fields = fields
     this.originalLineNumber = originalLineNumber
     this.isComment = isComment

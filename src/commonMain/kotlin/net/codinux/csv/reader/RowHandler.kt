@@ -20,8 +20,6 @@ internal class RowHandler(
 
   private var reusedCsvRowInstance = CsvRow.empty(header, originalLineNumber, isCommentMode)
 
-  private var reusedFieldsArray: Array<String> = arrayOf("")
-
   fun add(value: String) {
     if (idx == len) {
       extendCapacity()
@@ -62,17 +60,8 @@ internal class RowHandler(
     if (isEmpty) {
       reusedCsvRowInstance.updateEmptyRow(originalLineNumber, isCommentMode)
     } else {
-      if (idx > reusedFieldsArray.size) { // expand reusedFieldsArray
-        reusedFieldsArray = Array(idx) { index -> row[index] }
-      } else {
-        var index = 0
-        while (index < idx) {
-          reusedFieldsArray[index] = row[index]
-          index++
-        }
-      }
-
-      reusedCsvRowInstance.updateRow(idx, reusedFieldsArray, originalLineNumber, isCommentMode, isEmpty)
+      val fields = Array(idx) { index -> row[index] }
+      reusedCsvRowInstance.updateRow(fields, originalLineNumber, isCommentMode, isEmpty)
     }
 
     return reusedCsvRowInstance
