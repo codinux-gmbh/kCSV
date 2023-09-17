@@ -1,5 +1,6 @@
 package net.codinux.csv.writer.datawriter
 
+import java.io.Closeable
 import java.lang.Appendable
 
 internal class JavaAppendableDataWriter(private val appendable: Appendable) : DataWriter {
@@ -26,6 +27,7 @@ internal class JavaAppendableDataWriter(private val appendable: Appendable) : Da
 
   override fun close() {
     // no-op
+    (appendable as? Closeable)?.close()
   }
 
   override fun toString() = appendable.toString()

@@ -333,6 +333,10 @@ class RowReader internal constructor(
     }
   }
 
+  override fun close() {
+    reader.close()
+  }
+
   companion object {
     private const val STATUS_LAST_CHAR_WAS_CR = 32
     private const val STATUS_COMMENTED_ROW = 16
@@ -341,9 +345,5 @@ class RowReader internal constructor(
     private const val STATUS_QUOTED_COLUMN = 2
     private const val STATUS_DATA_COLUMN = 1
     private const val STATUS_RESET = 0
-  }
-
-  override fun close() {
-    reader.close()
   }
 }
