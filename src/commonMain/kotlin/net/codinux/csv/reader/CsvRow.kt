@@ -21,6 +21,14 @@ class CsvRow internal constructor(
   isEmpty: Boolean
 ) {
 
+  companion object {
+    internal val EMPTY = arrayOf("")
+
+    fun empty(header: Set<String>, originalLineNumber: Long, isComment: Boolean) =
+      CsvRow(header, EMPTY, originalLineNumber, isComment, true)
+  }
+
+
   private val headerIndices = header.mapIndexed { index, header -> header to index }.toMap()
 
   /**
@@ -68,8 +76,11 @@ class CsvRow internal constructor(
   var isEmpty: Boolean = isEmpty
     private set
 
-  internal fun updateRow(fields: Array<String>, originalLineNumber: Long, isComment: Boolean, isEmpty: Boolean) {
-    this.fieldCount = fields.size
+  internal fun updateEmptyRow(originalLineNumber: Long, isComment: Boolean) =
+    updateRow(1, EMPTY, originalLineNumber, isComment, true)
+
+  internal fun updateRow(fieldCount: Int, fields: Array<String>, originalLineNumber: Long, isComment: Boolean, isEmpty: Boolean) {
+    this.fieldCount = fieldCount
     this._fields = fields
     this.originalLineNumber = originalLineNumber
     this.isComment = isComment
