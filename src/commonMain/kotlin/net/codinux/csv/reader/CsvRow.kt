@@ -29,7 +29,7 @@ class CsvRow internal constructor(
   }
 
 
-  private val headerIndices = header.mapIndexed { index, header -> header to index }.toMap()
+  private val headerIndices by lazy { header.mapIndexed { index, header -> header to index }.toMap() }
 
   /**
    * Gets the number of fields of this row.
