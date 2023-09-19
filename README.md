@@ -80,7 +80,7 @@ CsvReader().read(
 
 ```kotlin
 CsvReader(hasHeaderRow = true)
-    .read("Int,Double,Boolean,NullableLong,Instant\n42,3.14,true,,2023-06-05T22:19:44.475Z")
+    .read("Int,Double,Boolean,NullableLong\n42,3.14,true,")
     .forEach { row ->
         // of course works also with CsvReader and row indices
         println("Int: ${row.getInt("Int")}")
@@ -88,8 +88,6 @@ CsvReader(hasHeaderRow = true)
         println("Boolean: ${row.getBoolean("Boolean")}")
         // all methods also have a 'OrNull()' variant for nullable values
         println("Nullable Long: ${row.getLongOrNull("NullableLong")}")
-        // add "org.jetbrains.kotlinx:kotlinx-datetime" dependency to classpath to use this function
-        println("Instant: ${row.getInstant("Instant")}")
     }
 ```
 

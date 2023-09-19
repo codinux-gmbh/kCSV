@@ -1,7 +1,5 @@
 package net.codinux.csv.reader
 
-import kotlinx.datetime.Instant
-import kotlinx.datetime.LocalDateTime
 import net.codinux.csv.Platform
 import net.codinux.csv.reader.FieldMapper.fieldIsNotNull
 import net.codinux.csv.reader.FieldMapper.mapToBoolean
@@ -151,18 +149,6 @@ class CsvRow internal constructor(
   fun getDoubleOrNull(fieldIndex: Int, decimalSeparator: Char): Double? =
     this.getStringOrNull(fieldIndex)?.replaceDecimalSeparatorAndMapToDouble(decimalSeparator)
 
-  fun getInstant(fieldIndex: Int): Instant =
-    Instant.parse(this.getString(fieldIndex))
-
-  fun getInstantOrNull(fieldIndex: Int): Instant? =
-    this.getStringOrNull(fieldIndex)?.let { Instant.parse(it) }
-
-  fun getLocalDateTime(fieldIndex: Int): LocalDateTime =
-    LocalDateTime.parse(this.getString(fieldIndex))
-
-  fun getLocalDateTimeOrNull(fieldIndex: Int): LocalDateTime? =
-    this.getStringOrNull(fieldIndex)?.let { LocalDateTime.parse(it) }
-
   private inline fun getFieldIndex(name: String): Int =
     headerIndices[name]
       ?: throw NoSuchElementException("No element with name '$name' found. Valid names are: $header")
@@ -221,18 +207,6 @@ class CsvRow internal constructor(
 
   fun getDoubleOrNull(name: String, decimalSeparator: Char): Double? =
     this.getStringOrNull(name)?.replaceDecimalSeparatorAndMapToDouble(decimalSeparator)
-
-  fun getInstant(name: String): Instant =
-    Instant.parse(this.getString(name))
-
-  fun getInstantOrNull(name: String): Instant? =
-    this.getStringOrNull(name)?.let { Instant.parse(it) }
-
-  fun getLocalDateTime(name: String): LocalDateTime =
-    LocalDateTime.parse(this.getString(name))
-
-  fun getLocalDateTimeOrNull(name: String): LocalDateTime? =
-    this.getStringOrNull(name)?.let { LocalDateTime.parse(it) }
 
   override fun toString(): String {
     return CsvRow::class.simpleName + "[" +
