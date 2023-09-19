@@ -4,26 +4,28 @@ import net.codinux.csv.TestData
 import net.codinux.csv.containsNot
 import net.codinux.csv.forEachLineIndexed
 import net.codinux.csv.reader.CsvReader
-import net.codinux.csv.reader.read
+import net.codinux.csv.reader.datareader.DataReader
+import net.codinux.csv.reader.reader
 import net.codinux.csv.use
+import net.codinux.csv.writer.datawriter.DataWriter
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import java.io.File
-import java.io.Reader
 
 class CsvWriterLargeFileTest {
 
   @Test
   fun writeLargeFile() {
     val reader = CsvReader(
+      DataReader.reader(TestData.largeCsvFileWithInvalidQuoteCharsZipInputStream().bufferedReader()),
       fieldSeparator = ';',
       hasHeaderRow = true,
       ignoreInvalidQuoteChars = true
-    ).read(TestData.largeCsvFileWithInvalidQuoteCharsZipInputStream())
+    )
 
     val destinationFile = File.createTempFile("kcsv_large_file_test_", ".csv")
 
-    CsvFormat(';', quoteStrategy = QuoteStrategy.ALWAYS).writer(destinationFile).use { underTest ->
+    CsvWriter(DataWriter.writer(destinationFile.toPath()), ';', quoteStrategy = QuoteStrategy.ALWAYS).use { underTest ->
       underTest.writeRow(reader.header)
 
       reader.forEach { row -> underTest.writeRow(row.fields) }

@@ -10,6 +10,7 @@ import net.codinux.csv.TestData
 import net.codinux.csv.containsNot
 import net.codinux.csv.countOccurrencesOf
 import net.codinux.csv.indexOfOrNull
+import net.codinux.csv.reader.datareader.DataReader
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 
@@ -18,18 +19,18 @@ class CsvReaderLargeFileTest {
   @Test
   fun readLargeFile() {
     val underTest = CsvReader(
+      DataReader.reader(TestData.largeCsvFileWithInvalidQuoteCharsZipInputStream().bufferedReader()),
       fieldSeparator = ';',
       hasHeaderRow = true,
-      reuseRowInstance = true,
       ignoreInvalidQuoteChars = true
-    ).read(TestData.largeCsvFileWithInvalidQuoteCharsZipInputStream())
+    )
 
     val lineNumbers = mutableSetOf<Long>()
 
     val stations = underTest.mapIndexed { index, row ->
       lineNumbers.add(row.originalLineNumber)
       assertRow(index, row)
-      row.getString("Name") to row.getString("DHID")
+      row.getString(4) to row.getString(2)
     }
 
     underTest.close()
@@ -41,14 +42,14 @@ class CsvReaderLargeFileTest {
 
   private fun assertRow(index: Int, row: CsvRow) {
     index.shouldBe(row.originalLineNumber - 2) // -2 due to heder row and that originalLineNumber is one based and index zero based
-    row.getInt("SeqNo").shouldBe(index)
-    row.getString("Type").shouldBeIn("S", "A", "Q")
+    row.getInt(0).shouldBe(index)
+    row.getString(1).shouldBeIn("S", "A", "Q")
 
-    assertDhId(index, row.getString("DHID"))
-    assertDhId(index, row.getString("Parent"))
+    assertDhId(index, row.getString(2))
+    assertDhId(index, row.getString(3))
 
-    row.getString("Latitude").replace(',', '.').toDoubleOrNull().shouldNotBeNull().shouldNotBeNaN()
-    row.getString("Longitude").replace(',', '.').toDoubleOrNull().shouldNotBeNull().shouldNotBeNaN()
+    row.getString(5).replace(',', '.').toDoubleOrNull().shouldNotBeNull().shouldNotBeNaN()
+    row.getString(6).replace(',', '.').toDoubleOrNull().shouldNotBeNull().shouldNotBeNaN()
   }
 
   private fun assertDhId(rowIndex: Int, dhId: String) {
