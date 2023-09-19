@@ -26,12 +26,12 @@ class CsvReaderExample {
     fun customSettings() {
         CsvReader(
             fieldSeparator = ';',
+            hasHeaderRow = false,
             quoteCharacter = '\'',
-            commentStrategy = CommentStrategy.SKIP,
             commentCharacter = '#',
+            commentStrategy = CommentStrategy.SKIP,
             skipEmptyRows = true,
             errorOnDifferentFieldCount = false,
-            hasHeaderRow = false,
             ignoreInvalidQuoteChars = false
         )
             .read("foo1;'bar1'\r\n#foo2,bar2")

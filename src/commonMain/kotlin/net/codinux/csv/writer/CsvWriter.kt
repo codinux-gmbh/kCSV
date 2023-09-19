@@ -22,9 +22,9 @@ class CsvWriter internal constructor(
   writer: DataWriter,
   private val fieldSeparator: Char = Config.DefaultFieldSeparator,
   private val quoteCharacter: Char = Config.DefaultQuoteCharacter,
-  private val commentCharacter: Char = Config.DefaultCommentCharacter,
   private val quoteStrategy: QuoteStrategy = Config.DefaultQuoteStrategy,
   lineDelimiter: LineDelimiter = Config.DefaultLineDelimiter,
+  private val commentCharacter: Char = Config.DefaultCommentCharacter,
   bufferSize: Int = Config.DefaultBufferSize
 ) : Closeable {
 

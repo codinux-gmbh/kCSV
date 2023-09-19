@@ -27,8 +27,8 @@ class CsvWriterExample {
             fieldSeparator = ';',
             quoteCharacter = '\'',
             quoteStrategy = QuoteStrategy.REQUIRED,
-            commentCharacter = '#',
-            lineDelimiter = LineDelimiter.CRLF
+            lineDelimiter = LineDelimiter.CRLF,
+            commentCharacter = '#'
         )
 
         writer

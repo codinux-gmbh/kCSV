@@ -12,9 +12,9 @@ import net.codinux.csv.writer.datawriter.DataWriter
 class CsvFormat(
     private var fieldSeparator: Char = Config.DefaultFieldSeparator,
     private var quoteCharacter: Char = Config.DefaultQuoteCharacter,
-    private var commentCharacter: Char = Config.DefaultCommentCharacter,
     private var quoteStrategy: QuoteStrategy = Config.DefaultQuoteStrategy,
     private var lineDelimiter: LineDelimiter = Config.DefaultLineDelimiter,
+    private var commentCharacter: Char = Config.DefaultCommentCharacter,
     private var bufferSize: Int = Config.DefaultBufferSize
 ) {
 
@@ -115,7 +115,7 @@ class CsvFormat(
      * @throws NullPointerException if writer is `null`
      */
     internal fun writer(writer: DataWriter): CsvWriter =
-        CsvWriter(writer, fieldSeparator, quoteCharacter, commentCharacter, quoteStrategy, lineDelimiter, bufferSize)
+        CsvWriter(writer, fieldSeparator, quoteCharacter, quoteStrategy, lineDelimiter, commentCharacter, bufferSize)
 
     override fun toString(): String {
         return CsvFormat::class.simpleName + "[" +

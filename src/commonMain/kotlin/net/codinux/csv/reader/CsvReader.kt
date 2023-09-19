@@ -20,13 +20,13 @@ import kotlin.jvm.JvmStatic
  */
 class CsvReader(
   private val fieldSeparator: Char = Config.DefaultFieldSeparator,
-  private val quoteCharacter: Char = Config.DefaultQuoteCharacter,
-  private val commentStrategy: CommentStrategy = Config.DefaultCommentStrategy,
-  private val commentCharacter: Char = Config.DefaultCommentCharacter,
-  private val skipEmptyRows: Boolean = Config.DefaultSkipEmptyRows,
-  private val errorOnDifferentFieldCount: Boolean = Config.DefaultErrorOnDifferentFieldCount,
   private val hasHeaderRow: Boolean = Config.DefaultHasHeaderRow,
+  private val quoteCharacter: Char = Config.DefaultQuoteCharacter,
+  private val commentCharacter: Char = Config.DefaultCommentCharacter,
+  private val commentStrategy: CommentStrategy = Config.DefaultCommentStrategy,
+  private val skipEmptyRows: Boolean = Config.DefaultSkipEmptyRows,
   private val reuseRowInstance: Boolean = Config.DefaultReuseRowInstance,
+  private val errorOnDifferentFieldCount: Boolean = Config.DefaultErrorOnDifferentFieldCount,
   private val ignoreInvalidQuoteChars: Boolean = Config.DefaultIgnoreInvalidQuoteChars
 ) {
 
@@ -42,7 +42,7 @@ class CsvReader(
    *
    * To set individual options better use [CsvReader.builder].
    */
-  constructor(fieldSeparator: Char = Config.DefaultFieldSeparator) : this(fieldSeparator, quoteCharacter = Config.DefaultQuoteCharacter)
+  constructor(fieldSeparator: Char = Config.DefaultFieldSeparator) : this(fieldSeparator, Config.DefaultHasHeaderRow)
 
 
   init {
@@ -201,9 +201,9 @@ class CsvReader(
      */
     fun build(): CsvReader {
       return CsvReader(
-        fieldSeparator, quoteCharacter, commentStrategy,
-        commentCharacter, skipEmptyRows, errorOnDifferentFieldCount,
-        hasHeaderRow, reuseRowInstance, ignoreInvalidQuoteChars
+        fieldSeparator, hasHeaderRow, quoteCharacter,
+        commentCharacter, commentStrategy, skipEmptyRows,
+        reuseRowInstance, errorOnDifferentFieldCount, ignoreInvalidQuoteChars
       )
     }
 
