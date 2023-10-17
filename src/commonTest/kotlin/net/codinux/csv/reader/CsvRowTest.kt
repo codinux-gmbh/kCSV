@@ -1,21 +1,24 @@
 package net.codinux.csv.reader
 
 import kotlin.test.Test
+import kotlin.test.assertEquals
 import kotlin.test.assertFails
 import kotlin.test.assertNull
 
 class CsvRowTest {
 
+    /*      throwIfColumnDoesNotExist       */
+
     @Test
     fun getStringOrNull_ByColumnName_ColumnDoesNotExist_throwIfColumnDoesNotExistIsTrue() {
-        val row = row(emptySet(), emptyArray())
+        val row = emptyRow()
 
         assertFails { row.getStringOrNull("any") }
     }
 
     @Test
     fun getStringOrNull_ByColumnName_ColumnDoesNotExist_throwIfColumnDoesNotExistIsFalse() {
-        val row = row(emptySet(), emptyArray())
+        val row = emptyRow()
 
         val value = row.getStringOrNull("any", false)
 
@@ -24,14 +27,14 @@ class CsvRowTest {
 
     @Test
     fun getBooleanOrNull_ByColumnName_ColumnDoesNotExist_throwIfColumnDoesNotExistIsTrue() {
-        val row = row(emptySet(), emptyArray())
+        val row = emptyRow()
 
         assertFails { row.getBooleanOrNull("any") }
     }
 
     @Test
     fun getBooleanOrNull_ByColumnName_ColumnDoesNotExist_throwIfColumnDoesNotExistIsFalse() {
-        val row = row(emptySet(), emptyArray())
+        val row = emptyRow()
 
         val value = row.getBooleanOrNull("any", false)
 
@@ -40,14 +43,14 @@ class CsvRowTest {
 
     @Test
     fun getIntOrNull_ByColumnName_ColumnDoesNotExist_throwIfColumnDoesNotExistIsTrue() {
-        val row = row(emptySet(), emptyArray())
+        val row = emptyRow()
 
         assertFails { row.getIntOrNull("any") }
     }
 
     @Test
     fun getIntOrNull_ByColumnName_ColumnDoesNotExist_throwIfColumnDoesNotExistIsFalse() {
-        val row = row(emptySet(), emptyArray())
+        val row = emptyRow()
 
         val value = row.getIntOrNull("any", false)
 
@@ -56,14 +59,14 @@ class CsvRowTest {
 
     @Test
     fun getLongOrNull_ByColumnName_ColumnDoesNotExist_throwIfColumnDoesNotExistIsTrue() {
-        val row = row(emptySet(), emptyArray())
+        val row = emptyRow()
 
         assertFails { row.getLongOrNull("any") }
     }
 
     @Test
     fun getLongOrNull_ByColumnName_ColumnDoesNotExist_throwIfColumnDoesNotExistIsFalse() {
-        val row = row(emptySet(), emptyArray())
+        val row = emptyRow()
 
         val value = row.getLongOrNull("any", false)
 
@@ -72,14 +75,14 @@ class CsvRowTest {
 
     @Test
     fun getFloatOrNull_ByColumnName_ColumnDoesNotExist_throwIfColumnDoesNotExistIsTrue() {
-        val row = row(emptySet(), emptyArray())
+        val row = emptyRow()
 
         assertFails { row.getFloatOrNull("any") }
     }
 
     @Test
     fun getFloatOrNull_ByColumnName_ColumnDoesNotExist_throwIfColumnDoesNotExistIsFalse() {
-        val row = row(emptySet(), emptyArray())
+        val row = emptyRow()
 
         val value = row.getFloatOrNull("any", false)
 
@@ -87,20 +90,198 @@ class CsvRowTest {
     }
 
     @Test
+    fun getFloatOrNull_ByColumnName_SpecifyDecimalSeparator_ColumnDoesNotExist_throwIfColumnDoesNotExistIsTrue() {
+        val row = emptyRow()
+
+        assertFails { row.getFloatOrNull("any", ',') }
+    }
+
+    @Test
+    fun getFloatOrNull_ByColumnName_SpecifyDecimalSeparator_ColumnDoesNotExist_throwIfColumnDoesNotExistIsFalse() {
+        val row = emptyRow()
+
+        val value = row.getFloatOrNull("any", ',', false)
+
+        assertNull(value)
+    }
+
+    @Test
     fun getDoubleOrNull_ByColumnName_ColumnDoesNotExist_throwIfColumnDoesNotExistIsTrue() {
-        val row = row(emptySet(), emptyArray())
+        val row = emptyRow()
 
         assertFails { row.getDoubleOrNull("any") }
     }
 
     @Test
     fun getDoubleOrNull_ByColumnName_ColumnDoesNotExist_throwIfColumnDoesNotExistIsFalse() {
-        val row = row(emptySet(), emptyArray())
+        val row = emptyRow()
 
         val value = row.getDoubleOrNull("any", false)
 
         assertNull(value)
     }
+
+    @Test
+    fun getDoubleOrNull_ByColumnName_SpecifyDecimalSeparator_ColumnDoesNotExist_throwIfColumnDoesNotExistIsTrue() {
+        val row = emptyRow()
+
+        assertFails { row.getDoubleOrNull("any", ',') }
+    }
+
+    @Test
+    fun getDoubleOrNull_ByColumnName_SpecifyDecimalSeparator_ColumnDoesNotExist_throwIfColumnDoesNotExistIsFalse() {
+        val row = emptyRow()
+
+        val value = row.getDoubleOrNull("any", ',', false)
+
+        assertNull(value)
+    }
+
+
+    /*      Specify Decimal Separator       */
+
+    @Test
+    fun getFloat_ByColumnIndex_SpecifyDecimalSeparator() {
+        val row = row("3,14")
+
+        val value = row.getFloat(0, ',')
+
+        assertEquals(value, 3.14f)
+    }
+
+    @Test
+    fun getFloat_ByColumnIndex_SpecifyDecimalSeparator_ValueNotSet() {
+        val row = row("")
+
+        assertFails { row.getFloat(0, ',') }
+    }
+
+    @Test
+    fun getFloat_ByColumnName_SpecifyDecimalSeparator() {
+        val row = row("Float", "3,14")
+
+        val value = row.getFloat("Float", ',')
+
+        assertEquals(value, 3.14f)
+    }
+
+    @Test
+    fun getFloat_ByColumnName_SpecifyDecimalSeparator_ValueNotSet() {
+        val row = row("Float", "")
+
+        assertFails { row.getFloat("Float", ',') }
+    }
+
+    @Test
+    fun getDouble_ByColumnIndex_SpecifyDecimalSeparator() {
+        val row = row("3,14")
+
+        val value = row.getDouble(0, ',')
+
+        assertEquals(value, 3.14)
+    }
+
+    @Test
+    fun getDouble_ByColumnIndex_SpecifyDecimalSeparator_ValueNotSet() {
+        val row = row("")
+
+        assertFails { row.getDouble(0, ',') }
+    }
+
+    @Test
+    fun getDouble_ByColumnName_SpecifyDecimalSeparator() {
+        val row = row("Double", "3,14")
+
+        val value = row.getDouble("Double", ',')
+
+        assertEquals(value, 3.14)
+    }
+
+    @Test
+    fun getDouble_ByColumnName_SpecifyDecimalSeparator_ValueNotSet() {
+        val row = row("Double", "")
+
+        assertFails { row.getDouble("Double", ',') }
+    }
+
+    @Test
+    fun getFloatOrNull_ByColumnIndex_SpecifyDecimalSeparator() {
+        val row = row("3,14")
+
+        val value = row.getFloatOrNull(0, ',')
+
+        assertEquals(value, 3.14f)
+    }
+
+    @Test
+    fun getFloatOrNull_ByColumnIndex_SpecifyDecimalSeparator_ValueNotSet() {
+        val row = row("")
+
+        val value = row.getFloatOrNull(0, ',')
+
+        assertNull(value)
+    }
+
+    @Test
+    fun getFloatOrNull_ByColumnName_SpecifyDecimalSeparator() {
+        val row = row("Float", "3,14")
+
+        val value = row.getFloatOrNull("Float", ',')
+
+        assertEquals(value, 3.14f)
+    }
+
+    @Test
+    fun getFloatOrNull_ByColumnName_SpecifyDecimalSeparator_ValueNotSet() {
+        val row = row("Float", "")
+
+        val value = row.getFloatOrNull("Float", ',')
+
+        assertNull(value)
+    }
+
+    @Test
+    fun getDoubleOrNull_ByColumnIndex_SpecifyDecimalSeparator() {
+        val row = row("3,14")
+
+        val value = row.getDoubleOrNull(0, ',')
+
+        assertEquals(value, 3.14)
+    }
+
+    @Test
+    fun getDoubleOrNull_ByColumnIndex_SpecifyDecimalSeparator_ValueNotSet() {
+        val row = row("")
+
+        val value = row.getDoubleOrNull(0, ',')
+
+        assertNull(value)
+    }
+
+    @Test
+    fun getDoubleOrNull_ByColumnName_SpecifyDecimalSeparator() {
+        val row = row("Double", "3,14")
+
+        val value = row.getDoubleOrNull("Double", ',')
+
+        assertEquals(value, 3.14)
+    }
+
+    @Test
+    fun getDoubleOrNull_ByColumnName_SpecifyDecimalSeparator_ValueNotSet() {
+        val row = row("Double", "")
+
+        val value = row.getDoubleOrNull("Double", ',')
+
+        assertNull(value)
+    }
+
+
+    private fun emptyRow() = row(emptySet(), emptyArray())
+
+    private fun row(value: String) = row(emptySet(), arrayOf(value))
+
+    private fun row(header: String, value: String) = row(setOf(header), arrayOf(value))
 
     private fun row(headers: Set<String> = emptySet(), values: Array<String>) = CsvRow(
         headers, values, 1, false, false

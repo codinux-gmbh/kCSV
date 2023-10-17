@@ -8,6 +8,7 @@ import net.codinux.csv.reader.FieldMapper.mapToFloat
 import net.codinux.csv.reader.FieldMapper.mapToInt
 import net.codinux.csv.reader.FieldMapper.mapToLong
 import net.codinux.csv.reader.FieldMapper.replaceDecimalSeparatorAndMapToDouble
+import net.codinux.csv.reader.FieldMapper.replaceDecimalSeparatorAndMapToFloat
 import kotlin.jvm.JvmOverloads
 
 /**
@@ -138,6 +139,12 @@ class CsvRow internal constructor(
   fun getFloatOrNull(fieldIndex: Int): Float? =
     this.getStringOrNull(fieldIndex)?.mapToFloat()
 
+  fun getFloat(fieldIndex: Int, decimalSeparator: Char): Float =
+    this.getString(fieldIndex).replaceDecimalSeparatorAndMapToFloat(decimalSeparator)
+
+  fun getFloatOrNull(fieldIndex: Int, decimalSeparator: Char): Float? =
+    this.getStringOrNull(fieldIndex)?.replaceDecimalSeparatorAndMapToFloat(decimalSeparator)
+
   fun getDouble(fieldIndex: Int): Double =
     this.getString(fieldIndex).mapToDouble()
 
@@ -210,6 +217,13 @@ class CsvRow internal constructor(
   @JvmOverloads
   fun getFloatOrNull(name: String, throwIfColumnDoesNotExist: Boolean = true): Float? =
     this.getStringOrNull(name, throwIfColumnDoesNotExist)?.mapToFloat()
+
+  fun getFloat(name: String, decimalSeparator: Char): Float =
+    this.getString(name).replaceDecimalSeparatorAndMapToFloat(decimalSeparator)
+
+  @JvmOverloads
+  fun getFloatOrNull(name: String, decimalSeparator: Char, throwIfColumnDoesNotExist: Boolean = true): Float? =
+    this.getStringOrNull(name, throwIfColumnDoesNotExist)?.replaceDecimalSeparatorAndMapToFloat(decimalSeparator)
 
   fun getDouble(name: String): Double =
     this.getString(name).mapToDouble()
