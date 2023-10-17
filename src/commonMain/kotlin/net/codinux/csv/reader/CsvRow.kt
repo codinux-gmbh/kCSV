@@ -8,6 +8,7 @@ import net.codinux.csv.reader.FieldMapper.mapToFloat
 import net.codinux.csv.reader.FieldMapper.mapToInt
 import net.codinux.csv.reader.FieldMapper.mapToLong
 import net.codinux.csv.reader.FieldMapper.replaceDecimalSeparatorAndMapToDouble
+import kotlin.jvm.JvmOverloads
 
 /**
  * Index based CSV-row.
@@ -149,8 +150,11 @@ class CsvRow internal constructor(
   fun getDoubleOrNull(fieldIndex: Int, decimalSeparator: Char): Double? =
     this.getStringOrNull(fieldIndex)?.replaceDecimalSeparatorAndMapToDouble(decimalSeparator)
 
-  private inline fun getFieldIndex(name: String): Int =
+  private inline fun getFieldIndexOrNull(name: String): Int? =
     headerIndices[name]
+
+  private inline fun getFieldIndex(name: String): Int =
+    getFieldIndexOrNull(name)
       ?: throw NoSuchElementException("No element with name '$name' found. Valid names are: $header")
 
   operator fun get(name: String): String = getField(name)
@@ -168,45 +172,58 @@ class CsvRow internal constructor(
   fun getString(name: String): String =
     this.getField(name)
 
-  fun getStringOrNull(name: String): String? =
-    this.getString(name)
-      .takeIf { field -> fieldIsNotNull(field) }
+  @JvmOverloads
+  fun getStringOrNull(name: String, throwIfColumnDoesNotExist: Boolean = true): String? {
+    val value = if (throwIfColumnDoesNotExist) {
+      this.getString(name)
+    } else {
+      getFieldIndexOrNull(name)?.let { index -> getString(index) }
+    }
+
+    return value?.takeIf { field -> fieldIsNotNull(field) }
+  }
 
   fun getBoolean(name: String): Boolean =
     this.getString(name).mapToBoolean()
 
-  fun getBooleanOrNull(name: String): Boolean? =
-    this.getStringOrNull(name)?.mapToBoolean()
+  @JvmOverloads
+  fun getBooleanOrNull(name: String, throwIfColumnDoesNotExist: Boolean = true): Boolean? =
+    this.getStringOrNull(name, throwIfColumnDoesNotExist)?.mapToBoolean()
 
   fun getInt(name: String): Int =
     this.getString(name).mapToInt()
 
-  fun getIntOrNull(name: String): Int? =
-    this.getStringOrNull(name)?.mapToInt()
+  @JvmOverloads
+  fun getIntOrNull(name: String, throwIfColumnDoesNotExist: Boolean = true): Int? =
+    this.getStringOrNull(name, throwIfColumnDoesNotExist)?.mapToInt()
 
   fun getLong(name: String): Long =
     this.getString(name).mapToLong()
 
-  fun getLongOrNull(name: String): Long? =
-    this.getStringOrNull(name)?.mapToLong()
+  @JvmOverloads
+  fun getLongOrNull(name: String, throwIfColumnDoesNotExist: Boolean = true): Long? =
+    this.getStringOrNull(name, throwIfColumnDoesNotExist)?.mapToLong()
 
   fun getFloat(name: String): Float =
     this.getString(name).mapToFloat()
 
-  fun getFloatOrNull(name: String): Float? =
-    this.getStringOrNull(name)?.mapToFloat()
+  @JvmOverloads
+  fun getFloatOrNull(name: String, throwIfColumnDoesNotExist: Boolean = true): Float? =
+    this.getStringOrNull(name, throwIfColumnDoesNotExist)?.mapToFloat()
 
   fun getDouble(name: String): Double =
     this.getString(name).mapToDouble()
 
-  fun getDoubleOrNull(name: String): Double? =
-    this.getStringOrNull(name)?.mapToDouble()
+  @JvmOverloads
+  fun getDoubleOrNull(name: String, throwIfColumnDoesNotExist: Boolean = true): Double? =
+    this.getStringOrNull(name, throwIfColumnDoesNotExist)?.mapToDouble()
 
   fun getDouble(name: String, decimalSeparator: Char): Double =
     this.getString(name).replaceDecimalSeparatorAndMapToDouble(decimalSeparator)
 
-  fun getDoubleOrNull(name: String, decimalSeparator: Char): Double? =
-    this.getStringOrNull(name)?.replaceDecimalSeparatorAndMapToDouble(decimalSeparator)
+  @JvmOverloads
+  fun getDoubleOrNull(name: String, decimalSeparator: Char, throwIfColumnDoesNotExist: Boolean = true): Double? =
+    this.getStringOrNull(name, throwIfColumnDoesNotExist)?.replaceDecimalSeparatorAndMapToDouble(decimalSeparator)
 
   override fun toString(): String {
     return CsvRow::class.simpleName + "[" +
