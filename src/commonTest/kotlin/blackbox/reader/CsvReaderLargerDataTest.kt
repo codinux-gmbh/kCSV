@@ -1,7 +1,7 @@
 package blackbox.reader
 
 import net.codinux.csv.reader.CsvReader
-import net.codinux.csv.writer.CsvFormat
+import net.codinux.csv.writer.CsvWriter
 import net.codinux.csv.writer.datawriter.StringBuilderDataWriter
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -26,7 +26,7 @@ class CsvReaderLargerDataTest {
 
   private fun createSampleCSV(): String {
     val sw = StringBuilder()
-    val writer = CsvFormat().writer(StringBuilderDataWriter(sw))
+    val writer = CsvWriter.builder().writer(StringBuilderDataWriter(sw))
     for (i in 0..999) {
       writer.writeRow(*TEXTS)
     }

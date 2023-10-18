@@ -13,22 +13,21 @@ class CsvWriterTest : FunSpec({
 
   listOf(CR, LF).forEachIndexed { index, char ->
     test("[$index] configBuilder for '$char'") {
-      val e = assertFailsWith(IllegalArgumentException::class) { CsvFormat().fieldSeparator(char).writer(DataWriter.writer()) }
+      val e = assertFailsWith(IllegalArgumentException::class) { CsvWriter.builder(fieldSeparator = char).writer(DataWriter.writer()) }
       assertEquals("fieldSeparator must not be a newline char", e.message)
-      val e2 = assertFailsWith(IllegalArgumentException::class) { CsvFormat().quoteCharacter(char).writer(DataWriter.writer()) }
+      val e2 = assertFailsWith(IllegalArgumentException::class) { CsvWriter.builder(quoteCharacter = char).writer(DataWriter.writer()) }
       assertEquals("quoteCharacter must not be a newline char", e2.message)
-      val e3 = assertFailsWith(IllegalArgumentException::class) { CsvFormat().commentCharacter(char).writer(DataWriter.writer()) }
+      val e3 = assertFailsWith(IllegalArgumentException::class) { CsvWriter.builder(commentCharacter = char).writer(DataWriter.writer()) }
       assertEquals("commentCharacter must not be a newline char", e3.message)
     }
   }
 
-  val format = CsvFormat()
-    .lineDelimiter(LineDelimiter.LF)
+  val builder = CsvWriter.builder(lineDelimiter = LineDelimiter.LF)
 
   listOf(
-    format.fieldSeparator(',').quoteCharacter(','),
-    format.fieldSeparator(',').commentCharacter(','),
-    format.quoteCharacter(',').commentCharacter(',')
+    builder.fieldSeparator(',').quoteCharacter(','),
+    builder.fieldSeparator(',').commentCharacter(','),
+    builder.quoteCharacter(',').commentCharacter(',')
   ).forEachIndexed { index, csvWriterBuilder ->
     test("[$index] configWriter for $csvWriterBuilder") {
       val e = assertFailsWith(IllegalArgumentException::class) { csvWriterBuilder.writer(DataWriter.writer()) }
@@ -38,8 +37,7 @@ class CsvWriterTest : FunSpec({
 
 }) {
   
-  private val format = CsvFormat()
-    .lineDelimiter(LineDelimiter.LF)
+  private val builder = CsvWriter.builder(lineDelimiter = LineDelimiter.LF)
 
   @Test
   fun nullQuote() {
@@ -50,7 +48,7 @@ class CsvWriterTest : FunSpec({
 
   @Test
   fun emptyQuote() {
-    format.quoteStrategy(QuoteStrategy.EMPTY)
+    builder.quoteStrategy(QuoteStrategy.EMPTY)
     assertEquals("foo,,bar\n", write("foo", null, "bar"))
     assertEquals("foo,\"\",bar\n", write("foo", "", "bar"))
     assertEquals("foo,\",\",bar\n", write("foo", ",", "bar"))
@@ -90,7 +88,7 @@ class CsvWriterTest : FunSpec({
 
   @Test
   fun alwaysQuoteText() {
-    format.quoteStrategy(QuoteStrategy.ALWAYS)
+    builder.quoteStrategy(QuoteStrategy.ALWAYS)
     assertEquals(
       "\"a\",\"b,c\",\"d\ne\",\"f\"\"g\",\"\",\"\"\n",
       write("a", "b,c", "d\ne", "f\"g", "", null)
@@ -99,13 +97,13 @@ class CsvWriterTest : FunSpec({
 
   @Test
   fun fieldSeparator() {
-    format.fieldSeparator(';')
+    builder.fieldSeparator(';')
     assertEquals("foo;bar\n", write("foo", "bar"))
   }
 
   @Test
   fun quoteCharacter() {
-    format.quoteCharacter('\'')
+    builder.quoteCharacter('\'')
     assertEquals("'foo,bar'\n", write("foo,bar"))
   }
 
@@ -123,7 +121,7 @@ class CsvWriterTest : FunSpec({
   @Test
   fun commentCharacterDifferentChar() {
     assertEquals(";foo,bar\n", write(";foo", "bar"))
-    format.commentCharacter(';')
+    builder.commentCharacter(';')
     assertEquals("\";foo\",bar\n", write(";foo", "bar"))
   }
 
@@ -145,7 +143,7 @@ class CsvWriterTest : FunSpec({
 
   @Test
   fun writeCommentDifferentChar() {
-    format.commentCharacter(';')
+    builder.commentCharacter(';')
     assertEquals(";this is a comment\n", write { w: CsvWriter -> w.writeComment("this is a comment") })
   }
 
@@ -157,7 +155,7 @@ class CsvWriterTest : FunSpec({
 
   @Test
   fun chained() {
-    val writer = CsvFormat()
+    val writer = CsvWriter.builder()
       .fieldSeparator(',')
       .quoteCharacter('"')
       .quoteStrategy(QuoteStrategy.REQUIRED)
@@ -169,7 +167,7 @@ class CsvWriterTest : FunSpec({
   @Test
   fun mixedWriterUsage() {
     val stringWriter = StringBuilderDataWriter(StringBuilder())
-    val csvWriter = CsvFormat().writer(stringWriter)
+    val csvWriter = CsvWriter.builder().writer(stringWriter)
     csvWriter.writeRow("foo", "bar")
     stringWriter.write("# my comment\r\n")
     csvWriter.writeRow("1", "2")
@@ -178,18 +176,18 @@ class CsvWriterTest : FunSpec({
 
   @Test
   fun unwritableArray() {
-    val e = assertFailsWith(UncheckedIOException::class) { format.writer(UnwritableWriter()).writeRow("foo") }
+    val e = assertFailsWith(UncheckedIOException::class) { builder.writer(UnwritableWriter()).writeRow("foo") }
     assertEquals("Cannot write", e.cause!!.message)
     assertEquals(IOException::class, e.cause!!::class)
   }
 
   @Test
   fun unwritableIterable() {
-    val e = assertFailsWith(UncheckedIOException::class) { format.writer(UnwritableWriter()).writeRow(listOf("foo")) }
+    val e = assertFailsWith(UncheckedIOException::class) { builder.writer(UnwritableWriter()).writeRow(listOf("foo")) }
     assertEquals("Cannot write", e.cause!!.message)
     assertEquals(IOException::class, e.cause!!::class)
 
-    val e2 = assertFailsWith(UncheckedIOException::class) { format.writer(UnwritableWriter()).writeComment("foo") }
+    val e2 = assertFailsWith(UncheckedIOException::class) { builder.writer(UnwritableWriter()).writeComment("foo") }
     assertEquals("Cannot write", e2.cause!!.message)
     assertEquals(IOException::class, e2.cause!!::class)
   }
@@ -197,13 +195,13 @@ class CsvWriterTest : FunSpec({
   // buffer
   @Test
   fun invalidBuffer() {
-    assertFailsWith(IllegalArgumentException::class) { format.bufferSize(-1) }
+    assertFailsWith(IllegalArgumentException::class) { builder.bufferSize(-1) }
   }
 
   @Test
   fun disableBuffer() {
     val stringWriter = DataWriter.writer()
-    format.bufferSize(0).writer(stringWriter).writeRow("foo", "bar")
+    builder.bufferSize(0).writer(stringWriter).writeRow("foo", "bar")
     assertEquals("foo,bar\n", stringWriter.toString())
   }
 
@@ -212,9 +210,9 @@ class CsvWriterTest : FunSpec({
   fun builderToString() {
     assertEquals(
       """
-  CsvFormat[fieldSeparator=,, quoteCharacter=", commentCharacter=#, quoteStrategy=REQUIRED, lineDelimiter=
+  CsvWriterBuilder[fieldSeparator=,, quoteCharacter=", commentCharacter=#, quoteStrategy=REQUIRED, lineDelimiter=
   , bufferSize=8192]
-  """.trimIndent(), format.toString()
+  """.trimIndent(), builder.toString()
     )
   }
 
@@ -224,7 +222,7 @@ class CsvWriterTest : FunSpec({
       """
   CsvWriter[fieldSeparator=,, quoteCharacter=", commentCharacter=#, quoteStrategy=REQUIRED, lineDelimiter='
   ']
-  """.trimIndent(), format.writer(DataWriter.writer()).toString()
+  """.trimIndent(), builder.writer(DataWriter.writer()).toString()
     )
   }
 
@@ -234,7 +232,7 @@ class CsvWriterTest : FunSpec({
 
   private fun write(c: (CsvWriter) -> Unit): String {
     val stringBuilder = StringBuilder()
-    val to = format.writer(DataWriter.writer(stringBuilder))
+    val to = builder.writer(DataWriter.writer(stringBuilder))
     c(to)
     return stringBuilder.toString()
   }

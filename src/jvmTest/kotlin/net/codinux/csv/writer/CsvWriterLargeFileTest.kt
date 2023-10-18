@@ -22,7 +22,7 @@ class CsvWriterLargeFileTest {
 
     val destinationFile = File.createTempFile("kcsv_large_file_test_", ".csv")
 
-    CsvFormat(';', quoteStrategy = QuoteStrategy.ALWAYS).writer(destinationFile).use { underTest ->
+    CsvWriter.builder(';', quoteStrategy = QuoteStrategy.ALWAYS).writer(destinationFile).use { underTest ->
       underTest.writeRow(reader.header)
 
       reader.forEach { row -> underTest.writeRow(row.fields) }

@@ -1,7 +1,7 @@
 package blackbox.writer
 
 import net.codinux.csv.use
-import net.codinux.csv.writer.CsvFormat
+import net.codinux.csv.writer.CsvWriter
 import net.codinux.csv.writer.writer
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
@@ -17,7 +17,7 @@ class CsvWriterTest {
   @Test
   fun path(@TempDir tempDir: Path) {
     val file = tempDir.resolve("kcsv.csv")
-    CsvFormat().writer(file).use { csv -> csv.writeRow("value1", "value2") }
+    CsvWriter.builder().writer(file).use { csv -> csv.writeRow("value1", "value2") }
     Assertions.assertEquals(
       "value1,value2\r\n",
       String(Files.readAllBytes(file), StandardCharsets.UTF_8)
@@ -28,7 +28,7 @@ class CsvWriterTest {
   fun streaming() {
     val stream = Stream.of(listOf("header1", "header2"), listOf("value1", "value2"))
     val sw = StringWriter()
-    val csvWriter = CsvFormat().writer(sw)
+    val csvWriter = CsvWriter.builder().writer(sw)
     stream.forEach { values: List<String> -> csvWriter.writeRow(values) }
     Assertions.assertEquals("header1,header2\r\nvalue1,value2\r\n", sw.toString())
   }
