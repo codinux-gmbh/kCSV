@@ -7,9 +7,12 @@ import kotlin.test.assertNotNull
 class RowHandlerTest {
   @Test
   fun test() {
-    val rh = RowHandler(1, false, false)
-    rh.add("foo")
-    rh.add("bar")
+    val rh = RowHandler(1, false, emptySet(), false)
+    val buffer ="foo,bar".toCharArray()
+
+    rh.add(buffer, 0, 3, 0, '"')
+    rh.add(buffer, 4, 7, 0, '"')
+
     val csvRow = rh.buildAndReset()
     assertNotNull(csvRow)
     assertEquals(

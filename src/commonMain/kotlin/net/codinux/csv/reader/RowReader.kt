@@ -43,7 +43,7 @@ class RowReader internal constructor(
           if (buffer.begin < buffer.pos || rowHandler.isCommentMode) {
             rowHandler.add(buffer.buf, buffer.begin, buffer.pos, status, quoteCharacter)
           } else if (status and STATUS_NEW_FIELD != 0) {
-            rowHandler.add("")
+            rowHandler.addEmptyField()
           }
           finished = true
           break

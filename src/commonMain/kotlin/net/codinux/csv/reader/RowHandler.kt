@@ -26,18 +26,19 @@ internal class RowHandler(
     add(materialize(lBuf, lBegin, lPos, lStatus, quoteCharacter))
   }
 
-  fun add(value: String) {
+  fun addEmptyField() {
+    add("")
+  }
+
+  private fun add(value: String) {
     if (idx == len) {
       extendCapacity()
     }
+
     row[idx++] = value
   }
 
-  private fun materialize(
-    lBuf: CharArray,
-    lBegin: Int, lPos: Int, lStatus: Int,
-    quoteCharacter: Char
-  ): String {
+  private fun materialize(lBuf: CharArray, lBegin: Int, lPos: Int, lStatus: Int, quoteCharacter: Char): String {
     if (lStatus and RowReader.STATUS_QUOTED_COLUMN == 0) { // column without quotes
       return lBuf.concatToString(lBegin, lPos)
     }
