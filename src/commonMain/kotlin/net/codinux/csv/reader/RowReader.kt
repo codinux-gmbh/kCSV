@@ -16,12 +16,13 @@ class RowReader internal constructor(
   private val commentStrategy: CommentStrategy,
   private val commentCharacter: Char,
   reuseRowInstance: Boolean,
+  ignoreColumns: Set<Int>,
   private val ignoreInvalidQuoteChars: Boolean
 ) : Closeable {
 
   private val buffer: Buffer = Buffer(reader)
 
-  private val rowHandler = RowHandler(32, reuseRowInstance, ignoreInvalidQuoteChars)
+  private val rowHandler = RowHandler(32, reuseRowInstance, ignoreColumns, ignoreInvalidQuoteChars)
 
   private var status = 0
 

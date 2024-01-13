@@ -21,7 +21,18 @@ class LargeFileReaderBenchmark {
 
         val names = reader.map { it[4] }
 
-        assert(names.size == 842_242)
+        assertResult(names)
+    }
+
+    @Benchmark
+    @BenchmarkMode(Mode.AverageTime)
+    fun kCsv_DoNotMaterializeOtherColumns() {
+        val columnsToIgnore = hashSetOf(0, 1, 2, 3, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17)
+        val reader = CsvReader(ignoreColumns = columnsToIgnore).read(LargeCsvFilePath)
+
+        val names = reader.map { it[4] }
+
+        assertResult(names)
     }
 
     @Benchmark
@@ -31,7 +42,18 @@ class LargeFileReaderBenchmark {
 
         val names = reader.map { row -> row.getField(4) }
 
+        assertResult(names)
+    }
+
+    private fun assertResult(names: List<String>) {
         assert(names.size == 842_242)
+
+        val stopPointsWithEmptyNames = names.filter { it.isBlank() }
+        assert(stopPointsWithEmptyNames.size == 31852)
+
+        assert(names.contains("S+U Berlin Hauptbahnhof (tief)"))
+        assert(names.contains("Glückstadt"))
+        assert(names.contains("Frankfurt (Main) Flughafen Fernbahnhof"))
     }
 
 }

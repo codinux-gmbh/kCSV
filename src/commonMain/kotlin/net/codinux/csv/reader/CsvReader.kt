@@ -26,6 +26,11 @@ class CsvReader(
   private val commentStrategy: CommentStrategy = Config.DefaultCommentStrategy,
   private val skipEmptyRows: Boolean = Config.DefaultSkipEmptyRows,
   private val reuseRowInstance: Boolean = Config.DefaultReuseRowInstance,
+  /**
+   * Specify the column indices whose values can be ignored to save memory and CPU for copying them
+   * into RAM (saves quite a lot RAM on larger files).
+   */
+  private val ignoreColumns: Set<Int> = Config.DefaultIgnoreColumns,
   private val errorOnDifferentFieldCount: Boolean = Config.DefaultErrorOnDifferentFieldCount,
   private val ignoreInvalidQuoteChars: Boolean = Config.DefaultIgnoreInvalidQuoteChars
 ) {
@@ -59,7 +64,7 @@ class CsvReader(
   fun read(data: String) = read(DataReader.reader(data))
 
   internal fun read(reader: DataReader): CsvRowIterator {
-    val rowReader = RowReader(reader, fieldSeparator, quoteCharacter, commentStrategy, commentCharacter, reuseRowInstance, ignoreInvalidQuoteChars)
+    val rowReader = RowReader(reader, fieldSeparator, quoteCharacter, commentStrategy, commentCharacter, reuseRowInstance, ignoreColumns, ignoreInvalidQuoteChars)
 
     return CsvRowIterator(rowReader, commentStrategy, skipEmptyRows, errorOnDifferentFieldCount, hasHeaderRow)
   }
@@ -90,6 +95,7 @@ class CsvReader(
     private var errorOnDifferentFieldCount = Config.DefaultErrorOnDifferentFieldCount
     private var hasHeaderRow = Config.DefaultHasHeaderRow
     private var reuseRowInstance = Config.DefaultReuseRowInstance
+    private var ignoreColumns = Config.DefaultIgnoreColumns
     private var ignoreInvalidQuoteChars = Config.DefaultIgnoreInvalidQuoteChars
 
     /**
@@ -175,6 +181,13 @@ class CsvReader(
     }
 
     /**
+     * Set indices of columns their values are ignored to save memory and CPU of copying their values into RAM.
+     */
+    fun ignoreColumns(ignoreColumns: Set<Int>) = this.apply {
+      this.ignoreColumns = ignoreColumns
+    }
+
+    /**
      * Defines if invalid placed quote chars like "\"Contains \" in cell content\"" should be ignored.
      *
      * @param ignoreInvalidQuoteChars If true invalid placed quote chars will be ignored
@@ -203,7 +216,7 @@ class CsvReader(
       return CsvReader(
         fieldSeparator, hasHeaderRow, quoteCharacter,
         commentCharacter, commentStrategy, skipEmptyRows,
-        reuseRowInstance, errorOnDifferentFieldCount, ignoreInvalidQuoteChars
+        reuseRowInstance, ignoreColumns, errorOnDifferentFieldCount, ignoreInvalidQuoteChars
       )
     }
 

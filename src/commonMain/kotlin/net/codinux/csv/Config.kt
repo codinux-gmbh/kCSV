@@ -29,6 +29,8 @@ object Config {
 
   const val DefaultReuseRowInstance = false
 
+  val DefaultIgnoreColumns = emptySet<Int>()
+
   const val DefaultIgnoreInvalidQuoteChars = false
 
   // CsvWriter config
