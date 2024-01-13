@@ -21,7 +21,7 @@ class RowReader internal constructor(
 
   private val buffer: Buffer = Buffer(reader)
 
-  private val rowHandler = RowHandler(32, reuseRowInstance)
+  private val rowHandler = RowHandler(32, reuseRowInstance, ignoreInvalidQuoteChars)
 
   private var status = 0
 
@@ -41,12 +41,7 @@ class RowReader internal constructor(
         if (buffer.fetchData()) {
           // reached end of stream
           if (buffer.begin < buffer.pos || rowHandler.isCommentMode) {
-            rowHandler.add(
-              materialize(
-                buffer.buf, buffer.begin,
-                buffer.pos, status, quoteCharacter
-              )
-            )
+            rowHandler.add(buffer.buf, buffer.begin, buffer.pos, status, quoteCharacter)
           } else if (status and STATUS_NEW_FIELD != 0) {
             rowHandler.add("")
           }
@@ -99,23 +94,13 @@ class RowReader internal constructor(
           while (lPos < lLen) {
             val lookAhead = lBuf[lPos++]
             if (lookAhead == CR) {
-              rh.add(
-                materialize(
-                  lBuf, lBegin, lPos - 1, lStatus,
-                  quoteCharacter
-                )
-              )
+              rh.add(lBuf, lBegin, lPos - 1, lStatus, quoteCharacter)
               status = STATUS_LAST_CHAR_WAS_CR
               lBegin = lPos
               moreDataNeeded = false
               return@OUTER
             } else if (lookAhead == LF) {
-              rh.add(
-                materialize(
-                  lBuf, lBegin, lPos - 1, lStatus,
-                  quoteCharacter
-                )
-              )
+              rh.add(lBuf, lBegin, lPos - 1, lStatus, quoteCharacter)
               status = STATUS_RESET
               lBegin = lPos
               moreDataNeeded = false
@@ -127,33 +112,18 @@ class RowReader internal constructor(
           while (lPos < lLen) {
             val c = lBuf[lPos++]
             if (c == fieldSeparator) {
-              rh.add(
-                materialize(
-                  lBuf, lBegin, lPos - 1, lStatus,
-                  quoteCharacter
-                )
-              )
+              rh.add(lBuf, lBegin, lPos - 1, lStatus, quoteCharacter)
               lStatus = STATUS_NEW_FIELD
               lBegin = lPos
             } else if (c == CR) {
-              rh.add(
-                materialize(
-                  lBuf, lBegin, lPos - 1, lStatus,
-                  quoteCharacter
-                )
-              )
+              rh.add(lBuf, lBegin, lPos - 1, lStatus, quoteCharacter)
               status = STATUS_LAST_CHAR_WAS_CR
               lBegin = lPos
               moreDataNeeded = false
               return@OUTER
             } else if (c == LF) {
               if (lStatus and STATUS_LAST_CHAR_WAS_CR == 0) {
-                rh.add(
-                  materialize(
-                    lBuf, lBegin, lPos - 1,
-                    lStatus, quoteCharacter
-                  )
-                )
+                rh.add(lBuf, lBegin, lPos - 1, lStatus, quoteCharacter)
                 status = STATUS_RESET
                 lBegin = lPos
                 moreDataNeeded = false
@@ -207,52 +177,6 @@ class RowReader internal constructor(
     }
 
     return false
-  }
-
-  private fun materialize(
-    lBuf: CharArray,
-    lBegin: Int, lPos: Int, lStatus: Int,
-    quoteCharacter: Char
-  ): String {
-    if (lStatus and STATUS_QUOTED_COLUMN == 0) { // column without quotes
-      return lBuf.concatToString(lBegin, lPos)
-    }
-
-    // column with quotes
-    val shift = if (ignoreInvalidQuoteChars) {
-      1
-    } else {
-      cleanDelimiters(lBuf, lBegin + 1, lPos, quoteCharacter)
-    }
-
-    return lBuf.concatToString(lBegin + 1, lPos - shift)
-  }
-
-  private fun cleanDelimiters(
-    buf: CharArray, begin: Int, pos: Int,
-    quoteCharacter: Char
-  ): Int {
-    var shift = 0
-    var escape = false
-
-    for (i in begin until pos) {
-      val c = buf[i]
-      if (c == quoteCharacter) {
-        if (!escape) {
-          shift++
-          escape = true
-          continue
-        } else {
-          escape = false
-        }
-      }
-
-      if (shift > 0) {
-        buf[i - shift] = c
-      }
-    }
-
-    return shift
   }
 
   private class Buffer(reader: DataReader) {
@@ -343,7 +267,7 @@ class RowReader internal constructor(
     private const val STATUS_COMMENTED_ROW = 16
     private const val STATUS_NEW_FIELD = 8
     private const val STATUS_QUOTED_MODE = 4
-    private const val STATUS_QUOTED_COLUMN = 2
+    internal const val STATUS_QUOTED_COLUMN = 2
     private const val STATUS_DATA_COLUMN = 1
     private const val STATUS_RESET = 0
   }

@@ -2,7 +2,8 @@ package net.codinux.csv.reader
 
 internal class RowHandler(
   private var len: Int,
-  private val reuseRowInstance: Boolean
+  private val reuseRowInstance: Boolean,
+  private val ignoreInvalidQuoteChars: Boolean
 ) {
 
   private var row: Array<String> = Array(len) { "" }
@@ -20,11 +21,62 @@ internal class RowHandler(
 
   private var reusedCsvRowInstance = CsvRow.empty(header, originalLineNumber, isCommentMode)
 
+
+  fun add(lBuf: CharArray, lBegin: Int, lPos: Int, lStatus: Int, quoteCharacter: Char) {
+    add(materialize(lBuf, lBegin, lPos, lStatus, quoteCharacter))
+  }
+
   fun add(value: String) {
     if (idx == len) {
       extendCapacity()
     }
     row[idx++] = value
+  }
+
+  private fun materialize(
+    lBuf: CharArray,
+    lBegin: Int, lPos: Int, lStatus: Int,
+    quoteCharacter: Char
+  ): String {
+    if (lStatus and RowReader.STATUS_QUOTED_COLUMN == 0) { // column without quotes
+      return lBuf.concatToString(lBegin, lPos)
+    }
+
+    // column with quotes
+    val shift = if (ignoreInvalidQuoteChars) {
+      1
+    } else {
+      cleanDelimiters(lBuf, lBegin + 1, lPos, quoteCharacter)
+    }
+
+    return lBuf.concatToString(lBegin + 1, lPos - shift)
+  }
+
+  private fun cleanDelimiters(
+    buf: CharArray, begin: Int, pos: Int,
+    quoteCharacter: Char
+  ): Int {
+    var shift = 0
+    var escape = false
+
+    for (i in begin until pos) {
+      val c = buf[i]
+      if (c == quoteCharacter) {
+        if (!escape) {
+          shift++
+          escape = true
+          continue
+        } else {
+          escape = false
+        }
+      }
+
+      if (shift > 0) {
+        buf[i - shift] = c
+      }
+    }
+
+    return shift
   }
 
   private fun extendCapacity() {

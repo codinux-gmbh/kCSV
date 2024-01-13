@@ -7,7 +7,7 @@ import kotlin.test.assertNotNull
 class RowHandlerTest {
   @Test
   fun test() {
-    val rh = RowHandler(1, false)
+    val rh = RowHandler(1, false, false)
     rh.add("foo")
     rh.add("bar")
     val csvRow = rh.buildAndReset()
