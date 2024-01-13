@@ -1,4 +1,4 @@
-package net.codinux.csv
+package net.codinux.csv.benchmark
 
 import net.codinux.csv.reader.CsvReader
 import net.codinux.csv.reader.read

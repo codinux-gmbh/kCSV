@@ -1,7 +1,7 @@
-package net.codinux.csv
+package net.codinux.csv.benchmark
 
-import net.codinux.csv.utils.Constants
-import net.codinux.csv.utils.InfiniteDataReader
+import net.codinux.csv.benchmark.utils.Constants
+import net.codinux.csv.benchmark.utils.InfiniteDataReader
 import net.codinux.csv.reader.CsvReader
 import net.codinux.csv.reader.CsvRow
 import net.codinux.csv.reader.read

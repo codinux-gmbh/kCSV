@@ -1,7 +1,7 @@
-package net.codinux.csv
+package net.codinux.csv.benchmark
 
-import net.codinux.csv.utils.Constants
-import net.codinux.csv.utils.NullWriter
+import net.codinux.csv.benchmark.utils.Constants
+import net.codinux.csv.benchmark.utils.NullWriter
 import net.codinux.csv.writer.CsvWriter
 import net.codinux.csv.writer.LineDelimiter
 import net.codinux.csv.writer.writer

@@ -1,4 +1,4 @@
-package net.codinux.csv.utils
+package net.codinux.csv.benchmark.utils
 
 import org.openjdk.jmh.infra.Blackhole
 import java.io.Writer

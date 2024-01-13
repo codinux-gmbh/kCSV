@@ -1,9 +1,9 @@
-package net.codinux.csv
+package net.codinux.csv.benchmark
 
 import de.siegmar.fastcsv.reader.CsvReader
 import de.siegmar.fastcsv.reader.CsvRecord
-import net.codinux.csv.utils.Constants
-import net.codinux.csv.utils.InfiniteDataReader
+import net.codinux.csv.benchmark.utils.Constants
+import net.codinux.csv.benchmark.utils.InfiniteDataReader
 import org.openjdk.jmh.annotations.*
 
 @BenchmarkMode(Mode.Throughput)
