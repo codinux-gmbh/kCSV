@@ -6,6 +6,7 @@ import net.codinux.csv.utils.Constants
 import net.codinux.csv.utils.InfiniteDataReader
 import org.openjdk.jmh.annotations.*
 
+@BenchmarkMode(Mode.Throughput)
 @State(Scope.Benchmark)
 class FastCsvReaderBenchmark {
 

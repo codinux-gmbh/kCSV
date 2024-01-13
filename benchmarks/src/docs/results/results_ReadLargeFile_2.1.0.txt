@@ -1,0 +1,9 @@
+Benchmark                             Mode  Cnt  Score   Error  Units
+LargeFileReaderBenchmark.fastCsv  avgt    4  0.865 ± 1.345   s/op
+LargeFileReaderBenchmark.kCsv     avgt    3  1.045 ± 0.436   s/op
+
+LargeFileReaderBenchmark.fastCsv  avgt    4  0.978 ± 0.185   s/op
+LargeFileReaderBenchmark.kCsv     avgt    4  0.997 ± 0.276   s/op
+
+LargeFileReaderBenchmark.fastCsv  avgt    4  1.059 ± 0.234   s/op
+LargeFileReaderBenchmark.kCsv     avgt    4  1.158 ± 1.312   s/op

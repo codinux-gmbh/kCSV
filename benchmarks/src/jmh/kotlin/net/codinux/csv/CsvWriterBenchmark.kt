@@ -8,6 +8,7 @@ import net.codinux.csv.writer.writer
 import org.openjdk.jmh.annotations.*
 import org.openjdk.jmh.infra.Blackhole
 
+@BenchmarkMode(Mode.Throughput)
 @State(Scope.Benchmark)
 class CsvWriterBenchmark {
 

@@ -7,6 +7,7 @@ import net.codinux.csv.reader.CsvRow
 import net.codinux.csv.reader.read
 import org.openjdk.jmh.annotations.*
 
+@BenchmarkMode(Mode.Throughput)
 @State(Scope.Benchmark)
 class CsvReaderBenchmark {
 

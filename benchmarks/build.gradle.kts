@@ -38,7 +38,6 @@ jmh {
 
     warmupIterations.set(2)
     iterations.set(2)
-    benchmarkMode.add("thrpt")
     fork.set(2)
     operationsPerInvocation.set(1)
 
