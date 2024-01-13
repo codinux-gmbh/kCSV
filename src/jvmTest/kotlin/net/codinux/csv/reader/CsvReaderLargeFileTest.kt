@@ -21,6 +21,7 @@ class CsvReaderLargeFileTest {
       fieldSeparator = ';',
       hasHeaderRow = true,
       reuseRowInstance = true,
+      ignoreColumns = setOf(7, 8, 9, 10, 11, 12, 13, 14, 15, 16),
       ignoreInvalidQuoteChars = true
     ).read(TestData.largeCsvFileWithInvalidQuoteCharsZipInputStream())
 
@@ -40,7 +41,7 @@ class CsvReaderLargeFileTest {
   }
 
   private fun assertRow(index: Int, row: CsvRow) {
-    index.shouldBe(row.originalLineNumber - 2) // -2 due to heder row and that originalLineNumber is one based and index zero based
+    index.shouldBe(row.originalLineNumber - 2) // -2 due to header row and that originalLineNumber is one based and index zero based
     row.getInt("SeqNo").shouldBe(index)
     row.getString("Type").shouldBeIn("S", "A", "Q")
 

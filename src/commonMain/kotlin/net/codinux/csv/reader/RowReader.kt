@@ -15,6 +15,7 @@ class RowReader internal constructor(
   private val quoteCharacter: Char,
   private val commentStrategy: CommentStrategy,
   private val commentCharacter: Char,
+  hasHeaderRow: Boolean,
   reuseRowInstance: Boolean,
   ignoreColumns: Set<Int>,
   private val ignoreInvalidQuoteChars: Boolean
@@ -22,7 +23,7 @@ class RowReader internal constructor(
 
   private val buffer: Buffer = Buffer(reader)
 
-  private val rowHandler = RowHandler(32, reuseRowInstance, ignoreColumns, ignoreInvalidQuoteChars)
+  private val rowHandler = RowHandler(32, hasHeaderRow, reuseRowInstance, ignoreColumns, ignoreInvalidQuoteChars)
 
   private var status = 0
 

@@ -64,7 +64,7 @@ class CsvReader(
   fun read(data: String) = read(DataReader.reader(data))
 
   internal fun read(reader: DataReader): CsvRowIterator {
-    val rowReader = RowReader(reader, fieldSeparator, quoteCharacter, commentStrategy, commentCharacter, reuseRowInstance, ignoreColumns, ignoreInvalidQuoteChars)
+    val rowReader = RowReader(reader, fieldSeparator, quoteCharacter, commentStrategy, commentCharacter, hasHeaderRow, reuseRowInstance, ignoreColumns, ignoreInvalidQuoteChars)
 
     return CsvRowIterator(rowReader, commentStrategy, skipEmptyRows, errorOnDifferentFieldCount, hasHeaderRow)
   }

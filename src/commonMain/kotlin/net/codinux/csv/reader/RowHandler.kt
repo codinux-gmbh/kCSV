@@ -2,6 +2,7 @@ package net.codinux.csv.reader
 
 internal class RowHandler(
   private var len: Int,
+  private val hasHeaderRow: Boolean,
   private val reuseRowInstance: Boolean,
   private val ignoreColumns: Set<Int>,
   private val ignoreInvalidQuoteChars: Boolean
@@ -27,7 +28,11 @@ internal class RowHandler(
     checkCapacity()
 
     if (ignoreColumn()) {
-      idx++
+      if (hasHeaderRow && originalLineNumber == 2L) { // replace column's header value of last row (= header) with empty value
+        addEmptyField()
+      } else {
+        idx++
+      }
     } else {
       add(materialize(lBuf, lBegin, lPos, lStatus, quoteCharacter))
     }
@@ -50,7 +55,7 @@ internal class RowHandler(
   }
 
   private fun ignoreColumn(): Boolean =
-    ignoreColumns.contains(idx)
+    ignoreColumns.contains(idx) && (hasHeaderRow == false || originalLineNumber > 1)
 
   private fun materialize(lBuf: CharArray, lBegin: Int, lPos: Int, lStatus: Int, quoteCharacter: Char): String {
     if (lStatus and RowReader.STATUS_QUOTED_COLUMN == 0) { // column without quotes
