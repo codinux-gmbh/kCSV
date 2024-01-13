@@ -1,0 +1,12 @@
+Benchmark                          Mode  Cnt        Score         Error  Units
+CsvReaderBenchmark.read           thrpt    4  2229229.115 ± 1494245.353  ops/s
+CsvWriterBenchmark.write          thrpt    4  3852469.249 ±  278418.800  ops/s
+FastCsvReaderBenchmark.read       thrpt    4  2686185.364 ±  708416.329  ops/s
+FastCsvWriterBenchmark.write      thrpt    4  4696797.044 ±  990742.191  ops/s
+LargeFileReaderBenchmark.fastCsv   avgt    4        1.100 ±       0.259   s/op
+
+CsvReaderBenchmark.read           thrpt    4  2684814.323 ±  522342.924  ops/s
+CsvWriterBenchmark.write          thrpt    4  3765588.281 ± 1013925.129  ops/s
+FastCsvReaderBenchmark.read       thrpt    4  2690577.644 ±  595081.396  ops/s
+FastCsvWriterBenchmark.write      thrpt    4  4809979.542 ±  961953.525  ops/s
+LargeFileReaderBenchmark.fastCsv   avgt    4        1.073 ±       0.420   s/op
