@@ -3,6 +3,8 @@ import java.time.format.DateTimeFormatter
 
 plugins {
     kotlin("jvm")
+    kotlin("plugin.allopen")
+
     id("me.champeau.jmh") version "0.7.2"
 }
 
@@ -43,4 +45,12 @@ jmh {
     val dateTime = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss").format(LocalDateTime.now())
 //    humanOutputFile.set(project.file("${project.buildDir}/reports/jmh/human_$dateTime.txt")) // human-readable output file
     resultsFile.set(project.file("${project.buildDir}/reports/jmh/results_$dateTime.txt"))
+}
+
+allOpen {
+    annotation("org.openjdk.jmh.annotations.State")
+    annotation("org.openjdk.jmh.annotations.BenchmarkMode")
+    annotation("org.openjdk.jmh.annotations.Fork")
+    annotation("org.openjdk.jmh.annotations.Warmup")
+    annotation("org.openjdk.jmh.annotations.Measurement")
 }

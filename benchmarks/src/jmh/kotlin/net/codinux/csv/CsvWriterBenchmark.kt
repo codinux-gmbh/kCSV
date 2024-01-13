@@ -8,7 +8,7 @@ import org.openjdk.jmh.annotations.*
 import org.openjdk.jmh.infra.Blackhole
 
 @State(Scope.Benchmark)
-open class CsvWriterBenchmark {
+class CsvWriterBenchmark {
 
     private lateinit var writer: CsvWriter
 

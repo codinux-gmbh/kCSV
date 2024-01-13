@@ -5,7 +5,7 @@ import de.siegmar.fastcsv.reader.CsvRecord
 import org.openjdk.jmh.annotations.*
 
 @State(Scope.Benchmark)
-open class FastCsvReaderBenchmark {
+class FastCsvReaderBenchmark {
 
     private val reader = CsvReader.builder().ofCsvRecord(InfiniteDataReader(Constants.Data)).iterator()
 

@@ -9,6 +9,7 @@ pluginManagement {
     plugins {
         kotlin("multiplatform") version kotlinVersion
         kotlin("jvm") version kotlinVersion
+        kotlin("plugin.allopen") version kotlinVersion
     }
 }
 

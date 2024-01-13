@@ -6,7 +6,7 @@ import net.codinux.csv.reader.read
 import org.openjdk.jmh.annotations.*
 
 @State(Scope.Benchmark)
-open class CsvReaderBenchmark {
+class CsvReaderBenchmark {
 
     private val reader = CsvReader().read(InfiniteDataReader(Constants.Data))
 
