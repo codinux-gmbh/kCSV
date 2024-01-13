@@ -5,13 +5,12 @@ buildscript {
 }
 
 plugins {
-    id 'org.jetbrains.kotlin.multiplatform' version "$kotlinVersion"
+    id 'org.jetbrains.kotlin.multiplatform'
     id("io.kotest.multiplatform") version "$kotestVersion"
     id 'checkstyle'
     id 'pmd'
     id 'jacoco'
 //    id 'com.github.spotbugs' version '4.5.0'
-    id 'me.champeau.jmh' version '0.7.0'
     id 'info.solidsoft.pitest' version '1.5.2'
 }
 
@@ -184,16 +183,6 @@ kotlin {
 //}
 //
 //check.dependsOn jacocoTestCoverageVerification
-//
-//jmh {
-//    warmupIterations = 2
-//    iterations = 5
-//    benchmarkMode = ['thrpt']
-//    fork = 2
-//    operationsPerInvocation = 1
-//
-//    humanOutputFile = project.file("${project.buildDir}/reports/jmh/human.txt") // human-readable output file
-//}
 //
 //task proguardCheck(type: proguard.gradle.ProGuardTask, dependsOn: jar) {
 //    injars project.jar.archivePath
