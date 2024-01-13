@@ -1,4 +1,4 @@
-package net.codinux.csv
+package net.codinux.csv.utils
 
 import java.io.Reader
 import kotlin.math.min

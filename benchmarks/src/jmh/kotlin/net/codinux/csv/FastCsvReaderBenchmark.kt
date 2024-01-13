@@ -2,6 +2,8 @@ package net.codinux.csv
 
 import de.siegmar.fastcsv.reader.CsvReader
 import de.siegmar.fastcsv.reader.CsvRecord
+import net.codinux.csv.utils.Constants
+import net.codinux.csv.utils.InfiniteDataReader
 import org.openjdk.jmh.annotations.*
 
 @State(Scope.Benchmark)

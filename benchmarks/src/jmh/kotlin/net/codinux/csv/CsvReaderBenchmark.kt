@@ -1,5 +1,7 @@
 package net.codinux.csv
 
+import net.codinux.csv.utils.Constants
+import net.codinux.csv.utils.InfiniteDataReader
 import net.codinux.csv.reader.CsvReader
 import net.codinux.csv.reader.CsvRow
 import net.codinux.csv.reader.read

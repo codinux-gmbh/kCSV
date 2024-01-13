@@ -1,6 +1,7 @@
 package net.codinux.csv
 
-import net.codinux.csv.Constants.Row
+import net.codinux.csv.utils.Constants
+import net.codinux.csv.utils.NullWriter
 import net.codinux.csv.writer.CsvWriter
 import net.codinux.csv.writer.LineDelimiter
 import net.codinux.csv.writer.writer
@@ -26,7 +27,7 @@ class CsvWriterBenchmark {
 
     @Benchmark
     fun write() {
-        writer.writeRow(*Row)
+        writer.writeRow(*Constants.Row)
     }
 
 }
