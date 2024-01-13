@@ -1,0 +1,3 @@
+Benchmark                     Mode  Cnt        Score        Error  Units
+FastCsvReaderBenchmark.read  thrpt    4  2903205.391 ± 492220.951  ops/s
+FastCsvReaderBenchmark.read  thrpt    4  2904191.422 ± 351252.903  ops/s

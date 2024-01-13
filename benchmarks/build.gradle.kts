@@ -22,6 +22,7 @@ val jmhDepVersion: String by project
 
 dependencies {
     implementation(rootProject)
+    jmh("de.siegmar:fastcsv:3.0.0")
 
     jmh("org.openjdk.jmh:jmh-kotlin-benchmark-archetype:$jmhDepVersion")
     jmh("org.openjdk.jmh:jmh-generator-annprocess:$jmhDepVersion")
