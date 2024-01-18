@@ -4,7 +4,7 @@ internal class RowHandler(
   private var len: Int,
   private val hasHeaderRow: Boolean,
   private val reuseRowInstance: Boolean,
-  private val ignoreColumns: Set<Int>,
+  ignoreColumns: Set<Int>,
   private val ignoreInvalidQuoteChars: Boolean
 ) {
 
@@ -14,6 +14,7 @@ internal class RowHandler(
   var isCommentMode = false
     private set
   private var originalLineNumber: Long = 1
+  private val ignoreColumns: IntArray = ignoreColumns.toIntArray()
 
   internal var header: Set<String> = ImmutableSet(emptySet())
     set(value) {
@@ -54,8 +55,21 @@ internal class RowHandler(
     }
   }
 
-  private fun ignoreColumn(): Boolean =
-    ignoreColumns.contains(idx) && (hasHeaderRow == false || originalLineNumber > 1)
+  private fun ignoreColumn(): Boolean {
+    if (ignoreColumns.isEmpty() || (hasHeaderRow && originalLineNumber < 2)) { // read all fields of header row // TODO: why?
+      return false
+    }
+
+    // couldn't believe it, but iterating over an array per index is way faster than Set<Int>.contains(idx)
+    @Suppress("ReplaceManualRangeWithIndicesCalls")
+    for (i in 0..< ignoreColumns.size) {
+      if (ignoreColumns[i] == idx) {
+        return true
+      }
+    }
+
+    return false
+  }
 
   private fun materialize(lBuf: CharArray, lBegin: Int, lPos: Int, lStatus: Int, quoteCharacter: Char): String {
     if (lStatus and RowReader.STATUS_QUOTED_COLUMN == 0) { // column without quotes
@@ -101,6 +115,7 @@ internal class RowHandler(
 
   private fun extendCapacity() {
     len *= 2
+    // System.arraycopy(row, 0, newRow, 0, idx);
     row = Array(len) { index -> if (index < idx) row[index] else "" }
   }
 
