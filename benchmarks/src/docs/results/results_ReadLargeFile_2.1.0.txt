@@ -7,3 +7,10 @@ LargeFileReaderBenchmark.kCsv     avgt    4  0.997 ± 0.276   s/op
 
 LargeFileReaderBenchmark.fastCsv  avgt    4  1.059 ± 0.234   s/op
 LargeFileReaderBenchmark.kCsv     avgt    4  1.158 ± 1.312   s/op
+
+CsvReaderBenchmark.read                                     thrpt    4  2613497.673 ±  691562.443  ops/s
+FastCsvReaderBenchmark.read                                 thrpt    4  2301522.372 ± 2609122.927  ops/s
+LargeFileReaderBenchmark.fastCsv                             avgt    4        1.243 ±       1.580   s/op
+LargeFileReaderBenchmark.kCsv                                avgt    4        1.231 ±       0.776   s/op
+LargeFileReaderBenchmark.kCsv_DoNotMaterializeOtherColumns   avgt    4        1.030 ±       0.298   s/op
+

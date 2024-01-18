@@ -221,7 +221,7 @@ class RowReader internal constructor(
             // relocate data in existing buffer
             // System.arraycopy(buf, begin, buf, 0, lenToCopy);
             // iterating over indices is way faster than buf.copyInto(buf, 0, begin, begin + lenToCopy), see ArrayCopyBenchmark
-            for (index in 0..<lenToCopy) {
+            for (index in 0 ..< lenToCopy) {
               buf[index] = buf[begin + index]
             }
           }

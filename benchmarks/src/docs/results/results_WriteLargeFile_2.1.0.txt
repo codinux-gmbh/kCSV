@@ -1,0 +1,6 @@
+Benchmark                             Mode  Cnt  Score   Error  Units
+LargeFileWriterBenchmark.fastCsv      avgt    4  0.727 ± 0.146   s/op
+LargeFileWriterBenchmark.kCsv         avgt    4  0.735 ± 0.327   s/op
+
+CsvWriterBenchmark.write                                    thrpt    4  3352281.693 ± 1532177.850  ops/s
+FastCsvWriterBenchmark.write                                thrpt    4  4076061.979 ± 4809255.173  ops/s

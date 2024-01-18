@@ -167,9 +167,8 @@ class CsvWriter internal constructor(
     val length = value.length
     var needsQuotes = quoteStrategy == QuoteStrategy.ALWAYS
     var nextDelimPos = -1
-    var index = 0
 
-   while (index < length) {
+   for (index in 0 ..< length) {
       val c = value[index]
       if (c == quoteCharacter) {
         needsQuotes = true
@@ -179,8 +178,6 @@ class CsvWriter internal constructor(
       if (!needsQuotes && (c == fieldSeparator || c == LF || c == CR || firstField && index == 0 && c == commentCharacter)) {
         needsQuotes = true
       }
-
-      index++
     }
 
     if (needsQuotes) {
@@ -333,10 +330,8 @@ class CsvWriter internal constructor(
       }
 
       // str.getChars(off, off + len, buf, pos);
-      var index = 0
-      while (index < length) { // 254 ms / 122 ms / 264 ms
+      for (index in 0 ..< length) { // 254 ms / 122 ms / 264 ms
         buf[pos + index] = string[offset + index]
-        index++
       }
       pos += length
     }
