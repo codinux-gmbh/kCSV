@@ -12,7 +12,7 @@ class CsvWriterExample {
     fun writeToStringBuilder() {
         val stringBuilder = StringBuilder()
 
-        CsvWriter(DataWriter.writer(stringBuilder))
+        CsvWriter.builder().writer(stringBuilder)
             .writeRow("header1", "header2")
             .writeRow("value1", "value2")
 
@@ -22,18 +22,18 @@ class CsvWriterExample {
     @Test
     fun customSettings() {
         val stringBuilder = StringBuilder()
-        val writer = CsvWriter(
-            DataWriter.writer(stringBuilder),
+
+        val writer = CsvWriter.builder(
             fieldSeparator = ';',
             quoteCharacter = '\'',
             quoteStrategy = QuoteStrategy.REQUIRED,
             lineDelimiter = LineDelimiter.CRLF,
             commentCharacter = '#'
-        )
+        ).writer(stringBuilder)
 
         writer
             .writeRow("header1", "header2")
-            .writeRow("value;", "value2")
+            .writeRow("value;", "value2") // ';' gets quoted with '\''
 
         println(stringBuilder.toString())
     }
