@@ -147,8 +147,7 @@ internal class RowHandler(
     if (isEmpty) {
       reusedCsvRowInstance.updateEmptyRow(originalLineNumber, isCommentMode)
     } else {
-      val fields = Array(idx) { index -> row[index] }
-      reusedCsvRowInstance.updateRow(fields, originalLineNumber, isCommentMode, isEmpty)
+      reusedCsvRowInstance.updateRow(row, idx, originalLineNumber, isCommentMode, isEmpty)
     }
 
     return reusedCsvRowInstance

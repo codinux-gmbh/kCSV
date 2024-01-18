@@ -78,11 +78,21 @@ class CsvRow internal constructor(
     private set
 
   internal fun updateEmptyRow(originalLineNumber: Long, isComment: Boolean) =
-    updateRow(EMPTY, originalLineNumber, isComment, true)
+    updateRow(EMPTY, 1, originalLineNumber, isComment, true)
 
-  internal fun updateRow(fields: Array<String>, originalLineNumber: Long, isComment: Boolean, isEmpty: Boolean) {
-    this.fieldCount = fields.size
-    this._fields = fields
+  internal fun updateRow(uncopiedFields: Array<String>, columnIndex: Int, originalLineNumber: Long, isComment: Boolean, isEmpty: Boolean) {
+    // if arrays have the same size, simply copy the fields over instead of creating a new array for each row (saves a lot of memory for larger CSVs)
+    if (this._fields.size == uncopiedFields.size) {
+      for (i in 0..< columnIndex) {
+        this.fieldCount = columnIndex
+        this._fields[i] = uncopiedFields[i]
+      }
+    } else {
+      val fields = Array(columnIndex) { index -> uncopiedFields[index] }
+      this.fieldCount = fields.size
+      this._fields = fields
+    }
+
     this.originalLineNumber = originalLineNumber
     this.isComment = isComment
     this.isEmpty = isEmpty
