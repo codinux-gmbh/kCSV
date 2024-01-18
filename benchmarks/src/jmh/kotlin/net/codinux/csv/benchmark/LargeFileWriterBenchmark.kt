@@ -1,5 +1,6 @@
 package net.codinux.csv.benchmark
 
+import net.codinux.csv.benchmark.utils.TestData
 import net.codinux.csv.reader.CsvReader
 import net.codinux.csv.reader.read
 import net.codinux.csv.writer.CsvWriter
@@ -13,7 +14,7 @@ import kotlin.io.path.Path
 class LargeFileWriterBenchmark {
 
     companion object {
-        private val LargeCsvFilePath = Path("src/jmh/resources/data/ZhvAllStationsResponse_2022-11-11_cleaned.csv")
+        private val LargeCsvFilePath = TestData.extractedLargeCsvFile
 
         private val data = CsvReader().read(LargeCsvFilePath).map { row -> row.fields }
     }

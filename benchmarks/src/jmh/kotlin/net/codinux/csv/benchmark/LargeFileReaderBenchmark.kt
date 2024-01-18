@@ -1,17 +1,17 @@
 package net.codinux.csv.benchmark
 
+import net.codinux.csv.benchmark.utils.TestData
 import net.codinux.csv.reader.CsvReader
 import net.codinux.csv.reader.read
 import org.openjdk.jmh.annotations.Benchmark
 import org.openjdk.jmh.annotations.BenchmarkMode
 import org.openjdk.jmh.annotations.Mode
-import kotlin.io.path.Path
 
 @BenchmarkMode(Mode.AverageTime)
 class LargeFileReaderBenchmark {
 
     companion object {
-        private val LargeCsvFilePath = Path("src/jmh/resources/data/ZhvAllStationsResponse_2022-11-11_cleaned.csv")
+        private val LargeCsvFilePath = TestData.extractedLargeCsvFile
     }
 
     @Benchmark
