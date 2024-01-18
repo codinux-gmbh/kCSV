@@ -36,6 +36,8 @@ dependencies {
 jmh {
     jmhVersion.set(jmhDepVersion)
 
+    excludes.addAll("ArrayCopyBenchmark")
+
     warmupIterations.set(2)
     iterations.set(2)
     fork.set(2)

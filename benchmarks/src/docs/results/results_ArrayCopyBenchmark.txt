@@ -1,0 +1,8 @@
+Benchmark                                  Mode  Cnt        Score        Error  Units
+ArrayCopyBenchmark.copyInto               thrpt    4  2346848.107 ± 322412.297  ops/s
+ArrayCopyBenchmark.copyViaIndexIterating  thrpt    4  2572099.761 ± 438375.474  ops/s
+ArrayCopyBenchmark.copyViaWhileIterating  thrpt    4  2534567.435 ± 736414.152  ops/s
+
+ArrayCopyBenchmark.copyInto               thrpt    4  2188104.400 ±  456016.777  ops/s
+ArrayCopyBenchmark.copyViaIndexIterating  thrpt    4  2640447.161 ± 1000043.556  ops/s
+ArrayCopyBenchmark.copyViaWhileIterating  thrpt    4  2401751.729 ±  367768.157  ops/s

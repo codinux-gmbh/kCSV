@@ -220,7 +220,10 @@ class RowReader internal constructor(
           } else {
             // relocate data in existing buffer
             // System.arraycopy(buf, begin, buf, 0, lenToCopy);
-            buf.copyInto(buf, 0, begin, begin + lenToCopy)
+            // iterating over indices is way faster than buf.copyInto(buf, 0, begin, begin + lenToCopy), see ArrayCopyBenchmark
+            for (index in 0..<lenToCopy) {
+              buf[index] = buf[begin + index]
+            }
           }
           pos -= begin
           begin = 0
