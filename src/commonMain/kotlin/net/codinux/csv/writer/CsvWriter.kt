@@ -168,7 +168,7 @@ class CsvWriter internal constructor(
     var needsQuotes = quoteStrategy == QuoteStrategy.ALWAYS
     var nextDelimPos = -1
 
-   for (index in 0 ..< length) {
+   for (index in 0 until length) {
       val c = value[index]
       if (c == quoteCharacter) {
         needsQuotes = true
@@ -330,7 +330,7 @@ class CsvWriter internal constructor(
       }
 
       // str.getChars(off, off + len, buf, pos);
-      for (index in 0 ..< length) { // 254 ms / 122 ms / 264 ms
+      for (index in 0 until length) { // 254 ms / 122 ms / 264 ms
         buf[pos + index] = string[offset + index]
       }
       pos += length

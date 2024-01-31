@@ -79,7 +79,7 @@ class CsvRow internal constructor(
   internal fun updateRow(uncopiedFields: Array<String>, columnIndex: Int, originalLineNumber: Long, isComment: Boolean, isEmpty: Boolean) {
     // if arrays have the same size, simply copy the fields over instead of creating a new array for each row (saves a lot of memory for larger CSVs)
     if (this._fields.size == uncopiedFields.size) {
-      for (i in 0..< columnIndex) {
+      for (i in 0 until columnIndex) {
         this.fieldCount = columnIndex
         this._fields[i] = uncopiedFields[i]
       }

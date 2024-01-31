@@ -62,7 +62,7 @@ internal class RowHandler(
 
     // couldn't believe it, but iterating over an array per index is way faster than Set<Int>.contains(idx)
     @Suppress("ReplaceManualRangeWithIndicesCalls")
-    for (i in 0..< ignoreColumns.size) {
+    for (i in 0 until ignoreColumns.size) {
       if (ignoreColumns[i] == idx) {
         return true
       }
