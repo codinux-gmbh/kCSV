@@ -88,6 +88,15 @@ class CsvRowJvmTest {
     }
 
     @Test
+    fun getBigDecimalOrNull_ByColumnIndex_SpecifyDecimalSeparator_ValueIsNotABigDecimal() {
+        val row = row("2;0")
+
+        val value = row.getBigDecimalOrNull(0, ',')
+
+        assertNull(value)
+    }
+
+    @Test
     fun getBigDecimalOrNull_ByColumnName_SpecifyDecimalSeparator() {
         val row = row("Double", "3,14")
 
@@ -191,6 +200,15 @@ class CsvRowJvmTest {
     }
 
     @Test
+    fun getFloatOrNull_ByColumnIndex_SpecifyNumberFormat_ValueIsNotAFloat() {
+        val row = row("true")
+
+        val value = row.getFloatOrNull(0, GermanNumberFormat)
+
+        assertNull(value)
+    }
+
+    @Test
     fun getFloatOrNull_ByColumnName_SpecifyNumberFormat() {
         val row = row("Float", "3,14")
 
@@ -202,6 +220,15 @@ class CsvRowJvmTest {
     @Test
     fun getFloatOrNull_ByColumnName_SpecifyNumberFormat_ValueNotSet() {
         val row = row("Float", "")
+
+        val value = row.getFloatOrNull("Float", GermanNumberFormat)
+
+        assertNull(value)
+    }
+
+    @Test
+    fun getFloatOrNull_ByColumnName_SpecifyNumberFormat_ValueIsNotAFloat() {
+        val row = row("Float", "true")
 
         val value = row.getFloatOrNull("Float", GermanNumberFormat)
 
@@ -227,6 +254,15 @@ class CsvRowJvmTest {
     }
 
     @Test
+    fun getDoubleOrNull_ByColumnIndex_SpecifyNumberFormat_ValueIsNotADouble() {
+        val row = row("true")
+
+        val value = row.getDoubleOrNull(0, GermanNumberFormat)
+
+        assertNull(value)
+    }
+
+    @Test
     fun getDoubleOrNull_ByColumnName_SpecifyNumberFormat() {
         val row = row("Double", "3,14")
 
@@ -238,6 +274,15 @@ class CsvRowJvmTest {
     @Test
     fun getDoubleOrNull_ByColumnName_SpecifyNumberFormat_ValueNotSet() {
         val row = row("Double", "")
+
+        val value = row.getDoubleOrNull("Double", GermanNumberFormat)
+
+        assertNull(value)
+    }
+
+    @Test
+    fun getDoubleOrNull_ByColumnName_SpecifyNumberFormat_ValueIsNotADouble() {
+        val row = row("Double", "true")
 
         val value = row.getDoubleOrNull("Double", GermanNumberFormat)
 
@@ -262,18 +307,18 @@ class CsvRowJvmTest {
 
     @Test
     fun getBigDecimal_ByColumnName_SpecifyNumberFormat() {
-        val row = row("Double", "3,14")
+        val row = row("BigDecimal", "3,14")
 
-        val value = row.getBigDecimal("Double", GermanNumberFormat)
+        val value = row.getBigDecimal("BigDecimal", GermanNumberFormat)
 
         assertEquals(value, BigDecimal("3.14"))
     }
 
     @Test
     fun getBigDecimal_ByColumnName_SpecifyNumberFormat_ValueNotSet() {
-        val row = row("Double", "")
+        val row = row("BigDecimal", "")
 
-        assertFails { row.getBigDecimal("Double", GermanNumberFormat) }
+        assertFails { row.getBigDecimal("BigDecimal", GermanNumberFormat) }
     }
 
     @Test
@@ -295,19 +340,37 @@ class CsvRowJvmTest {
     }
 
     @Test
-    fun getBigDecimalOrNull_ByColumnName_SpecifyNumberFormat() {
-        val row = row("Double", "3,14")
+    fun getBigDecimalOrNull_ByColumnIndex_SpecifyNumberFormat_ValueIsNotABigDecimal() {
+        val row = row("true")
 
-        val value = row.getBigDecimalOrNull("Double", GermanNumberFormat)
+        val value = row.getBigDecimalOrNull(0, GermanNumberFormat)
+
+        assertNull(value)
+    }
+
+    @Test
+    fun getBigDecimalOrNull_ByColumnName_SpecifyNumberFormat() {
+        val row = row("BigDecimal", "3,14")
+
+        val value = row.getBigDecimalOrNull("BigDecimal", GermanNumberFormat)
 
         assertEquals(value, BigDecimal("3.14"))
     }
 
     @Test
     fun getBigDecimalOrNull_ByColumnName_SpecifyNumberFormat_ValueNotSet() {
-        val row = row("Double", "")
+        val row = row("BigDecimal", "")
 
-        val value = row.getBigDecimalOrNull("Double", GermanNumberFormat)
+        val value = row.getBigDecimalOrNull("BigDecimal", GermanNumberFormat)
+
+        assertNull(value)
+    }
+
+    @Test
+    fun getBigDecimalOrNull_ByColumnName_SpecifyNumberFormat_ValueIsNotABigDecimal() {
+        val row = row("BigDecimal", "true")
+
+        val value = row.getBigDecimalOrNull("BigDecimal", GermanNumberFormat)
 
         assertNull(value)
     }
@@ -364,6 +427,15 @@ class CsvRowJvmTest {
     }
 
     @Test
+    fun getInstantOrNull_ByColumnIndex_ValueIsNotAnInstant() {
+        val row = row("true")
+
+        val value = row.getInstantOrNull(0)
+
+        assertNull(value)
+    }
+
+    @Test
     fun getInstantOrNull_ByColumnName() {
         val row = row("Instant", InstantString)
 
@@ -384,6 +456,15 @@ class CsvRowJvmTest {
         val row = emptyRow()
 
         val value = row.getInstantOrNull("any", false)
+
+        assertNull(value)
+    }
+
+    @Test
+    fun getInstantOrNull_ByColumnName_ValueIsNotAnInstant() {
+        val row = row("Instant", "true")
+
+        val value = row.getInstantOrNull("Instant")
 
         assertNull(value)
     }
@@ -458,6 +539,15 @@ class CsvRowJvmTest {
     }
 
     @Test
+    fun getLocalDateOrNull_ByColumnIndex_ValueIsNotALocalDate() {
+        val row = row("2")
+
+        val value = row.getLocalDateOrNull(0)
+
+        assertNull(value)
+    }
+
+    @Test
     fun getLocalDateOrNull_ByColumnIndex_SpecifyDateTimeFormatter() {
         val row = row(LocalDateStringForFormatter)
 
@@ -485,6 +575,15 @@ class CsvRowJvmTest {
     @Test
     fun getLocalDateOrNull_ByColumnName_EmptyValue() {
         val row = row("LocalDate", "")
+
+        val value = row.getLocalDateOrNull("LocalDate")
+
+        assertNull(value)
+    }
+
+    @Test
+    fun getLocalDateOrNull_ByColumnName_ValueIsNotALocalDate() {
+        val row = row("LocalDate", "2")
 
         val value = row.getLocalDateOrNull("LocalDate")
 
@@ -586,6 +685,15 @@ class CsvRowJvmTest {
     }
 
     @Test
+    fun getLocalTimeOrNull_ByColumnIndex_ValueIsNotALocalDate() {
+        val row = row("2")
+
+        val value = row.getLocalTimeOrNull(0)
+
+        assertNull(value)
+    }
+
+    @Test
     fun getLocalTimeOrNull_ByColumnIndex_SpecifyDateTimeFormatter() {
         val row = row(LocalTimeStringForFormatter)
 
@@ -613,6 +721,15 @@ class CsvRowJvmTest {
     @Test
     fun getLocalTimeOrNull_ByColumnName_EmptyValue() {
         val row = row("LocalTime", "")
+
+        val value = row.getLocalTimeOrNull("LocalTime")
+
+        assertNull(value)
+    }
+
+    @Test
+    fun getLocalTimeOrNull_ByColumnName_ValueIsNotALocalDate() {
+        val row = row("LocalTime", "2")
 
         val value = row.getLocalTimeOrNull("LocalTime")
 
@@ -714,6 +831,15 @@ class CsvRowJvmTest {
     }
 
     @Test
+    fun getLocalDateTimeOrNull_ByColumnIndex_ValueIsNotALocalDate() {
+        val row = row("2")
+
+        val value = row.getLocalDateTimeOrNull(0)
+
+        assertNull(value)
+    }
+
+    @Test
     fun getLocalDateTimeOrNull_ByColumnIndex_SpecifyDateTimeFormatter() {
         val row = row(LocalDateTimeStringForFormatter)
 
@@ -741,6 +867,15 @@ class CsvRowJvmTest {
     @Test
     fun getLocalDateTimeOrNull_ByColumnName_EmptyValue() {
         val row = row("LocalDateTime", "")
+
+        val value = row.getLocalDateTimeOrNull("LocalDateTime")
+
+        assertNull(value)
+    }
+
+    @Test
+    fun getLocalDateTimeOrNull_ByColumnName_ValueIsNotALocalDate() {
+        val row = row("LocalDateTime", "2")
 
         val value = row.getLocalDateTimeOrNull("LocalDateTime")
 

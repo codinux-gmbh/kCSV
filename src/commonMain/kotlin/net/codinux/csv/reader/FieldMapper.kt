@@ -5,20 +5,11 @@ internal object FieldMapper {
     fun fieldIsNotNull(field: String): Boolean =
         field.isNotBlank() && field.equals("null", ignoreCase = true) == false
 
-    fun String.mapToBoolean() = this.lowercase().toBooleanStrict()
+    fun String.toBoolean() = this.lowercase().toBooleanStrict()
 
-    fun String.mapToInt() = this.toInt()
+    fun String.toBooleanOrNull() = this.lowercase().toBooleanStrictOrNull()
 
-    fun String.mapToLong() = this.toLong()
-
-    fun String.mapToFloat() = this.toFloat()
-
-    fun String.mapToDouble() = this.toDouble()
-
-    fun String.replaceDecimalSeparatorAndMapToFloat(decimalSeparator: Char) =
-        this.replace(decimalSeparator, '.').toFloat()
-
-    fun String.replaceDecimalSeparatorAndMapToDouble(decimalSeparator: Char) =
-        this.replace(decimalSeparator, '.').toDouble()
+    fun String.replaceDecimalSeparator(decimalSeparator: Char) =
+        this.replace(decimalSeparator, '.')
 
 }
