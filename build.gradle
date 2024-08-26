@@ -29,11 +29,14 @@ sourceSets {
 
 
 kotlin {
-    // Enable the default target hierarchy:
-    targetHierarchy.default()
+    jvmToolchain(8)
+
+    compilerOptions {
+        // suppresses compiler warning: [EXPECT_ACTUAL_CLASSIFIERS_ARE_IN_BETA_WARNING] 'expect'/'actual' classes (including interfaces, objects, annotations, enums, and 'actual' typealiases) are in Beta.
+        freeCompilerArgs.add("-Xexpect-actual-classes")
+    }
 
     jvm {
-        jvmToolchain(8)
         withJava() // not allowed if android { } is present
 
         testRuns["test"].executionTask.configure {
@@ -68,26 +71,23 @@ kotlin {
         }
     }
 
-    // wasm()
+    wasmJs()
 
 
     linuxX64()
     mingwX64()
 
-    ios {
-        binaries {
-            framework {
-                baseName = "kCSV"
-            }
-        }
-    }
+    iosX64()
+    iosArm64()
     iosSimulatorArm64()
     macosX64()
     macosArm64()
-    watchos()
+    watchosArm64()
     watchosSimulatorArm64()
-    tvos()
+    tvosArm64()
     tvosSimulatorArm64()
+
+    applyDefaultHierarchyTemplate()
 
 
     sourceSets {
