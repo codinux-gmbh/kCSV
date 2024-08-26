@@ -30,7 +30,7 @@ In addition to FastCSV, it also has these features:
 
 ```
 dependencies {
-  implementation "net.codinux.csv:kcsv:2.1.1"
+  implementation "net.codinux.csv:kcsv:2.2.0"
 }
 ```
 
@@ -42,7 +42,7 @@ Maven does not support automatic platform resolution as Gradle does, therefore t
 <dependency>
    <groupId>net.codinux.csv</groupId>
    <artifactId>kcsv-jvm</artifactId>
-   <version>2.1.1</version>
+   <version>2.2.0</version>
 </dependency>
 ```
 
